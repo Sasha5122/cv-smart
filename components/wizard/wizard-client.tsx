@@ -1,17 +1,14 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { WizardLayout } from "./wizard-layout";
+import { StarterChoice } from "./starter-choice";
 import { useWizard } from "@/hooks/use-wizard";
 import type { WizardStep } from "@/lib/types/cv";
 
 import { Step00CVUpload } from "./steps/step-00-cv-upload";
 import { Step01JobDescription } from "./steps/step-01-job-description";
 import { Step02Photo } from "./steps/step-02-photo";
-import { Step03LastName } from "./steps/step-03-last-name";
-import { Step04FirstName } from "./steps/step-04-first-name";
-import { Step05Phone } from "./steps/step-05-phone";
-import { Step06Email } from "./steps/step-06-email";
-import { Step07Address } from "./steps/step-07-address";
+import { Step03Contact } from "./steps/step-03-contact";
 import { Step08Education } from "./steps/step-08-education";
 import { Step09Experience } from "./steps/step-09-experience";
 import { Step10Skills } from "./steps/step-10-skills";
@@ -28,8 +25,12 @@ export function WizardClient({ sessionId }: WizardClientProps) {
   const wizard = useWizard(sessionId);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
+  // "started" = false → show starter choice screen
+  const [started, setStarted] = useState(false);
+
   // Auto-save to DB debounced
   useEffect(() => {
+    if (!started) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       fetch(`/api/session/${sessionId}`, {
@@ -38,10 +39,21 @@ export function WizardClient({ sessionId }: WizardClientProps) {
         body: JSON.stringify({ cv_data: wizard.cvData }),
       }).catch(() => {});
     }, 1000);
-  }, [wizard.cvData, sessionId]);
+  }, [wizard.cvData, sessionId, started]);
 
+  // ── Starter choice ────────────────────────────────────────────
+  if (!started) {
+    return (
+      <StarterChoice
+        onImport={() => { setStarted(true); wizard.setStep(0 as WizardStep); }}
+        onScratch={() => { setStarted(true); wizard.setStep(1 as WizardStep); }}
+      />
+    );
+  }
+
+  // ── Wizard steps ──────────────────────────────────────────────
   const renderStep = () => {
-    const { currentStep, cvData, next, back, updateCVData, updatePersonal, setJobDescription, jobDescription } = wizard;
+    const { currentStep, cvData, next, back, updateCVData, updatePersonal, setStep, setJobDescription, jobDescription } = wizard;
 
     switch (currentStep as WizardStep) {
       case 0:
@@ -78,52 +90,18 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             onSkip={next}
           />
         );
+      // Steps 3-7 combined into single contact form
       case 3:
-        return (
-          <Step03LastName
-            value={cvData.personal?.lastName ?? ""}
-            onChange={(v) => updatePersonal({ lastName: v })}
-            onNext={next}
-            onBack={back}
-          />
-        );
       case 4:
-        return (
-          <Step04FirstName
-            value={cvData.personal?.firstName ?? ""}
-            lastName={cvData.personal?.lastName ?? ""}
-            onChange={(v) => updatePersonal({ firstName: v })}
-            onNext={next}
-            onBack={back}
-          />
-        );
       case 5:
-        return (
-          <Step05Phone
-            value={cvData.personal?.phone ?? ""}
-            onChange={(v) => updatePersonal({ phone: v })}
-            onNext={next}
-            onBack={back}
-          />
-        );
       case 6:
-        return (
-          <Step06Email
-            value={cvData.personal?.email ?? ""}
-            firstName={cvData.personal?.firstName}
-            lastName={cvData.personal?.lastName}
-            onChange={(v) => updatePersonal({ email: v })}
-            onNext={next}
-            onBack={back}
-          />
-        );
       case 7:
         return (
-          <Step07Address
+          <Step03Contact
             value={cvData.personal}
-            onChange={(data) => updatePersonal(data)}
-            onNext={next}
-            onBack={back}
+            onChange={updatePersonal}
+            onNext={() => setStep(8 as WizardStep)}
+            onBack={() => setStep(2 as WizardStep)}
           />
         );
       case 8:
@@ -134,7 +112,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             courses={cvData.courses}
             onUpdate={(education, courses) => updateCVData({ education, courses })}
             onNext={next}
-            onBack={back}
+            onBack={() => setStep(3 as WizardStep)}
           />
         );
       case 9:

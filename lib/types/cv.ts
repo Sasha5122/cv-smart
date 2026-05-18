@@ -13,6 +13,7 @@ export const PersonalInfoSchema = z.object({
   postalCode: z.string().optional(),
   country: z.string().default("România"),
   photoUrl: z.string().optional(),
+  linkedin: z.string().optional(),
 });
 
 export const EducationSchema = z.object({
