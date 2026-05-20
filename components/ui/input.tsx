@@ -11,7 +11,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, hint, error, icon, iconRight, id, ...props }, ref) => {
+  ({ className, label, hint, error, icon, iconRight, id, style, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
@@ -19,14 +19,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-medium text-slate-700"
+            className="text-lg font-medium text-slate-700"
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {icon && (
-            <span className="absolute left-3 text-slate-400 pointer-events-none">
+            <span className="absolute text-slate-400 pointer-events-none" style={{ left: 16 }}>
               {icon}
             </span>
           )}
@@ -34,29 +34,32 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             className={cn(
-              "w-full rounded-[10px] border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900",
+              "w-full rounded-[10px] border border-slate-400 bg-white py-3 text-lg text-slate-900",
               "placeholder:text-slate-400",
               "transition-all duration-150",
               "focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100",
               "disabled:bg-slate-50 disabled:text-slate-400",
               error && "border-red-400 focus:border-red-400 focus:ring-red-100",
-              icon && "pl-10",
-              iconRight && "pr-10",
               className
             )}
+            style={{
+              paddingLeft: icon ? 56 : 20,
+              paddingRight: iconRight ? 56 : 20,
+              ...style,
+            }}
             {...props}
           />
           {iconRight && (
-            <span className="absolute right-3 text-slate-400 pointer-events-none">
+            <span className="absolute text-slate-400 pointer-events-none" style={{ right: 16 }}>
               {iconRight}
             </span>
           )}
         </div>
         {hint && !error && (
-          <p className="text-xs text-slate-500">{hint}</p>
+          <p className="text-lg text-slate-500">{hint}</p>
         )}
         {error && (
-          <p className="text-xs text-red-500">{error}</p>
+          <p className="text-lg text-red-500">{error}</p>
         )}
       </div>
     );

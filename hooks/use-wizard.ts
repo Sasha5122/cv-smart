@@ -80,7 +80,7 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
 export function useWizard(sessionId: string) {
   const [state, dispatch] = useReducer(wizardReducer, {
     sessionId,
-    currentStep: 0,
+    currentStep: 1,
     cvData: EMPTY_CV_DATA,
     jobDescription: "",
     chatHistories: {},

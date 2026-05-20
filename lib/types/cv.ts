@@ -8,6 +8,8 @@ export const PersonalInfoSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional(),
   street: z.string().optional(),
+  streetNumber: z.string().optional(),
+  apartment: z.string().optional(),
   city: z.string().optional(),
   county: z.string().optional(),
   postalCode: z.string().optional(),

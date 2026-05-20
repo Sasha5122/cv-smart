@@ -49,8 +49,8 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
           {languages.map((lang, i) => (
             <div key={i} className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">
               <div>
-                <span className="text-sm font-semibold text-slate-900">{lang.name}</span>
-                <span className="text-xs text-slate-500 ml-2">{lang.level}</span>
+                <span className="text-lg font-semibold text-slate-900">{lang.name}</span>
+                <span className="text-sm text-slate-500 ml-2">{lang.level}</span>
               </div>
               <button onClick={() => remove(i)} className="w-7 h-7 bg-red-50 hover:bg-red-100 rounded-lg flex items-center justify-center text-red-400">
                 <X className="w-3.5 h-3.5" />
@@ -61,13 +61,13 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
       )}
 
       {/* Quick add from common */}
-      <p className="text-xs text-slate-400 mb-2">Adaugă rapid:</p>
+      <p className="text-sm text-slate-400 mb-2">Adaugă rapid:</p>
       <div className="flex flex-wrap gap-1.5 mb-4">
         {COMMON_LANGS.filter((l) => !languages.some((lang) => lang.name === l)).map((l) => (
           <button
             key={l}
             onClick={() => { setName(l); }}
-            className="text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 px-3 py-1.5 rounded-lg"
+            className="text-sm bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 px-3 py-1.5 rounded-lg"
           >
             {l}
           </button>
@@ -77,21 +77,21 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
       {/* Add form */}
       <div className="flex gap-2 items-end">
         <div className="flex-1">
-          <label className="text-xs font-medium text-slate-600 mb-1 block">Limbă</label>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">Limbă</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="ex: Engleză"
             onKeyDown={(e) => e.key === "Enter" && addLanguage()}
-            className="w-full rounded-[10px] border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            className="w-full rounded-[10px] border border-slate-400 bg-white px-3 py-2.5 text-lg focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
           />
         </div>
         <div className="flex-1">
-          <label className="text-xs font-medium text-slate-600 mb-1 block">Nivel</label>
+          <label className="text-sm font-medium text-slate-600 mb-1 block">Nivel</label>
           <select
             value={level}
             onChange={(e) => setLevel(e.target.value)}
-            className="w-full rounded-[10px] border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+            className="w-full rounded-[10px] border border-slate-400 bg-white px-3 py-2.5 text-lg focus:outline-none focus:border-indigo-400"
           >
             {LEVELS.map((l) => (
               <option key={l.value} value={l.value}>{l.label}</option>

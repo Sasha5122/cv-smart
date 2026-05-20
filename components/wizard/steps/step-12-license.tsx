@@ -33,12 +33,12 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
     >
       {/* License toggle */}
       <div className="mb-5">
-        <p className="text-sm font-medium text-slate-700 mb-3">Ai permis de conducere?</p>
+        <p className="text-lg font-medium text-slate-700 mb-3">Ai permis de conducere?</p>
         <div className="flex gap-2">
           <button
             onClick={() => onUpdateLicense({ ...license, hasLicense: true })}
             className={cn(
-              "flex-1 py-3 rounded-xl border-2 text-sm font-medium transition-all",
+              "flex-1 py-3 rounded-xl border-2 text-lg font-medium transition-all",
               license.hasLicense
                 ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                 : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
@@ -49,7 +49,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
           <button
             onClick={() => onUpdateLicense({ hasLicense: false, categories: [] })}
             className={cn(
-              "flex-1 py-3 rounded-xl border-2 text-sm font-medium transition-all",
+              "flex-1 py-3 rounded-xl border-2 text-lg font-medium transition-all",
               !license.hasLicense
                 ? "border-slate-500 bg-slate-50 text-slate-700"
                 : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
@@ -63,14 +63,14 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
       {/* Categories */}
       {license.hasLicense && (
         <div className="mb-5">
-          <p className="text-sm font-medium text-slate-700 mb-2">Categorii permis:</p>
+          <p className="text-lg font-medium text-slate-700 mb-2">Categorii permis:</p>
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => toggleCat(cat)}
                 className={cn(
-                  "w-12 h-10 rounded-lg border-2 text-sm font-semibold transition-all",
+                  "w-14 h-11 rounded-lg border-2 text-base font-semibold transition-all",
                   license.categories.includes(cat)
                     ? "border-indigo-500 bg-indigo-500 text-white"
                     : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300"

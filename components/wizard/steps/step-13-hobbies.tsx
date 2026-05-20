@@ -74,7 +74,7 @@ export function Step13Hobbies({ sessionId, hobbies, onUpdate, onNext, onBack }: 
       {hobbies.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {hobbies.map((h, i) => (
-            <div key={i} className="flex items-center gap-1 bg-violet-50 border border-violet-200 text-violet-700 px-3 py-1.5 rounded-full text-sm">
+            <div key={i} className="flex items-center gap-1 bg-violet-50 border border-violet-200 text-violet-700 px-3 py-1.5 rounded-full text-lg">
               {h}
               <button onClick={() => removeHobby(i)} className="ml-1 text-violet-400 hover:text-violet-700">
                 <X className="w-3.5 h-3.5" />
@@ -91,7 +91,7 @@ export function Step13Hobbies({ sessionId, hobbies, onUpdate, onNext, onBack }: 
           onChange={(e) => setNewHobby(e.target.value)}
           placeholder="Adaugă hobby manual"
           onKeyDown={(e) => e.key === "Enter" && addHobby()}
-          className="flex-1 rounded-[10px] border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+          className="flex-1 rounded-[10px] border border-slate-400 bg-white px-3 py-2.5 text-lg focus:outline-none focus:border-indigo-400"
         />
         <Button variant="outline" onClick={addHobby} icon={<Plus className="w-4 h-4" />}>Adaugă</Button>
       </div>

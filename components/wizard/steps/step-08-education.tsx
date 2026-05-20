@@ -91,9 +91,9 @@ export function Step08Education({ sessionId, education, courses, onUpdate, onNex
     >
       {education.length > 0 && (
         <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-          <p className="text-xs font-medium text-emerald-800 mb-2">✓ Date salvate până acum:</p>
+          <p className="text-sm font-medium text-emerald-800 mb-2">✓ Date salvate până acum:</p>
           {education.map((e, i) => (
-            <p key={i} className="text-xs text-emerald-700">
+            <p key={i} className="text-sm text-emerald-700">
               • {e.level} — {e.institution} ({e.years})
             </p>
           ))}

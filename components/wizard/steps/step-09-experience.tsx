@@ -144,8 +144,8 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
                     <Briefcase size={16} color="#4F46E5" />
                   </div>
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: "#0D0D0D" }}>{exp.title}</p>
-                    <p style={{ fontSize: 12, color: "#6B7280" }}>{exp.company} · {exp.period}</p>
+                    <p style={{ fontSize: 18, fontWeight: 700, color: "#0D0D0D" }}>{exp.title}</p>
+                    <p style={{ fontSize: 16, color: "#6B7280" }}>{exp.company} · {exp.period}</p>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -153,7 +153,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
                     onClick={(e) => { e.stopPropagation(); handleEdit(i); }}
                     style={{
                       padding: "6px 12px",
-                      fontSize: 12,
+                      fontSize: 16,
                       color: "#4F46E5",
                       backgroundColor: "#EEEDF8",
                       border: "none",
@@ -187,7 +187,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
                 <div style={{ padding: "0 16px 14px 64px", borderTop: "1px solid #E5E7EB" }}>
                   <ul style={{ margin: "10px 0 0", paddingLeft: 4, listStyle: "none" }}>
                     {exp.responsibilities.map((r, j) => (
-                      <li key={j} style={{ fontSize: 13, color: "#374151", marginBottom: 4 }}>
+                      <li key={j} style={{ fontSize: 17, color: "#374151", marginBottom: 4 }}>
                         · {r}
                       </li>
                     ))}
@@ -210,7 +210,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
             marginBottom: 16,
           }}
         >
-          <p style={{ fontSize: 14, fontWeight: 700, color: "#0D0D0D", marginBottom: 16 }}>
+          <p style={{ fontSize: 18, fontWeight: 700, color: "#0D0D0D", marginBottom: 16 }}>
             {editIndex !== null ? "Editează experiența" : "Adaugă experiență"}
           </p>
 
@@ -247,20 +247,20 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
               />
             </div>
             <div>
-              <label style={{ fontSize: 14, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>
-                Responsabilități (opțional)
+              <label style={{ fontSize: 18, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>
+                Ce făceai acolo? (opțional)
               </label>
               <textarea
                 value={form.responsibilities}
                 onChange={(e) => set("responsibilities", e.target.value)}
-                placeholder={"Am dezvoltat funcționalități noi pentru aplicația web...\nAm colaborat cu echipa de design...\nAm redus timpii de încărcare cu 40%..."}
-                rows={4}
+                placeholder={"Descrie cu cuvintele tale ce anume făceai acolo.\nCu cât mai multe detalii, cu atât CV-ul va fi mai complet.\n\nExemplu:\nGestionam contabilitatea completă pentru aproximativ 15 firme client\nIntroduceam facturile de intrare și ieșire în programul de contabilitate\nÎntocmeam declarațiile fiscale lunare și trimestriale (D300, D394, D112)\nPregăteam balanțele de verificare și situațiile financiare anuale\nMă ocupam de relația cu ANAF — depuneri, răspunsuri la notificări\nReconciliam conturile bancare și verificam extrasele de cont\nComunicam direct cu clienții pentru colectarea documentelor"}
+                rows={6}
                 style={{
                   width: "100%",
                   borderRadius: 10,
                   border: "1px solid #E5E7EB",
                   padding: "10px 14px",
-                  fontSize: 13,
+                  fontSize: 17,
                   color: "#111827",
                   resize: "vertical",
                   outline: "none",
@@ -268,8 +268,8 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
                   lineHeight: 1.6,
                 }}
               />
-              <p style={{ fontSize: 11, color: "#9CA3AF", marginTop: 4 }}>
-                Câte o responsabilitate pe linie
+              <p style={{ fontSize: 16, color: "#6B7280", marginTop: 6 }}>
+                Cu cât mai multe detalii, cu atât mai bine
               </p>
             </div>
           </div>
@@ -280,7 +280,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
               style={{
                 flex: 1,
                 padding: "10px 16px",
-                fontSize: 14,
+                fontSize: 18,
                 color: "#6B7280",
                 backgroundColor: "#F3F4F6",
                 border: "1px solid #E5E7EB",
@@ -296,7 +296,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
               style={{
                 flex: 2,
                 padding: "10px 16px",
-                fontSize: 14,
+                fontSize: 18,
                 color: "#ffffff",
                 backgroundColor: "#4F46E5",
                 border: "none",
@@ -323,7 +323,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
             borderRadius: 12,
             backgroundColor: "#FAFAFA",
             color: "#4F46E5",
-            fontSize: 14,
+            fontSize: 18,
             fontWeight: 600,
             cursor: "pointer",
             marginBottom: 16,
@@ -336,7 +336,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
       )}
 
       {experience.length === 0 && !showForm && (
-        <p style={{ fontSize: 13, color: "#9CA3AF", textAlign: "center", marginBottom: 16 }}>
+        <p style={{ fontSize: 17, color: "#9CA3AF", textAlign: "center", marginBottom: 16 }}>
           Nicio experiență adăugată — poți continua fără.
         </p>
       )}

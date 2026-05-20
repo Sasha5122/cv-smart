@@ -15,7 +15,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="flex flex-col gap-1.5 w-full">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-slate-700">
+          <label htmlFor={inputId} className="text-lg font-medium text-slate-700">
             {label}
           </label>
         )}
@@ -23,7 +23,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={inputId}
           ref={ref}
           className={cn(
-            "w-full rounded-[10px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900",
+            "w-full rounded-[10px] border border-slate-400 bg-white px-5 py-3 text-lg text-slate-900",
             "placeholder:text-slate-400 resize-none",
             "transition-all duration-150",
             "focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100",
@@ -33,8 +33,8 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           )}
           {...props}
         />
-        {hint && !error && <p className="text-xs text-slate-500">{hint}</p>}
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {hint && !error && <p className="text-lg text-slate-500">{hint}</p>}
+        {error && <p className="text-lg text-red-500">{error}</p>}
       </div>
     );
   }
