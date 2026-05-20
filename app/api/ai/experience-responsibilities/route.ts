@@ -4,11 +4,11 @@ import { extractJSON, FAST_MODEL } from "@/lib/ai/client";
 interface QnA { question: string; answer: string; }
 
 const FALLBACK: string[] = [
-  "Gestionam activitățile zilnice specifice rolului",
-  "Colaboram cu echipa pentru atingerea obiectivelor",
-  "Asiguram calitatea și respectarea termenelor",
-  "Comunicam cu clienții/partenerii în mod profesional",
-  "Contribuiam la îmbunătățirea proceselor interne",
+  "Gestionarea activităților zilnice specifice rolului",
+  "Colaborarea cu echipa pentru atingerea obiectivelor",
+  "Asigurarea calității și respectarea termenelor",
+  "Comunicarea cu clienții/partenerii în mod profesional",
+  "Contribuirea la îmbunătățirea proceselor interne",
 ];
 
 export async function POST(req: NextRequest) {
@@ -37,12 +37,13 @@ export async function POST(req: NextRequest) {
 Candidatul a lucrat ca "${jobTitle}" la "${company}" (${period}).
 
 ${userInfo ? `INFORMAȚII FURNIZATE DE CANDIDAT:\n${userInfo}\n\n` : ""}SARCINA TA:
-1. Reformulează informațiile candidatului în limbaj profesional de CV (concis, impactant, la persoana I trecut)
+1. Reformulează informațiile candidatului în limbaj profesional de CV (concis, impactant)
 2. Completează cu 8-10 responsabilități tipice pentru rolul de "${jobTitle}" pe care candidatul probabil le-a îndeplinit
 3. Dacă candidatul a menționat cifre sau procente, păstrează-le
-4. Fiecare bullet: o propoziție scurtă, începe cu verb la trecut (Gestionam, Coordonam, Asiguram, Elaboram, Monitorizaram...)
+4. Fiecare bullet: o propoziție scurtă, începe cu substantiv verbal (Gestionarea, Coordonarea, Asigurarea, Elaborarea, Monitorizarea, Întocmirea, Verificarea, Realizarea, Pregătirea, Menținerea, Urmărirea...)
 5. Total: 12-15 bullet points
 6. Scrie în română, natural și profesional
+7. IMPORTANT: folosește ÎNTOTDEAUNA forma de substantiv verbal (cu -rea/-area/-irea la sfârșit), NU forma de verb conjugat (niciodată Gestionam, Coordonam etc.)
 
 Răspunde EXCLUSIV cu un array JSON de stringuri. Fără alt text.`,
       userMessage: `Job: ${jobTitle} la ${company}, ${period}`,
