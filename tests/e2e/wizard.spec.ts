@@ -312,6 +312,106 @@ test.describe("Wizard — Step 8: Work Experience", () => {
     await expect(page.getByText("Developer")).not.toBeVisible({ timeout: 3000 });
   });
 
+  test("faza întrebări AI — 5 întrebări vizibile cu textarea de răspuns", async ({ page }) => {
+    await goToExperience(page);
+    if (await page.getByText("Adaugă experiență profesională").isVisible().catch(() => false)) {
+      await page.getByText("Adaugă experiență profesională").click();
+    }
+    await page.getByLabel(/Funcție|Titlu job/i).fill("Contabil");
+    await page.getByLabel(/Companie/i).fill("Firma XYZ");
+    await page.getByLabel(/Perioadă/i).fill("Ian 2020 – Prezent");
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
+    // Should have at least 3 question labels (numbered)
+    const labels = page.locator("label").filter({ hasText: /^[1-5]\. / });
+    await expect(labels.first()).toBeVisible();
+    // Should have textarea for each question
+    const textareas = page.locator("textarea[placeholder*='răspuns']");
+    await expect(textareas.first()).toBeVisible();
+    // Continuă button visible
+    await expect(page.getByRole("button", { name: /Continuă/ })).toBeVisible();
+    // Înapoi button visible
+    await expect(page.getByRole("button", { name: "← Înapoi" })).toBeVisible();
+  });
+
+  test("faza întrebări — Înapoi revine la formular cu datele salvate", async ({ page }) => {
+    await goToExperience(page);
+    if (await page.getByText("Adaugă experiență profesională").isVisible().catch(() => false)) {
+      await page.getByText("Adaugă experiență profesională").click();
+    }
+    await page.getByLabel(/Funcție|Titlu job/i).fill("Manager");
+    await page.getByLabel(/Companie/i).fill("RetailCo");
+    await page.getByLabel(/Perioadă/i).fill("2021 – 2023");
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: "← Înapoi" }).click();
+    // Back to form phase — entry card visible
+    await expect(page.getByText("Manager").first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("RetailCo").first()).toBeVisible();
+  });
+
+  test("faza responsabilități AI — lista checkbox-uri apare după răspunsuri", async ({ page }) => {
+    await goToExperience(page);
+    if (await page.getByText("Adaugă experiență profesională").isVisible().catch(() => false)) {
+      await page.getByText("Adaugă experiență profesională").click();
+    }
+    await page.getByLabel(/Funcție|Titlu job/i).fill("Vânzător");
+    await page.getByLabel(/Companie/i).fill("Shop SRL");
+    await page.getByLabel(/Perioadă/i).fill("2022 – Prezent");
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
+    // Answer first question
+    await page.locator("textarea").first().fill("Vindeam produse și consiliuam clienții");
+    await page.getByRole("button", { name: /Continuă/ }).click();
+    // Responsibilities phase
+    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
+    // At least one checkbox visible
+    await expect(page.locator("input[type='checkbox']").first()).toBeVisible();
+    // Header bar with count visible
+    await expect(page.getByText(/din \d+ selectate/)).toBeVisible();
+    // Salvează button visible
+    await expect(page.getByRole("button", { name: /Salvează/ })).toBeVisible();
+  });
+
+  test("faza responsabilități — Selectează tot și Deselectează tot funcționează", async ({ page }) => {
+    await goToExperience(page);
+    if (await page.getByText("Adaugă experiență profesională").isVisible().catch(() => false)) {
+      await page.getByText("Adaugă experiență profesională").click();
+    }
+    await page.getByLabel(/Funcție|Titlu job/i).fill("Recepționer");
+    await page.getByLabel(/Companie/i).fill("Hotel ABC");
+    await page.getByLabel(/Perioadă/i).fill("2021 – Prezent");
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Continuă/ }).click();
+    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
+    // Deselect all
+    await page.getByRole("button", { name: "Deselectează tot", exact: true }).click();
+    await expect(page.getByText("0 din")).toBeVisible();
+    // Select all
+    await page.getByRole("button", { name: "Selectează tot", exact: true }).click();
+    const countText = await page.getByText(/\d+ din \d+ selectate/).textContent();
+    expect(countText).toMatch(/^\d+ din \d+ selectate$/);
+    const parts = countText!.match(/(\d+) din (\d+)/);
+    expect(parts![1]).toBe(parts![2]); // selected === total
+  });
+
+  test("faza responsabilități — Salvează și merge la Educație (Pas 5)", async ({ page }) => {
+    await goToExperience(page);
+    if (await page.getByText("Adaugă experiență profesională").isVisible().catch(() => false)) {
+      await page.getByText("Adaugă experiență profesională").click();
+    }
+    await page.getByLabel(/Funcție|Titlu job/i).fill("Asistent");
+    await page.getByLabel(/Companie/i).fill("Birou SRL");
+    await page.getByLabel(/Perioadă/i).fill("2020 – 2022");
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Continuă/ }).click();
+    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
+    await page.getByRole("button", { name: /Salvează/ }).click();
+    await expect(page.getByText("Pas 5 din 10")).toBeVisible({ timeout: 5000 });
+  });
+
   test("Continuă fără experiență → merge la educație (Pas 5)", async ({ page }) => {
     await goToExperience(page);
     await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
