@@ -68,9 +68,23 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
             Continuă
           </Button>
         </div>
-        <Button variant="ghost" onClick={onSkip} className="w-full text-slate-400">
-          Sari peste · CV universal
-        </Button>
+        <button
+          onClick={onSkip}
+          style={{
+            width: "100%",
+            padding: "11px 16px",
+            fontSize: 17,
+            fontWeight: 600,
+            color: "#6366F1",
+            backgroundColor: "#EEF2FF",
+            border: "2px dashed #A5B4FC",
+            borderRadius: 10,
+            cursor: "pointer",
+            letterSpacing: 0.2,
+          }}
+        >
+          Sari peste
+        </button>
       </div>
     </StepCard>
   );

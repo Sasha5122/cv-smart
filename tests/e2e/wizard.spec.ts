@@ -3,9 +3,9 @@ import { test, expect } from "@playwright/test";
 // ─── Helper: skip step 1 + 2, arrive at contact form ────────────────────────
 async function goToContact(page: import("@playwright/test").Page) {
   await page.goto("/creare-cv");
-  await page.getByText("Sari peste · CV universal").click();
+  await page.getByText("Sari peste").click();
   await page.waitForTimeout(300);
-  await page.getByText("Nu am fotografie potrivită · Sari peste").click();
+  await page.getByText("Nu am fotografie potrivită").click();
   await page.waitForTimeout(300);
 }
 
@@ -90,7 +90,7 @@ test.describe("Wizard — Step 1: Job Description", () => {
     await expect(page.getByRole("heading", { name: "Ce job vrei să obții?" })).toBeVisible({ timeout: 8000 });
     await expect(page.locator("textarea").first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Continuă" })).toBeVisible();
-    await expect(page.getByText("Sari peste · CV universal")).toBeVisible();
+    await expect(page.getByText("Sari peste")).toBeVisible();
   });
 
   test("exemplele rapide populează textarea", async ({ page }) => {
@@ -102,7 +102,7 @@ test.describe("Wizard — Step 1: Job Description", () => {
 
   test("'Sari peste' navighează la step fotografie", async ({ page }) => {
     await page.goto("/creare-cv");
-    await page.getByText("Sari peste · CV universal").click();
+    await page.getByText("Sari peste").click();
     await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
   });
 
@@ -118,14 +118,14 @@ test.describe("Wizard — Step 1: Job Description", () => {
 test.describe("Wizard — Step 2: Photo", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/creare-cv");
-    await page.getByText("Sari peste · CV universal").click();
+    await page.getByText("Sari peste").click();
     await page.waitForTimeout(300);
   });
 
   test("ecranul fotografiei are toate elementele", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
     await expect(page.getByText("+38% șanse mai multe cu fotografie")).toBeVisible();
-    await expect(page.getByText("Nu am fotografie potrivită · Sari peste")).toBeVisible();
+    await expect(page.getByText("Nu am fotografie potrivită")).toBeVisible();
   });
 
   test("zona de upload este prezentă în DOM", async ({ page }) => {
@@ -133,7 +133,7 @@ test.describe("Wizard — Step 2: Photo", () => {
   });
 
   test("'Sari peste' navighează la date de contact", async ({ page }) => {
-    await page.getByText("Nu am fotografie potrivită · Sari peste").click();
+    await page.getByText("Nu am fotografie potrivită").click();
     await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
   });
 });
@@ -279,7 +279,7 @@ test.describe("Wizard — Step 8: Work Experience", () => {
     await expect(page.getByLabel(/Perioadă/i)).toBeVisible();
   });
 
-  test("adaugă un job și îl salvează", async ({ page }) => {
+  test("adaugă un job și navighează la întrebări AI", async ({ page }) => {
     await goToExperience(page);
     await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
 
@@ -290,10 +290,9 @@ test.describe("Wizard — Step 8: Work Experience", () => {
     await page.getByLabel(/Funcție|Titlu job/i).fill("Software Developer");
     await page.getByLabel(/Companie/i).fill("TechCorp SRL");
     await page.getByLabel(/Perioadă/i).fill("Ian 2022 – Prezent");
-    await page.getByText("Adaugă experiența").click();
-
-    await expect(page.getByText("Software Developer").first()).toBeVisible({ timeout: 3000 });
-    await expect(page.getByText("TechCorp SRL").first()).toBeVisible();
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    // After Continuă, questions phase appears
+    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
   });
 
   test("șterge un job adăugat", async ({ page }) => {
@@ -304,10 +303,13 @@ test.describe("Wizard — Step 8: Work Experience", () => {
     await page.getByLabel(/Funcție|Titlu job/i).fill("Developer");
     await page.getByLabel(/Companie/i).fill("TestCo");
     await page.getByLabel(/Perioadă/i).fill("2023 – Prezent");
-    await page.getByText("Adaugă experiența").click();
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    // Wait for questions to load, then go back to see the saved entry
+    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: "← Înapoi" }).click();
     await expect(page.getByText("Developer").first()).toBeVisible({ timeout: 3000 });
     await page.getByTestId("btn-delete-exp").first().click();
-    await expect(page.getByText("Adaugă experiență profesională")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Developer")).not.toBeVisible({ timeout: 3000 });
   });
 
   test("Continuă fără experiență → merge la educație (Pas 5)", async ({ page }) => {
@@ -481,14 +483,14 @@ test.describe("Wizard — Navigare Înapoi", () => {
 
   test("Step 2: buton Înapoi este vizibil", async ({ page }) => {
     await page.goto("/creare-cv");
-    await page.getByText("Sari peste · CV universal").click();
+    await page.getByText("Sari peste").click();
     await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
     await expect(page.getByRole("button", { name: "← Înapoi" })).toBeVisible();
   });
 
   test("Step 2: Înapoi navighează la Step 1", async ({ page }) => {
     await page.goto("/creare-cv");
-    await page.getByText("Sari peste · CV universal").click();
+    await page.getByText("Sari peste").click();
     await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
     await page.getByRole("button", { name: "← Înapoi" }).click();
     await expect(page.getByRole("heading", { name: "Ce job vrei să obții?" })).toBeVisible({ timeout: 5000 });

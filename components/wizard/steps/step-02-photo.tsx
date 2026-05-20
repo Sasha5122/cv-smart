@@ -222,12 +222,19 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
           <button
             onClick={onSkip}
             style={{
-              background: "none", border: "none", cursor: "pointer",
-              fontSize: 17, color: "#94A3B8", textAlign: "center",
-              padding: "4px 0",
+              width: "100%",
+              padding: "11px 16px",
+              fontSize: 17,
+              fontWeight: 600,
+              color: "#6366F1",
+              backgroundColor: "#EEF2FF",
+              border: "2px dashed #A5B4FC",
+              borderRadius: 10,
+              cursor: "pointer",
+              letterSpacing: 0.2,
             }}
           >
-            Nu am fotografie potrivită · Sari peste
+            Nu am fotografie potrivită
           </button>
         )}
       </div>
