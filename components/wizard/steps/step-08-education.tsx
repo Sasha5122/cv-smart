@@ -86,7 +86,7 @@ export function Step08Education({ sessionId, education, courses, onUpdate, onNex
   return (
     <StepCard
       title="Educație"
-      subtitle="Discuție cu AI-ul despre studiile tale. Fii cât mai detaliat."
+      subtitle="Spune-ne despre studiile tale. Fii cât mai detaliat."
       icon={<GraduationCap className="w-5 h-5" />}
     >
       {education.length > 0 && (

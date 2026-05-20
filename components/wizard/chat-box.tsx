@@ -61,7 +61,7 @@ export function ChatBox({
           >
             {msg.role === "assistant" && (
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold mr-2 mt-0.5 shrink-0">
-                AI
+                CV
               </div>
             )}
             <div
@@ -80,7 +80,7 @@ export function ChatBox({
         {loading && (
           <div className="flex justify-start">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold mr-2 mt-0.5 shrink-0">
-              AI
+              CV
             </div>
             <div className="bg-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 items-center">
               <span className="typing-dot w-2 h-2 bg-slate-400 rounded-full inline-block" />

@@ -64,7 +64,7 @@ export function Step10Skills({ sessionId, skills, onUpdate, onNext, onBack }: Pr
   return (
     <StepCard
       title="Abilități"
-      subtitle="Discută cu AI-ul sau adaugă manual abilitățile tale."
+      subtitle="Adaugă abilitățile tale manual sau prin conversație."
       icon={<Star className="w-5 h-5" />}
     >
       <ChatBox

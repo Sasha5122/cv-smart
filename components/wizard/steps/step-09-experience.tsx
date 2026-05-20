@@ -169,7 +169,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
     return (
       <StepCard
         title="Câteva întrebări rapide"
-        subtitle={`Răspunsurile tale îl ajută pe AI să descrie perfect experiența la ${savedJobRef.current.company}.`}
+        subtitle={`Răspunsurile tale ne ajută să descriem cât mai complet experiența la ${savedJobRef.current.company}.`}
         icon={<Briefcase className="w-5 h-5" />}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
@@ -213,7 +213,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
     return (
       <StepCard
         title="Bifează ce ți se potrivește"
-        subtitle={`AI-ul a generat responsabilități pentru rolul tău de ${savedJobRef.current.title}. Debifează ce nu se potrivește cu experiența ta.`}
+        subtitle={`Au fost generate responsabilități pentru rolul de ${savedJobRef.current.title}. Debifează ce nu se potrivește cu experiența ta.`}
         icon={<Sparkles className="w-5 h-5" />}
       >
         {/* Header bar */}

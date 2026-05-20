@@ -56,7 +56,7 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
         <div className="mt-3 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
           <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
           <p className="text-xs text-emerald-700">
-            AI-ul va analiza jobul și va personaliza CV-ul pentru tine
+            CV-ul va fi personalizat în funcție de jobul ales
           </p>
         </div>
       )}
