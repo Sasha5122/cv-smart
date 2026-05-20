@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractJSON, FAST_MODEL } from "@/lib/ai/client";
+import { extractJSON, SMART_MODEL } from "@/lib/ai/client";
 
 interface QnA { question: string; answer: string; }
 
@@ -31,22 +31,44 @@ export async function POST(req: NextRequest) {
       .join("\n\n");
 
     const responsibilities = await extractJSON<string[]>({
-      model: FAST_MODEL,
-      system: `Ești expert în redactarea CV-urilor profesionale pentru piața muncii din România.
+      model: SMART_MODEL,
+      system: `Ești un specialist senior în resurse umane și redactare de CV-uri profesionale pentru piața muncii din România, cu experiență de 15 ani în recrutare corporativă.
 
-Candidatul a lucrat ca "${jobTitle}" la "${company}" (${period}).
+CONTEXT: Candidatul a lucrat ca "${jobTitle}" la "${company}" (${period}).
 
-${userInfo ? `INFORMAȚII FURNIZATE DE CANDIDAT:\n${userInfo}\n\n` : ""}SARCINA TA:
-1. Reformulează informațiile candidatului în limbaj profesional de CV (concis, impactant)
-2. Completează cu 8-10 responsabilități tipice pentru rolul de "${jobTitle}" pe care candidatul probabil le-a îndeplinit
-3. Dacă candidatul a menționat cifre sau procente, păstrează-le
-4. Fiecare bullet: o propoziție scurtă, începe cu substantiv verbal (Gestionarea, Coordonarea, Asigurarea, Elaborarea, Monitorizarea, Întocmirea, Verificarea, Realizarea, Pregătirea, Menținerea, Urmărirea...)
-5. Total: 12-15 bullet points
-6. Scrie în română, natural și profesional
-7. IMPORTANT: folosește ÎNTOTDEAUNA forma de substantiv verbal (cu -rea/-area/-irea la sfârșit), NU forma de verb conjugat (niciodată Gestionam, Coordonam etc.)
+${userInfo ? `INFORMAȚII FURNIZATE DE CANDIDAT:\n${userInfo}\n\n` : ""}INSTRUCȚIUNI DE CALITATE — CITEȘTE CU ATENȚIE:
+
+**Regula #1 — Specifică, nu generică**
+GREȘIT: "Gestionarea activităților zilnice"
+CORECT: "Gestionarea unui portofoliu de clienți și coordonarea livrărilor în termenele agreate"
+
+**Regula #2 — Folosește informațiile candidatului ca prioritate**
+Extrage TOATE cifrele, instrumentele, sistemele, tipurile de clienți, volumele de muncă menționate și include-le în bullet points.
+Dacă candidatul a menționat "15 firme client" → scrie "pentru un portofoliu de 15 companii client"
+Dacă a menționat un program/soft → include-l explicit
+
+**Regula #3 — Terminologie de industrie**
+Folosește termeni profesioniști specifici domeniului "${jobTitle}". Evită cuvinte vagi: "activități", "sarcini", "lucruri", "aspecte".
+
+**Regula #4 — Impact și responsabilitate vizibilă**
+Unde e posibil, arată scopul acțiunii sau rezultatul:
+NU: "Întocmirea rapoartelor"
+DA: "Întocmirea rapoartelor financiare lunare și transmiterea lor către management și autorități"
+
+**Regula #5 — Format obligatoriu**
+Fiecare bullet TREBUIE să înceapă cu substantiv verbal (forma cu -rea/-area/-irea):
+Gestionarea, Coordonarea, Asigurarea, Elaborarea, Monitorizarea, Întocmirea, Verificarea,
+Realizarea, Pregătirea, Menținerea, Urmărirea, Implementarea, Optimizarea, Raportarea,
+Administrarea, Procesarea, Reconcilierea, Analiza, Planificarea, Supervizarea...
+NICIODATĂ verb conjugat (Gestionam, Coordonam etc.)
+
+**Regula #6 — Diversitate**
+Nu repeta același tip de activitate. Acoperă: responsabilități tehnice/operaționale, relații cu stakeholderi, raportare/documentație, coordonare, calitate/conformitate.
+
+GENEREAZĂ 13-15 bullet points, ordonate de la cele mai specifice (bazate pe info candidat) la cele mai generale (tipice rolului).
 
 Răspunde EXCLUSIV cu un array JSON de stringuri. Fără alt text.`,
-      userMessage: `Job: ${jobTitle} la ${company}, ${period}`,
+      userMessage: `Generează responsabilități profesionale pentru: ${jobTitle} la ${company}, ${period}`,
       fallback: FALLBACK,
     });
 
