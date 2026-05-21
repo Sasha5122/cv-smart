@@ -310,14 +310,14 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
           padding: "14px 16px",
         }}>
           <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginBottom: 10 }}>
-            Vrei să adaugi sau să modifici ceva?
+            Vrei să adaugi ceva?
           </p>
           <div style={{ display: "flex", gap: 10 }}>
             <textarea
               value={customInput}
               onChange={(e) => setCustomInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddCustom(); } }}
-              placeholder="ex: răspundeam la telefon, gestionam contracte cu furnizorii..."
+              placeholder="Scrie orice, oricât de informal — ex: raspundeam la telefon, faceam facturi, ma ocupam de stocuri..."
               rows={2}
               style={{
                 flex: 1, borderRadius: 10, border: "1px solid #94A3B8",
@@ -351,7 +351,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
             </button>
           </div>
           <p style={{ fontSize: 13, color: "#94A3B8", marginTop: 6 }}>
-            Descrie cu cuvintele tale — vom reformula automat în limbaj profesional
+            Scrie orice, cum vrei — vom analiza și transforma automat în limbaj profesional de CV
           </p>
         </div>
 
