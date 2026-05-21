@@ -34,7 +34,7 @@ async function goToEducation(page: import("@playwright/test").Page) {
 async function goToSkills(page: import("@playwright/test").Page) {
   await goToEducation(page);
   await expect(page.getByRole("heading", { name: "Educație" })).toBeVisible({ timeout: 8000 });
-  await page.getByRole("button", { name: "Continuă" }).click();
+  await page.getByRole("button", { name: /Continuă|Sari peste/ }).last().click();
   await page.waitForTimeout(300);
 }
 
