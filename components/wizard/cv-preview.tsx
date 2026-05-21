@@ -11,47 +11,41 @@ export function CVPreview({ cvData }: CVPreviewProps) {
   const hasName = personal?.firstName || personal?.lastName;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 text-[10px] leading-relaxed font-[serif]">
+    <div className="bg-white overflow-hidden text-[12px] leading-relaxed" style={{ fontFamily: "'Georgia', serif" }}>
       {/* CV Header */}
-      <div className="bg-slate-900 px-5 py-4 text-white">
-        <div className="flex items-start gap-3">
-          {/* Photo placeholder */}
-          <div className="w-14 h-14 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
+      <div style={{ backgroundColor: "#0F172A", padding: "20px 24px 18px", color: "#fff" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+          {/* Photo */}
+          <div style={{ width: 52, height: 52, borderRadius: "50%", backgroundColor: "#334155", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "2px solid #475569" }}>
             {personal?.photoUrl ? (
-              <img
-                src={personal.photoUrl}
-                alt="Foto"
-                className="w-full h-full rounded-full object-cover"
-              />
+              <img src={personal.photoUrl} alt="Foto" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
             ) : (
-              <User className="w-6 h-6 text-slate-400" />
+              <User style={{ width: 22, height: 22, color: "#94A3B8" }} />
             )}
           </div>
-          <div>
-            <h1 className="text-base font-bold leading-tight">
-              {hasName
-                ? `${personal?.firstName ?? ""} ${personal?.lastName ?? ""}`.trim()
-                : "Prenume Nume"}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1.2, margin: 0, letterSpacing: -0.3 }}>
+              {hasName ? `${personal?.firstName ?? ""} ${personal?.lastName ?? ""}`.trim() : "Prenume Nume"}
             </h1>
             {cvData.targetTitle && (
-              <p className="text-slate-300 text-[11px] mt-0.5">{cvData.targetTitle}</p>
+              <p style={{ fontSize: 12, color: "#94A3B8", margin: "3px 0 0" }}>{cvData.targetTitle}</p>
             )}
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-2 text-slate-300">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 14px", marginTop: 7, color: "#94A3B8", fontSize: 11 }}>
               {personal?.email && (
-                <span className="flex items-center gap-1">
-                  <Mail className="w-2.5 h-2.5" />
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <Mail style={{ width: 10, height: 10 }} />
                   {personal.email}
                 </span>
               )}
               {personal?.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="w-2.5 h-2.5" />
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <Phone style={{ width: 10, height: 10 }} />
                   {personal.phone}
                 </span>
               )}
               {personal?.city && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-2.5 h-2.5" />
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <MapPin style={{ width: 10, height: 10 }} />
                   {personal.city}
                 </span>
               )}
@@ -60,30 +54,37 @@ export function CVPreview({ cvData }: CVPreviewProps) {
         </div>
       </div>
 
-      <div className="px-5 py-4 space-y-4">
+      <div style={{ padding: "16px 24px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
         {/* Summary */}
         {cvData.summary && (
           <div>
-            <SectionHeader icon={<Star className="w-3 h-3" />} title="Rezumat" />
-            <p className="text-slate-700 mt-1">{cvData.summary}</p>
+            <SectionHeader icon={<Star style={{ width: 11, height: 11 }} />} title="Rezumat" />
+            <p style={{ color: "#475569", margin: "4px 0 0", fontSize: 12, lineHeight: 1.6 }}>{cvData.summary}</p>
           </div>
         )}
 
         {/* Experience */}
         {experience.length > 0 && (
           <div>
-            <SectionHeader icon={<Briefcase className="w-3 h-3" />} title="Experiență" />
-            <div className="space-y-2 mt-1">
+            <SectionHeader icon={<Briefcase style={{ width: 11, height: 11 }} />} title="Experiență" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 6 }}>
               {experience.map((exp, i) => (
                 <div key={i}>
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold text-slate-900">{exp.title}</span>
-                    <span className="text-slate-400">{exp.period}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <span style={{ fontWeight: 700, color: "#0F172A", fontSize: 13 }}>{exp.title}</span>
+                    <span style={{ color: "#94A3B8", fontSize: 11, flexShrink: 0, marginLeft: 8 }}>{exp.period}</span>
                   </div>
-                  <p className="text-indigo-700">{exp.company}</p>
-                  {exp.responsibilities.slice(0, 2).map((r, j) => (
-                    <p key={j} className="text-slate-600">• {r}</p>
-                  ))}
+                  <p style={{ color: "#4F46E5", fontSize: 12, margin: "1px 0 4px", fontWeight: 600 }}>{exp.company}{exp.location ? ` · ${exp.location}` : ""}</p>
+                  {exp.responsibilities.length > 0 && (
+                    <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 2 }}>
+                      {exp.responsibilities.map((r, j) => (
+                        <li key={j} style={{ display: "flex", gap: 6, alignItems: "flex-start", color: "#475569", fontSize: 11.5, lineHeight: 1.5 }}>
+                          <span style={{ color: "#4F46E5", fontWeight: 700, flexShrink: 0 }}>•</span>
+                          <span>{r}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               ))}
             </div>
@@ -93,15 +94,15 @@ export function CVPreview({ cvData }: CVPreviewProps) {
         {/* Education */}
         {education.length > 0 && (
           <div>
-            <SectionHeader icon={<GraduationCap className="w-3 h-3" />} title="Educație" />
-            <div className="space-y-1.5 mt-1">
+            <SectionHeader icon={<GraduationCap style={{ width: 11, height: 11 }} />} title="Educație" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
               {education.map((edu, i) => (
                 <div key={i}>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-slate-900">{edu.level} — {edu.field}</span>
-                    <span className="text-slate-400">{edu.years}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <span style={{ fontWeight: 700, color: "#0F172A", fontSize: 13 }}>{edu.level}{edu.field ? ` — ${edu.field}` : ""}</span>
+                    <span style={{ color: "#94A3B8", fontSize: 11, flexShrink: 0, marginLeft: 8 }}>{edu.years}</span>
                   </div>
-                  <p className="text-slate-600">{edu.institution}</p>
+                  <p style={{ color: "#475569", fontSize: 12, margin: "1px 0 0" }}>{edu.institution}{edu.location ? ` · ${edu.location}` : ""}</p>
                 </div>
               ))}
             </div>
@@ -111,10 +112,10 @@ export function CVPreview({ cvData }: CVPreviewProps) {
         {/* Skills */}
         {skills.length > 0 && (
           <div>
-            <SectionHeader icon={<Star className="w-3 h-3" />} title="Abilități" />
-            <div className="flex flex-wrap gap-1 mt-1">
+            <SectionHeader icon={<Star style={{ width: 11, height: 11 }} />} title="Abilități" />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 6px", marginTop: 6 }}>
               {skills.map((s, i) => (
-                <span key={i} className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[9px]">
+                <span key={i} style={{ backgroundColor: "#EEF2FF", color: "#4338CA", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 500 }}>
                   {s.name}
                 </span>
               ))}
@@ -125,11 +126,11 @@ export function CVPreview({ cvData }: CVPreviewProps) {
         {/* Languages */}
         {languages.length > 0 && (
           <div>
-            <SectionHeader icon={<Star className="w-3 h-3" />} title="Limbi" />
-            <div className="flex flex-wrap gap-x-3 mt-1">
+            <SectionHeader icon={<Star style={{ width: 11, height: 11 }} />} title="Limbi" />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 16px", marginTop: 6 }}>
               {languages.map((l, i) => (
-                <span key={i} className="text-slate-700">
-                  {l.name} <span className="text-slate-400">({l.level})</span>
+                <span key={i} style={{ color: "#374151", fontSize: 12 }}>
+                  {l.name} <span style={{ color: "#94A3B8" }}>({l.level})</span>
                 </span>
               ))}
             </div>
@@ -139,16 +140,16 @@ export function CVPreview({ cvData }: CVPreviewProps) {
         {/* Hobbies */}
         {hobbies.length > 0 && (
           <div>
-            <SectionHeader icon={<Star className="w-3 h-3" />} title="Hobby-uri" />
-            <p className="text-slate-700 mt-1">{hobbies.join(", ")}</p>
+            <SectionHeader icon={<Star style={{ width: 11, height: 11 }} />} title="Hobby-uri" />
+            <p style={{ color: "#475569", fontSize: 12, margin: "4px 0 0" }}>{hobbies.join(", ")}</p>
           </div>
         )}
 
         {/* Empty state */}
         {!hasName && experience.length === 0 && education.length === 0 && (
-          <div className="py-6 text-center text-slate-300">
-            <p className="text-sm">Preview-ul CV-ului</p>
-            <p className="text-xs mt-1">completează datele din stânga</p>
+          <div style={{ padding: "32px 0", textAlign: "center", color: "#CBD5E1" }}>
+            <p style={{ fontSize: 13, margin: 0 }}>Preview-ul CV-ului</p>
+            <p style={{ fontSize: 11, margin: "4px 0 0" }}>completează datele din stânga</p>
           </div>
         )}
       </div>
@@ -156,20 +157,14 @@ export function CVPreview({ cvData }: CVPreviewProps) {
   );
 }
 
-function SectionHeader({
-  icon,
-  title,
-}: {
-  icon: React.ReactNode;
-  title: string;
-}) {
+function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
-    <div className="flex items-center gap-1.5 mb-1">
-      <span className="text-indigo-600">{icon}</span>
-      <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider">
+    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+      <span style={{ color: "#4F46E5" }}>{icon}</span>
+      <h3 style={{ fontSize: 10.5, fontWeight: 800, color: "#0F172A", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0, fontFamily: "'Inter', sans-serif" }}>
         {title}
       </h3>
-      <div className="flex-1 h-px bg-slate-200" />
+      <div style={{ flex: 1, height: 1, backgroundColor: "#E2E8F0" }} />
     </div>
   );
 }

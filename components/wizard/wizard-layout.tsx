@@ -178,9 +178,9 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
         <div className="wizard-grid" style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "1fr 290px",
-          gap: 32,
-          padding: "32px 32px 100px",
+          gridTemplateColumns: "1fr 420px",
+          gap: 40,
+          padding: "32px 40px 100px",
           alignItems: "start",
         }}>
           {/* Form */}
@@ -192,13 +192,13 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
           <div className="wizard-preview" style={{ position: "sticky", top: 24 }}>
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
-              marginBottom: 10,
+              marginBottom: 12,
             }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
                 Preview CV
               </span>
               <span style={{
-                fontSize: 13, color: "#94A3B8",
+                fontSize: 12, color: "#94A3B8",
                 backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0",
                 padding: "2px 8px", borderRadius: 50,
               }}>
@@ -209,10 +209,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
               border: "1px solid #E2E8F0",
               borderRadius: 12,
               overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-              transform: "scale(0.82)",
-              transformOrigin: "top left",
-              width: "122%",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
             }}>
               <CVPreview cvData={cvData} />
             </div>

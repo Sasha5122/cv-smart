@@ -24,7 +24,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "npx next dev",
-    url: "http://localhost:3000",
+    url: "http://localhost:3000/creare-cv",
     reuseExistingServer: !process.env.CI,
     timeout: 60000,
   },

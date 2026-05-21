@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Briefcase, ArrowRight, Trash2, ChevronDown, ChevronUp, Loader2, Sparkles } from "lucide-react";
+import { Briefcase, ArrowRight, Trash2, Loader2, Sparkles, Plus, CheckCircle2, GripVertical } from "lucide-react";
 import type { Experience } from "@/lib/types/cv";
 import { toast } from "sonner";
 
@@ -17,20 +17,91 @@ interface Props {
 
 const EMPTY_EXP = { title: "", company: "", period: "", location: "", responsibilities: "" };
 
-type Phase = "form" | "loading-questions" | "questions" | "loading-responsibilities" | "responsibilities";
+const RESPONSIBILITIES_FALLBACK = [
+  "Gestionarea activităților zilnice specifice rolului",
+  "Colaborarea cu echipa pentru atingerea obiectivelor comune",
+  "Asigurarea calității și respectarea termenelor stabilite",
+  "Comunicarea cu clienții și partenerii în mod profesional",
+  "Contribuirea la îmbunătățirea proceselor interne",
+  "Monitorizarea indicatorilor de performanță relevanți",
+  "Raportarea periodică a rezultatelor către management",
+];
+
+type Phase = "form" | "loading-questions" | "questions" | "loading-responsibilities" | "responsibilities" | "summary" | "edit";
+
+function punct(s: string): string {
+  const trimmed = s.trim();
+  return /[.!?]$/.test(trimmed) ? trimmed : trimmed + ".";
+}
+
+type Seniority = { label: string; recommended: string; instruction: string; color: string; bg: string; border: string };
+
+function detectSeniority(period: string): Seniority {
+  const currentYear = new Date().getFullYear();
+  const lower = period.toLowerCase();
+
+  if (lower.includes("prezent") || lower.includes("present") || lower.includes("curent")) {
+    return {
+      label: "Job actual",
+      recommended: "5–6",
+      instruction: "Pentru un CV profesional, selectați doar 5–6 responsabilități pe care le considerați cele mai esențiale și de impact pentru acest rol.",
+      color: "#15803D", bg: "#F0FDF4", border: "#86EFAC",
+    };
+  }
+
+  const years = period.match(/\b(20\d{2}|19\d{2})\b/g);
+  if (!years) {
+    return {
+      label: "Job anterior",
+      recommended: "3–4",
+      instruction: "Pentru un CV profesional, selectați doar 3–4 responsabilități pe care le considerați cele mai relevante pentru cariera ta.",
+      color: "#1D4ED8", bg: "#EFF6FF", border: "#93C5FD",
+    };
+  }
+
+  const endYear = Math.max(...years.map(Number));
+  const ago = currentYear - endYear;
+
+  if (ago <= 2) return {
+    label: "Cel mai recent job",
+    recommended: "5–6",
+    instruction: "Pentru un CV profesional, selectați doar 5–6 responsabilități pe care le considerați cele mai esențiale și de impact pentru acest rol.",
+    color: "#15803D", bg: "#F0FDF4", border: "#86EFAC",
+  };
+  if (ago <= 5) return {
+    label: "Job anterior",
+    recommended: "3–4",
+    instruction: "Pentru un CV profesional, selectați doar 3–4 responsabilități pe care le considerați cele mai relevante pentru cariera ta.",
+    color: "#1D4ED8", bg: "#EFF6FF", border: "#93C5FD",
+  };
+  if (ago <= 10) return {
+    label: "Job mai vechi",
+    recommended: "2–3",
+    instruction: "Pentru un CV profesional, selectați doar 2–3 responsabilități principale — suficiente pentru un job din urmă cu câțiva ani.",
+    color: "#B45309", bg: "#FFFBEB", border: "#FCD34D",
+  };
+  return {
+    label: "Job irelevant",
+    recommended: "1–2",
+    instruction: "Pentru un CV profesional, selectați 1–2 responsabilități reprezentative — mai mult ar dilua impactul CV-ului tău.",
+    color: "#6B7280", bg: "#F9FAFB", border: "#D1D5DB",
+  };
+}
 
 export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props) {
   const [showForm, setShowForm] = useState(experience.length === 0);
   const [form, setForm] = useState({ ...EMPTY_EXP });
   const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [phase, setPhase] = useState<Phase>("form");
+  const [phase, setPhase] = useState<Phase>(experience.length > 0 ? "summary" : "form");
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [responsibilitiesList, setResponsibilitiesList] = useState<string[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [customInput, setCustomInput] = useState("");
   const [isAddingCustom, setIsAddingCustom] = useState(false);
+  const [editForm, setEditForm] = useState({ title: "", company: "", period: "", location: "" });
+  const [editResponsibilities, setEditResponsibilities] = useState<string[]>([]);
+  const [editIdx, setEditIdx] = useState<number>(-1);
   const savedIdxRef = useRef<number>(-1);
   const savedJobRef = useRef({ title: "", company: "", period: "" });
   const rawDescRef = useRef("");
@@ -48,8 +119,8 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
 
   // ── PHASE 1 → 2: Form → Questions ────────────────────────────────────────────
   const handleNext = async () => {
-    if (!showForm || !form.title.trim() || !form.company.trim() || !form.period.trim()) {
-      onNext();
+    if (!form.title.trim() || !form.company.trim() || !form.period.trim()) {
+      if (experience.length > 0) { setPhase("summary"); } else { onNext(); }
       return;
     }
 
@@ -108,17 +179,19 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
         }),
       });
       const data = await res.json();
-      const list: string[] = data.responsibilities ?? [];
+      const list: string[] = Array.isArray(data.responsibilities) && data.responsibilities.length > 0
+        ? data.responsibilities
+        : RESPONSIBILITIES_FALLBACK;
       setResponsibilitiesList(list);
-      setSelected(new Set(list.map((_, i) => i)));
+      setSelected(new Set());
     } catch {
-      setResponsibilitiesList([]); setSelected(new Set());
+      setResponsibilitiesList(RESPONSIBILITIES_FALLBACK); setSelected(new Set());
     }
 
     setPhase("responsibilities");
   };
 
-  // ── PHASE 3 → Next step ───────────────────────────────────────────────────────
+  // ── PHASE 3 → Summary ────────────────────────────────────────────────────────
   const handleSubmitResponsibilities = () => {
     const picked = responsibilitiesList.filter((_, i) => selected.has(i));
     const idx = savedIdxRef.current;
@@ -127,7 +200,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
       updated[idx] = { ...updated[idx], responsibilities: picked };
       onUpdate(updated);
     }
-    onNext();
+    setPhase("summary");
   };
 
   const toggleItem = (i: number) => {
@@ -169,13 +242,36 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
 
   const handleEdit = (i: number) => {
     const exp = experience[i];
-    setForm({ title: exp.title, company: exp.company, period: exp.period, location: exp.location ?? "", responsibilities: exp.responsibilities.join("\n") });
-    setEditIndex(i); setShowForm(true); setExpandedIndex(null); setPhase("form");
+    setEditForm({ title: exp.title, company: exp.company, period: exp.period, location: exp.location ?? "" });
+    setEditResponsibilities([...exp.responsibilities]);
+    setEditIdx(i);
+    setPhase("edit");
+  };
+
+  const handleSaveEdit = () => {
+    if (!editForm.title.trim() || !editForm.company.trim() || !editForm.period.trim()) {
+      toast.error("Funcția, compania și perioada sunt obligatorii.");
+      return;
+    }
+    const updated = [...experience];
+    updated[editIdx] = {
+      ...updated[editIdx],
+      title: editForm.title.trim(),
+      company: editForm.company.trim(),
+      period: editForm.period.trim(),
+      location: editForm.location.trim(),
+      responsibilities: editResponsibilities.filter(r => r.trim()),
+    };
+    onUpdate(updated);
+    toast.success("Modificările au fost salvate.");
+    setPhase("summary");
   };
 
   const handleDelete = (i: number) => {
-    onUpdate(experience.filter((_, idx) => idx !== i));
+    const updated = experience.filter((_, idx) => idx !== i);
+    onUpdate(updated);
     toast.success("Experiență ștearsă");
+    if (updated.length === 0) { setPhase("form"); setShowForm(true); setForm({ ...EMPTY_EXP }); }
   };
 
   // ── LOADING SCREEN ────────────────────────────────────────────────────────────
@@ -240,36 +336,66 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
   // ── RESPONSIBILITIES PHASE ────────────────────────────────────────────────────
   if (phase === "responsibilities") {
     const selectedCount = selected.size;
+    const seniority = detectSeniority(savedJobRef.current.period);
+    const [recMin, recMax] = seniority.recommended.split("–").map(Number);
+    const inRange = selectedCount >= recMin && selectedCount <= recMax;
+    const counterColor = selectedCount === 0 ? "#94A3B8" : inRange ? "#15803D" : "#B45309";
 
     return (
       <StepCard
         title="Bifează ce ți se potrivește"
-        subtitle={`Au fost generate responsabilități pentru rolul de ${savedJobRef.current.title}. Debifează ce nu se potrivește cu experiența ta.`}
+        subtitle={`Responsabilități generate pentru ${savedJobRef.current.title}. Bifează ce se potrivește cu experiența ta.`}
         icon={<Sparkles className="w-5 h-5" />}
       >
-        {/* Header bar */}
+        {/* Seniority guidance banner */}
+        <div style={{
+          backgroundColor: seniority.bg,
+          border: `1.5px solid ${seniority.border}`,
+          borderRadius: 12, padding: "14px 18px", marginBottom: 14,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{
+              fontSize: 13, fontWeight: 700, color: seniority.color,
+              backgroundColor: seniority.border, padding: "2px 10px",
+              borderRadius: 20, letterSpacing: 0.2,
+            }}>
+              {seniority.label}
+            </span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: seniority.color }}>
+              Alege {seniority.recommended} responsabilități
+            </span>
+          </div>
+          <p style={{ fontSize: 14, color: seniority.color, margin: 0, opacity: 0.85, lineHeight: 1.5 }}>
+            {seniority.instruction}
+          </p>
+        </div>
+
+        {/* Counter + select/deselect buttons */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          backgroundColor: "#EEF2FF", border: "1px solid #C7D2FE",
-          borderRadius: 10, padding: "10px 16px", marginBottom: 16,
+          backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0",
+          borderRadius: 10, padding: "9px 14px", marginBottom: 14,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Sparkles size={16} color="#4F46E5" />
-            <span style={{ fontSize: 16, fontWeight: 600, color: "#4338CA" }}>
+            <Sparkles size={15} color={counterColor} />
+            <span style={{ fontSize: 15, fontWeight: 600, color: counterColor }}>
               {selectedCount} din {responsibilitiesList.length} selectate
+            </span>
+            <span style={{ fontSize: 13, color: "#94A3B8" }}>
+              — recomandat: {seniority.recommended}
             </span>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
               onClick={() => setSelected(new Set(responsibilitiesList.map((_, i) => i)))}
-              style={{ fontSize: 14, color: "#4F46E5", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
+              style={{ fontSize: 13, color: "#4F46E5", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
             >
               Selectează tot
             </button>
-            <span style={{ color: "#C7D2FE" }}>|</span>
+            <span style={{ color: "#CBD5E1" }}>|</span>
             <button
               onClick={() => setSelected(new Set())}
-              style={{ fontSize: 14, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}
+              style={{ fontSize: 13, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}
             >
               Deselectează tot
             </button>
@@ -277,7 +403,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
         </div>
 
         {/* Checkboxes list */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 420, overflowY: "auto", paddingRight: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 360, overflowY: "auto", paddingRight: 4 }}>
           {responsibilitiesList.map((r, i) => (
             <label
               key={i}
@@ -302,29 +428,16 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
         </div>
 
         {/* Custom responsibility input */}
-        <div style={{
-          marginTop: 16,
-          backgroundColor: "#F8FAFC",
-          border: "1px solid #E2E8F0",
-          borderRadius: 12,
-          padding: "14px 16px",
-        }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginBottom: 10 }}>
-            Vrei să adaugi ceva?
-          </p>
+        <div style={{ marginTop: 16, backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12, padding: "14px 16px" }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginBottom: 10 }}>Vrei să adaugi ceva?</p>
           <div style={{ display: "flex", gap: 10 }}>
             <textarea
               value={customInput}
               onChange={(e) => setCustomInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddCustom(); } }}
-              placeholder="Scrie orice, oricât de informal — ex: raspundeam la telefon, faceam facturi, ma ocupam de stocuri..."
+              placeholder="Scrie orice, oricât de informal — ex: raspundeam la telefon, faceam facturi..."
               rows={2}
-              style={{
-                flex: 1, borderRadius: 10, border: "1px solid #94A3B8",
-                padding: "10px 14px", fontSize: 16, color: "#111827",
-                backgroundColor: "#ffffff", resize: "none", outline: "none",
-                fontFamily: "inherit", lineHeight: 1.5, transition: "border-color 0.15s",
-              }}
+              style={{ flex: 1, borderRadius: 10, border: "1px solid #94A3B8", padding: "10px 14px", fontSize: 16, color: "#111827", backgroundColor: "#ffffff", resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.5 }}
               onFocus={(e) => { e.target.style.borderColor = "#6366F1"; }}
               onBlur={(e) => { e.target.style.borderColor = "#94A3B8"; }}
               disabled={isAddingCustom}
@@ -332,22 +445,9 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
             <button
               onClick={handleAddCustom}
               disabled={!customInput.trim() || isAddingCustom}
-              style={{
-                padding: "0 18px",
-                backgroundColor: customInput.trim() && !isAddingCustom ? "#4F46E5" : "#E2E8F0",
-                color: customInput.trim() && !isAddingCustom ? "#ffffff" : "#9CA3AF",
-                border: "none", borderRadius: 10, fontSize: 15, fontWeight: 600,
-                cursor: customInput.trim() && !isAddingCustom ? "pointer" : "not-allowed",
-                display: "flex", alignItems: "center", gap: 8,
-                transition: "all 0.15s", flexShrink: 0, minWidth: 90,
-                justifyContent: "center",
-              }}
+              style={{ padding: "0 18px", backgroundColor: customInput.trim() && !isAddingCustom ? "#4F46E5" : "#E2E8F0", color: customInput.trim() && !isAddingCustom ? "#ffffff" : "#9CA3AF", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: customInput.trim() && !isAddingCustom ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 8, transition: "all 0.15s", flexShrink: 0, minWidth: 90, justifyContent: "center" }}
             >
-              {isAddingCustom ? (
-                <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-              ) : (
-                <>+ Adaugă</>
-              )}
+              {isAddingCustom ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <>+ Adaugă</>}
             </button>
           </div>
           <p style={{ fontSize: 13, color: "#94A3B8", marginTop: 6 }}>
@@ -365,6 +465,184 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
     );
   }
 
+  // ── EDIT PHASE ───────────────────────────────────────────────────────────────
+  if (phase === "edit") {
+    const setEF = (field: string, val: string) => setEditForm(prev => ({ ...prev, [field]: val }));
+
+    return (
+      <StepCard
+        title="Editează experiența"
+        subtitle="Modifică datele jobului și responsabilitățile direct."
+        icon={<Briefcase className="w-5 h-5" />}
+      >
+        {/* Basic fields */}
+        <div style={{ backgroundColor: "#ffffff", border: "1px solid #CBD5E1", borderRadius: 14, padding: 20, marginBottom: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <Input label="Funcție / Titlu job *" value={editForm.title} onChange={e => setEF("title", e.target.value)} />
+            <Input label="Companie *" value={editForm.company} onChange={e => setEF("company", e.target.value)} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <Input label="Perioadă *" value={editForm.period} onChange={e => setEF("period", e.target.value)} hint="ex: Ian 2019 – Prezent" />
+              <Input label="Locație (opțional)" value={editForm.location} onChange={e => setEF("location", e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        {/* Responsibilities editor */}
+        <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 14, padding: 20, marginBottom: 16 }}>
+          <p style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 14 }}>
+            Responsabilități ({editResponsibilities.filter(r => r.trim()).length})
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {editResponsibilities.map((r, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <div style={{ paddingTop: 10, color: "#CBD5E1", flexShrink: 0 }}>
+                  <GripVertical size={16} />
+                </div>
+                <textarea
+                  value={r}
+                  onChange={e => {
+                    const next = [...editResponsibilities];
+                    next[i] = e.target.value;
+                    setEditResponsibilities(next);
+                  }}
+                  rows={2}
+                  style={{
+                    flex: 1, borderRadius: 10, border: "1px solid #CBD5E1",
+                    padding: "9px 13px", fontSize: 15, color: "#1E293B",
+                    backgroundColor: "#ffffff", resize: "vertical", outline: "none",
+                    fontFamily: "inherit", lineHeight: 1.5,
+                  }}
+                  onFocus={e => { e.target.style.borderColor = "#6366F1"; e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
+                  onBlur={e => { e.target.style.borderColor = "#CBD5E1"; e.target.style.boxShadow = "none"; }}
+                />
+                <button
+                  onClick={() => setEditResponsibilities(prev => prev.filter((_, idx) => idx !== i))}
+                  style={{ padding: "8px", color: "#EF4444", backgroundColor: "#FEF2F2", border: "none", borderRadius: 8, cursor: "pointer", flexShrink: 0, marginTop: 2 }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Add new bullet */}
+          <button
+            onClick={() => setEditResponsibilities(prev => [...prev, ""])}
+            style={{
+              marginTop: 12, display: "flex", alignItems: "center", gap: 6,
+              padding: "9px 14px", fontSize: 14, fontWeight: 600,
+              color: "#4F46E5", backgroundColor: "#EEF2FF",
+              border: "1.5px dashed #A5B4FC", borderRadius: 10, cursor: "pointer",
+            }}
+          >
+            <Plus size={15} />
+            Adaugă responsabilitate
+          </button>
+        </div>
+
+        <div style={{ display: "flex", gap: 12 }}>
+          <Button variant="outline" onClick={() => setPhase("summary")} style={{ flex: 1 }}>← Înapoi</Button>
+          <Button onClick={handleSaveEdit} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
+            Salvează modificările
+          </Button>
+        </div>
+      </StepCard>
+    );
+  }
+
+  // ── SUMMARY PHASE ─────────────────────────────────────────────────────────────
+  if (phase === "summary") {
+    return (
+      <StepCard
+        title="Experiențele tale"
+        subtitle="Iată ce ai adăugat. Poți adăuga mai multe joburi sau continui spre educație."
+        icon={<Briefcase className="w-5 h-5" />}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 8 }}>
+          {experience.map((exp, i) => (
+            <div key={i} style={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", borderRadius: 14, overflow: "hidden" }}>
+              {/* Card header */}
+              <div style={{ padding: "16px 20px 12px", borderBottom: exp.responsibilities.length > 0 ? "1px solid #F1F5F9" : "none" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                  <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <div style={{ width: 38, height: 38, backgroundColor: "#EEF2FF", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+                      <Briefcase size={17} color="#4F46E5" />
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 19, fontWeight: 700, color: "#0F172A", lineHeight: 1.3 }}>{exp.title}</p>
+                      <p style={{ fontSize: 16, fontWeight: 600, color: "#4F46E5", marginTop: 2 }}>{exp.company}</p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", marginTop: 4 }}>
+                        <span style={{ fontSize: 14, color: "#64748B" }}>📅 {exp.period}</span>
+                        {exp.location && <span style={{ fontSize: 14, color: "#64748B" }}>📍 {exp.location}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                    <button
+                      onClick={() => handleEdit(i)}
+                      style={{ padding: "5px 12px", fontSize: 14, color: "#4F46E5", backgroundColor: "#EEF2FF", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+                    >
+                      Editează
+                    </button>
+                    <button
+                      data-testid="btn-delete-exp"
+                      onClick={() => handleDelete(i)}
+                      style={{ padding: "5px 8px", color: "#EF4444", backgroundColor: "#FEF2F2", border: "none", borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center" }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Responsibilities list */}
+              {exp.responsibilities.length > 0 && (
+                <div style={{ padding: "14px 20px 16px" }}>
+                  <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+                    {exp.responsibilities.map((r, j) => (
+                      <li key={j} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                        <span style={{ color: "#4F46E5", fontWeight: 700, fontSize: 16, flexShrink: 0, lineHeight: "1.6" }}>•</span>
+                        <span style={{ fontSize: 16, color: "#334155", lineHeight: 1.6 }}>{punct(r)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {exp.responsibilities.length === 0 && (
+                <div style={{ padding: "10px 20px 14px" }}>
+                  <p style={{ fontSize: 14, color: "#94A3B8", fontStyle: "italic" }}>Nicio responsabilitate adăugată încă.</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Add new experience */}
+        <button
+          onClick={() => { setForm({ ...EMPTY_EXP }); setEditIndex(null); setShowForm(true); setPhase("form"); }}
+          style={{
+            width: "100%", padding: "14px 20px", marginBottom: 16,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            border: "2px dashed #C7D2FE", borderRadius: 12,
+            backgroundColor: "#FAFBFF", color: "#4F46E5",
+            fontSize: 17, fontWeight: 600, cursor: "pointer",
+          }}
+        >
+          <Plus size={18} />
+          Adaugă o altă experiență
+        </button>
+
+        <div style={{ display: "flex", gap: 12 }}>
+          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+          <Button onClick={onNext} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
+            Continuă
+          </Button>
+        </div>
+      </StepCard>
+    );
+  }
+
   // ── FORM PHASE ────────────────────────────────────────────────────────────────
   return (
     <StepCard
@@ -372,91 +650,60 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
       subtitle="Adaugă joburile tale în ordine cronologică inversă (cel mai recent primul)."
       icon={<Briefcase className="w-5 h-5" />}
     >
-      {/* Existing entries */}
+      {/* Existing entries (compact, for context while adding) */}
       {experience.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
           {experience.map((exp, i) => (
-            <div key={i} style={{ backgroundColor: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 12, overflow: "hidden" }}>
-              <div
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", cursor: "pointer" }}
-                onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 36, height: 36, backgroundColor: "#EEEDF8", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Briefcase size={16} color="#4F46E5" />
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 18, fontWeight: 700, color: "#0D0D0D" }}>{exp.title}</p>
-                    <p style={{ fontSize: 16, color: "#6B7280" }}>{exp.company} · {exp.period}</p>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <button onClick={(e) => { e.stopPropagation(); handleEdit(i); }} style={{ padding: "6px 12px", fontSize: 16, color: "#4F46E5", backgroundColor: "#EEEDF8", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Editează</button>
-                  <button data-testid="btn-delete-exp" onClick={(e) => { e.stopPropagation(); handleDelete(i); }} style={{ padding: 6, color: "#EF4444", backgroundColor: "#FEF2F2", border: "none", borderRadius: 8, cursor: "pointer", display: "flex" }}><Trash2 size={14} /></button>
-                  {expandedIndex === i ? <ChevronUp size={16} color="#9CA3AF" /> : <ChevronDown size={16} color="#9CA3AF" />}
-                </div>
+            <div key={i} style={{ backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+              <CheckCircle2 size={16} color="#16A34A" style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 16, fontWeight: 700, color: "#166534", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{exp.title}</p>
+                <p style={{ fontSize: 14, color: "#15803D" }}>{exp.company} · {exp.period}</p>
               </div>
-              {expandedIndex === i && exp.responsibilities.length > 0 && (
-                <div style={{ padding: "0 16px 14px 64px", borderTop: "1px solid #E5E7EB" }}>
-                  <ul style={{ margin: "10px 0 0", paddingLeft: 4, listStyle: "none" }}>
-                    {exp.responsibilities.map((r, j) => (
-                      <li key={j} style={{ fontSize: 17, color: "#374151", marginBottom: 4 }}>· {r}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <button
+                data-testid="btn-delete-exp"
+                onClick={() => handleDelete(i)}
+                style={{ padding: "4px 7px", color: "#EF4444", backgroundColor: "#FEF2F2", border: "none", borderRadius: 7, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}
+              >
+                <Trash2 size={13} />
+              </button>
             </div>
           ))}
         </div>
       )}
 
-      {/* Add form */}
-      {showForm ? (
-        <div style={{ backgroundColor: "#ffffff", border: "1px solid #CBD5E1", borderRadius: 14, padding: 20, marginBottom: 16 }}>
-          <p style={{ fontSize: 18, fontWeight: 700, color: "#0D0D0D", marginBottom: 16 }}>
-            {editIndex !== null ? "Editează experiența" : "Adaugă experiență"}
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <Input label="Funcție / Titlu job *" placeholder="ex: Contabil" value={form.title} onChange={(e) => set("title", e.target.value)} autoFocus />
-            <Input label="Companie *" placeholder="ex: Firma de Contabilitate XYZ" value={form.company} onChange={(e) => set("company", e.target.value)} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Input label="Perioadă *" placeholder="ex: Ian 2019 – Prezent" value={form.period} onChange={(e) => set("period", e.target.value)} hint="Luna An – Luna An sau Prezent" />
-              <Input label="Locație (opțional)" placeholder="ex: Cluj-Napoca" value={form.location} onChange={(e) => set("location", e.target.value)} />
-            </div>
-            <div>
-              <label style={{ fontSize: 18, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>Ce făceai acolo? (opțional)</label>
-              <textarea
-                value={form.responsibilities}
-                onChange={(e) => set("responsibilities", e.target.value)}
-                placeholder={"Descrie cu cuvintele tale ce anume făceai acolo.\nCu cât mai multe detalii, cu atât CV-ul va fi mai complet.\n\nExemplu:\nGestionam contabilitatea completă pentru aproximativ 15 firme client\nIntroduceam facturile de intrare și ieșire în programul de contabilitate\nÎntocmeam declarațiile fiscale lunare și trimestriale (D300, D394, D112)\nPregăteam balanțele de verificare și situațiile financiare anuale\nMă ocupam de relația cu ANAF — depuneri, răspunsuri la notificări\nReconciliam conturile bancare și verificam extrasele de cont\nComunicam direct cu clienții pentru colectarea documentelor"}
-                rows={6}
-                style={{ width: "100%", borderRadius: 10, border: "1px solid #94A3B8", padding: "10px 14px", fontSize: 17, color: "#111827", backgroundColor: "#ffffff", resize: "vertical", outline: "none", fontFamily: "inherit", lineHeight: 1.6 }}
-              />
-              <p style={{ fontSize: 16, color: "#6B7280", marginTop: 6 }}>
-                Cu cât mai multe detalii, cu atât mai bine 😊 Nu îți face griji pentru formulări și greșeli!
-              </p>
-            </div>
+      {/* Add/edit form */}
+      <div style={{ backgroundColor: "#ffffff", border: "1px solid #CBD5E1", borderRadius: 14, padding: 20, marginBottom: 16 }}>
+        <p style={{ fontSize: 18, fontWeight: 700, color: "#0D0D0D", marginBottom: 16 }}>
+          {editIndex !== null ? "Editează experiența" : "Adaugă experiență"}
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <Input label="Funcție / Titlu job *" placeholder="ex: Contabil" value={form.title} onChange={(e) => set("title", e.target.value)} autoFocus />
+          <Input label="Companie *" placeholder="ex: Firma de Contabilitate XYZ" value={form.company} onChange={(e) => set("company", e.target.value)} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Input label="Perioadă *" placeholder="ex: Ian 2019 – Prezent" value={form.period} onChange={(e) => set("period", e.target.value)} hint="Luna An – Luna An sau Prezent" />
+            <Input label="Locație (opțional)" placeholder="ex: Cluj-Napoca" value={form.location} onChange={(e) => set("location", e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: 18, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>Ce făceai acolo? (opțional)</label>
+            <textarea
+              value={form.responsibilities}
+              onChange={(e) => set("responsibilities", e.target.value)}
+              placeholder={"Descrie cu cuvintele tale ce anume făceai acolo.\nCu cât mai multe detalii, cu atât CV-ul va fi mai complet.\n\nExemplu:\nGestionam contabilitatea completă pentru aproximativ 15 firme client\nIntroduceam facturile de intrare și ieșire în programul de contabilitate\nÎntocmeam declarațiile fiscale lunare și trimestriale (D300, D394, D112)\nPregăteam balanțele de verificare și situațiile financiare anuale\nMă ocupam de relația cu ANAF — depuneri, răspunsuri la notificări\nReconciliam conturile bancare și verificam extrasele de cont\nComunicam direct cu clienții pentru colectarea documentelor"}
+              rows={6}
+              style={{ width: "100%", borderRadius: 10, border: "1px solid #94A3B8", padding: "10px 14px", fontSize: 17, color: "#111827", backgroundColor: "#ffffff", resize: "vertical", outline: "none", fontFamily: "inherit", lineHeight: 1.6 }}
+            />
+            <p style={{ fontSize: 16, color: "#6B7280", marginTop: 6 }}>
+              Cu cât mai multe detalii, cu atât mai bine 😊 Nu îți face griji pentru formulări și greșeli!
+            </p>
           </div>
         </div>
-      ) : (
-        <button
-          onClick={() => { setShowForm(true); setEditIndex(null); setForm({ ...EMPTY_EXP }); }}
-          style={{ width: "100%", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, border: "2px dashed #C7D2FE", borderRadius: 12, backgroundColor: "#FAFAFA", color: "#4F46E5", fontSize: 18, fontWeight: 600, cursor: "pointer", marginBottom: 16, transition: "background-color 0.15s" }}
-        >
-          + Adaugă experiență profesională
-        </button>
-      )}
-
-      {experience.length === 0 && !showForm && (
-        <p style={{ fontSize: 17, color: "#9CA3AF", textAlign: "center", marginBottom: 16 }}>
-          Nicio experiență adăugată — poți continua fără.
-        </p>
-      )}
+      </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-        <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+        <Button variant="outline" onClick={() => { experience.length > 0 ? setPhase("summary") : onBack(); }} style={{ flex: 1 }}>← Înapoi</Button>
         <Button onClick={handleNext} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
-          {experience.length > 0 && !showForm ? `Continuă (${experience.length} job${experience.length > 1 ? "uri" : ""})` : "Continuă"}
+          Continuă
         </Button>
       </div>
     </StepCard>

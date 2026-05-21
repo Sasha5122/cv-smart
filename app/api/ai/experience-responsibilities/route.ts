@@ -72,7 +72,7 @@ Răspunde EXCLUSIV cu un array JSON de stringuri. Fără alt text.`,
       fallback: FALLBACK,
     });
 
-    const result = Array.isArray(responsibilities) ? responsibilities.slice(0, 16) : FALLBACK;
+    const result = Array.isArray(responsibilities) && responsibilities.length > 0 ? responsibilities.slice(0, 16) : FALLBACK;
     return NextResponse.json({ responsibilities: result });
   } catch {
     return NextResponse.json({ responsibilities: FALLBACK });
