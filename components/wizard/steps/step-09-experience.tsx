@@ -42,7 +42,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
     company: form.company.trim(),
     period: form.period.trim(),
     location: form.location.trim(),
-    responsibilities: form.responsibilities.split("\n").map((r) => r.trim()).filter(Boolean),
+    responsibilities: [],
     achievements: [],
   });
 
