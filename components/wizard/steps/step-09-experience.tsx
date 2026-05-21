@@ -29,6 +29,8 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
   const [answers, setAnswers] = useState<string[]>([]);
   const [responsibilitiesList, setResponsibilitiesList] = useState<string[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [customInput, setCustomInput] = useState("");
+  const [isAddingCustom, setIsAddingCustom] = useState(false);
   const savedIdxRef = useRef<number>(-1);
   const savedJobRef = useRef({ title: "", company: "", period: "" });
   const rawDescRef = useRef("");
@@ -134,6 +136,35 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
       next.has(i) ? next.delete(i) : next.add(i);
       return next;
     });
+  };
+
+  const handleAddCustom = async () => {
+    if (!customInput.trim() || isAddingCustom) return;
+    setIsAddingCustom(true);
+    try {
+      const res = await fetch("/api/ai/format-responsibility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawText: customInput.trim(), jobTitle: savedJobRef.current.title }),
+      });
+      const data = await res.json();
+      const formatted: string = data.responsibility ?? customInput.trim();
+      setResponsibilitiesList((prev) => {
+        const next = [...prev, formatted];
+        setSelected((s) => new Set([...s, next.length - 1]));
+        return next;
+      });
+      setCustomInput("");
+    } catch {
+      const fallback = customInput.trim();
+      setResponsibilitiesList((prev) => {
+        const next = [...prev, fallback];
+        setSelected((s) => new Set([...s, next.length - 1]));
+        return next;
+      });
+      setCustomInput("");
+    }
+    setIsAddingCustom(false);
   };
 
   const handleEdit = (i: number) => {
@@ -270,7 +301,61 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+        {/* Custom responsibility input */}
+        <div style={{
+          marginTop: 16,
+          backgroundColor: "#F8FAFC",
+          border: "1px solid #E2E8F0",
+          borderRadius: 12,
+          padding: "14px 16px",
+        }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginBottom: 10 }}>
+            Vrei să adaugi sau să modifici ceva?
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <textarea
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddCustom(); } }}
+              placeholder="ex: răspundeam la telefon, gestionam contracte cu furnizorii..."
+              rows={2}
+              style={{
+                flex: 1, borderRadius: 10, border: "1px solid #94A3B8",
+                padding: "10px 14px", fontSize: 16, color: "#111827",
+                backgroundColor: "#ffffff", resize: "none", outline: "none",
+                fontFamily: "inherit", lineHeight: 1.5, transition: "border-color 0.15s",
+              }}
+              onFocus={(e) => { e.target.style.borderColor = "#6366F1"; }}
+              onBlur={(e) => { e.target.style.borderColor = "#94A3B8"; }}
+              disabled={isAddingCustom}
+            />
+            <button
+              onClick={handleAddCustom}
+              disabled={!customInput.trim() || isAddingCustom}
+              style={{
+                padding: "0 18px",
+                backgroundColor: customInput.trim() && !isAddingCustom ? "#4F46E5" : "#E2E8F0",
+                color: customInput.trim() && !isAddingCustom ? "#ffffff" : "#9CA3AF",
+                border: "none", borderRadius: 10, fontSize: 15, fontWeight: 600,
+                cursor: customInput.trim() && !isAddingCustom ? "pointer" : "not-allowed",
+                display: "flex", alignItems: "center", gap: 8,
+                transition: "all 0.15s", flexShrink: 0, minWidth: 90,
+                justifyContent: "center",
+              }}
+            >
+              {isAddingCustom ? (
+                <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+              ) : (
+                <>+ Adaugă</>
+              )}
+            </button>
+          </div>
+          <p style={{ fontSize: 13, color: "#94A3B8", marginTop: 6 }}>
+            Descrie cu cuvintele tale — vom reformula automat în limbaj profesional
+          </p>
+        </div>
+
+        <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
           <Button variant="outline" onClick={() => setPhase("questions")} style={{ flex: 1 }}>← Înapoi</Button>
           <Button onClick={handleSubmitResponsibilities} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
             Salvează ({selectedCount})
