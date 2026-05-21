@@ -230,7 +230,7 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
           Nu trebuie să răspunzi la toate — completează ce știi
         </p>
         <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-          <Button variant="outline" onClick={() => { setPhase("form"); setShowForm(true); }} style={{ flex: 1 }}>← Înapoi</Button>
+          <Button variant="outline" onClick={() => { setPhase("form"); setShowForm(true); setEditIndex(savedIdxRef.current); }} style={{ flex: 1 }}>← Înapoi</Button>
           <Button onClick={handleSubmitAnswers} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>Continuă</Button>
         </div>
       </StepCard>
