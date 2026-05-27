@@ -119,8 +119,27 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
 
   // ── PHASE 1 → 2: Form → Questions ────────────────────────────────────────────
   const handleNext = async () => {
-    if (!form.title.trim() || !form.company.trim() || !form.period.trim()) {
+    const anyFieldFilled =
+      form.title.trim() || form.company.trim() || form.period.trim() ||
+      form.location.trim() || form.responsibilities.trim();
+
+    if (!anyFieldFilled) {
+      // Completely empty form — skip or show summary
       if (experience.length > 0) { setPhase("summary"); } else { onNext(); }
+      return;
+    }
+
+    // Something was filled → all required fields must be present
+    if (!form.title.trim()) {
+      toast.error("Denumirea jobului (funcția) este obligatorie.");
+      return;
+    }
+    if (!form.company.trim()) {
+      toast.error("Compania este obligatorie.");
+      return;
+    }
+    if (!form.period.trim()) {
+      toast.error("Perioada este obligatorie.");
       return;
     }
 
@@ -193,6 +212,10 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
 
   // ── PHASE 3 → Summary ────────────────────────────────────────────────────────
   const handleSubmitResponsibilities = () => {
+    if (selected.size === 0) {
+      toast.error("Selectează cel puțin o responsabilitate pentru a continua.");
+      return;
+    }
     const picked = responsibilitiesList.filter((_, i) => selected.has(i));
     const idx = savedIdxRef.current;
     if (idx >= 0) {
@@ -457,7 +480,11 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
 
         <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
           <Button variant="outline" onClick={() => setPhase("questions")} style={{ flex: 1 }}>← Înapoi</Button>
-          <Button onClick={handleSubmitResponsibilities} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
+          <Button
+            onClick={handleSubmitResponsibilities}
+            style={{ flex: 2, opacity: selectedCount === 0 ? 0.5 : 1, cursor: selectedCount === 0 ? "not-allowed" : "pointer" }}
+            iconRight={<ArrowRight className="w-4 h-4" />}
+          >
             Salvează ({selectedCount})
           </Button>
         </div>

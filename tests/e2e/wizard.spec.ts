@@ -279,6 +279,33 @@ test.describe("Wizard — Step 8: Work Experience", () => {
     await expect(page.getByLabel(/Perioadă/i)).toBeVisible();
   });
 
+  test("validare — descriere fără titlu job arată eroare, nu sare la educație", async ({ page }) => {
+    await goToExperience(page);
+    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
+    // Fill only the description textarea, leave title/company/period empty
+    await page.locator("textarea").first().fill("Gestionam contabilitatea pentru mai multe firme client");
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    // Should show error toast, NOT navigate away
+    await expect(page.getByText(/obligatorie/i)).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible();
+  });
+
+  test("validare — titlu fără companie arată eroare", async ({ page }) => {
+    await goToExperience(page);
+    await page.getByLabel(/Funcție|Titlu job/i).fill("Contabil");
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    await expect(page.getByText(/Compania este obligatorie/i)).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible();
+  });
+
+  test("validare — formular complet gol trece la educație (skip valid)", async ({ page }) => {
+    await goToExperience(page);
+    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
+    // All fields empty — valid skip
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    await expect(page.getByRole("heading", { name: "Educație" })).toBeVisible({ timeout: 5000 });
+  });
+
   test("adaugă un job și navighează la întrebări AI", async ({ page }) => {
     await goToExperience(page);
     await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
@@ -354,6 +381,25 @@ test.describe("Wizard — Step 8: Work Experience", () => {
     await expect(page.getByText(/din \d+ selectate/)).toBeVisible();
     // Salvează button visible
     await expect(page.getByRole("button", { name: /Salvează/ })).toBeVisible();
+  });
+
+  test("responsabilități — Salvează cu 0 selectate este blocat cu eroare", async ({ page }) => {
+    await goToExperience(page);
+    await page.getByLabel(/Funcție|Titlu job/i).fill("Ospătar");
+    await page.getByLabel(/Companie/i).fill("Restaurant XYZ");
+    await page.getByLabel(/Perioadă/i).fill("2021 – Prezent");
+    await page.getByRole("button", { name: /Continuă/ }).last().click();
+    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Continuă/ }).click();
+    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
+    // Make sure all are deselected (default)
+    await page.getByRole("button", { name: "Deselectează tot", exact: true }).click();
+    await expect(page.getByText("0 din")).toBeVisible();
+    // Try to save with 0 selected
+    await page.getByRole("button", { name: /Salvează/ }).click();
+    await expect(page.getByText(/cel puțin o responsabilitate/i)).toBeVisible({ timeout: 3000 });
+    // Should stay on responsibilities phase
+    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible();
   });
 
   test("faza responsabilități — Selectează tot și Deselectează tot funcționează", async ({ page }) => {
