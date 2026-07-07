@@ -1,38 +1,83 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════════════════════
+   CV SMART — SISTEM MODERN, CONTRAST PUTERNIC
+   Alb pur + navy închis · Albastru electric (primar) · Verde smarald
+   (progres/valid) · Roșu (erori). Fonturi: Sora (display) +
+   Instrument Sans (body) — ambele cu diacritice românești.
+   ══════════════════════════════════════════════════════════════════ */
+
 @theme inline {
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-900: #312e81;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-900: #1e3a8a;
+  --color-success: #059669;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --font-sans: var(--font-body), "Instrument Sans", system-ui, sans-serif;
+  --font-serif: var(--font-display), "Sora", system-ui, sans-serif;
 }
 
 :root {
-  --background: #F8F7F4;
-  --foreground: #0f172a;
-  --card: #ffffff;
+  /* suprafețe */
+  --background: #f8fafc;
+  --paper: #f8fafc;          /* rama aplicației */
+  --paper-deep: #eef2f7;     /* birou preview / secțiuni alternative */
+  --card: #ffffff;           /* carduri, inputuri — alb pur */
   --card-foreground: #0f172a;
-  --primary: #4f46e5;
+
+  /* text — contrast puternic */
+  --foreground: #1e293b;
+  --ink: #0f172a;
+  --ink-strong: #0b1220;
+  --muted-foreground: #475569;
+  --faint: #64748b;
+
+  /* sidebar navy */
+  --sidebar-bg: #0b1220;
+  --sidebar-fg: #f1f5f9;
+  --sidebar-muted: #7c8aa5;
+  --sidebar-line: rgba(241, 245, 249, 0.1);
+
+  /* primar — albastru electric */
+  --primary: #2563eb;
+  --primary-strong: #1d4ed8;
   --primary-foreground: #ffffff;
+  --wash: #eff6ff;
+
+  /* verde smarald — progres, valid, done  */
+  --green: #059669;
+  --green-strong: #047857;
+  --green-soft: #d1fae5;
+  /* aliasuri istorice (componentele existente le folosesc) */
+  --amber: #059669;
+  --amber-soft: #d1fae5;
+
+  /* roșu — erori */
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+
   --secondary: #f1f5f9;
-  --secondary-foreground: #1e293b;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  --accent: #eef2ff;
-  --accent-foreground: #4338ca;
-  --border: #e2e8f0;
-  --input-border: #e2e8f0;
-  --ring: #6366f1;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --accent: #eff6ff;
+  --accent-foreground: #1d4ed8;
+
+  /* linii — vizibile, contrast bun */
+  --border: #cbd5e1;
+  --hairline: #e2e8f0;
+  --hairline-strong: #94a3b8;
+  --input-border: #cbd5e1;
+
+  --ring: #2563eb;
   --radius: 10px;
+
+  --shadow-paper: 0 1px 2px rgba(15, 23, 42, 0.06), 0 6px 20px -8px rgba(15, 23, 42, 0.1);
+  --shadow-lift: 0 2px 6px rgba(15, 23, 42, 0.07), 0 16px 40px -12px rgba(15, 23, 42, 0.18);
 }
 
 *, *::before, *::after {
@@ -48,78 +93,154 @@ html {
 }
 
 body {
-  font-family: var(--font-sans);
-  background-color: #F8F7F4;
+  font-family: var(--font-body), "Instrument Sans", system-ui, sans-serif;
+  background-color: var(--paper);
   color: var(--foreground);
   line-height: 1.6;
-  font-size: 15px;
+  font-size: 15.5px;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+h1, h2, h3, .font-display {
+  font-family: var(--font-display), "Sora", system-ui, sans-serif;
+  color: var(--ink-strong);
+  font-weight: 700;
+  letter-spacing: -0.022em;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #eef2f7; }
+::-webkit-scrollbar-thumb { background: #b6c2d1; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-::selection { background: #c7d2fe; color: #312e81; }
+::selection { background: #bfdbfe; color: #0b1220; }
 
-:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
-.gradient-brand { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+/* ── utilitare ─────────────────────────────────────────────────── */
 
-.text-gradient {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* etichetă mică, uppercase (kicker) */
+.folio {
+  font-family: var(--font-body), sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.hairline { border-bottom: 1px solid var(--hairline); }
+.rule-ink { border-bottom: 2px solid var(--primary); }
+
+/* buton primar plin (nume istoric păstrat) */
+.btn-ink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-family: var(--font-body), sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 28px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25), 0 6px 18px -6px rgba(37, 99, 235, 0.45);
 }
+.btn-ink:hover {
+  background: var(--primary-strong);
+  border-color: var(--primary-strong);
+  transform: translateY(-1px);
+}
+.btn-ink:active { transform: translateY(0); }
+.btn-ink:disabled {
+  background: #94a3b8;
+  border-color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--font-body), sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 13px 24px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+.btn-quiet:hover { border-color: var(--ink); background: #f8fafc; }
+
+.paper-card {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-paper);
+}
+
+/* ── animații ──────────────────────────────────────────────────── */
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes slide-in-right {
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
 }
-
 @keyframes slide-in-left {
   from { opacity: 0; transform: translateX(-20px); }
   to { opacity: 1; transform: translateX(0); }
 }
-
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-
 @keyframes typing-dot {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30% { transform: translateY(-6px); opacity: 1; }
 }
-
 @keyframes progress-fill {
   from { width: 0%; }
   to { width: var(--progress-width); }
 }
 
-.animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+.animate-fade-in { animation: fade-in 0.35s ease-out forwards; }
 .animate-slide-right { animation: slide-in-right 0.3s ease-out forwards; }
 .animate-slide-left { animation: slide-in-left 0.3s ease-out forwards; }
 
+.reveal {
+  opacity: 0;
+  animation: fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 50%, #eef2f7 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .typing-dot { animation: typing-dot 1.4s ease-in-out infinite; }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .animate-fade-in, .animate-slide-right, .animate-slide-left {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
+}

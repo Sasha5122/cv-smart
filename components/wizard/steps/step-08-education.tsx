@@ -12,7 +12,7 @@ const LEVELS = ["Post-doctorat", "Doctorat", "Master", "Licență", "Liceu", "Ș
 const EMPTY = { level: "", institution: "", field: "", years: "", location: "", thesis: "", grade: "" };
 
 const labelStyle: React.CSSProperties = {
-  display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6,
+  display: "block", fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 6,
 };
 
 interface Props {
@@ -98,18 +98,18 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
               <div key={i} style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "12px 14px", borderRadius: 10,
-                border: "1px solid #E2E8F0", backgroundColor: "#F8FAFC",
+                border: "1px solid var(--hairline)", backgroundColor: "var(--muted)",
               }}>
-                <GripVertical size={16} color="#CBD5E1" style={{ flexShrink: 0 }} />
+                <GripVertical size={16} color="var(--faint)" style={{ flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: "#0F172A" }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink-strong)" }}>
                     {e.level}{e.field ? ` — ${e.field}` : ""}
                   </div>
-                  <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>
+                  <div style={{ fontSize: 13, color: "var(--muted-foreground)", marginTop: 2 }}>
                     {e.institution}{e.location ? ` · ${e.location}` : ""} · {e.years}
                   </div>
                   {(e.grade || e.thesis) && (
-                    <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: "var(--faint)", marginTop: 2 }}>
                       {e.grade && `Medie: ${e.grade}`}
                       {e.grade && e.thesis && " · "}
                       {e.thesis && `Lucrare: „${e.thesis}"`}
@@ -118,9 +118,9 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                 </div>
                 <button
                   onClick={() => openEdit(i)}
-                  style={{ padding: 6, borderRadius: 6, border: "1px solid #E2E8F0", backgroundColor: "#fff", cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}
+                  style={{ padding: 6, borderRadius: 6, border: "1px solid var(--hairline)", backgroundColor: "var(--card)", cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}
                 >
-                  <Pencil size={14} color="#64748B" />
+                  <Pencil size={14} color="var(--muted-foreground)" />
                 </button>
                 <button
                   onClick={() => handleDelete(i)}
@@ -140,9 +140,9 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
           data-testid="btn-add-education"
           style={{
             width: "100%", padding: "13px", borderRadius: 10,
-            border: "2px dashed #CBD5E1", backgroundColor: "transparent",
+            border: "2px dashed var(--faint)", backgroundColor: "transparent",
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-            gap: 8, color: "#64748B", fontSize: 14, fontWeight: 500, marginBottom: 20,
+            gap: 8, color: "var(--muted-foreground)", fontSize: 14, fontWeight: 500, marginBottom: 20,
           }}
         >
           <Plus size={16} />
@@ -150,7 +150,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
         </button>
 
         {education.length === 0 && (
-          <p style={{ fontSize: 13, color: "#94A3B8", textAlign: "center", marginBottom: 4 }}>
+          <p style={{ fontSize: 13, color: "var(--faint)", textAlign: "center", marginBottom: 4 }}>
             Poți sări peste acest pas dacă nu dorești să adaugi studii.
           </p>
         )}
@@ -175,21 +175,21 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
           onClick={(e) => { if (e.target === e.currentTarget) setDialogOpen(false); }}
         >
           <div style={{
-            backgroundColor: "#fff", borderRadius: 16,
+            backgroundColor: "var(--card)", borderRadius: 16,
             width: "100%", maxWidth: 540, maxHeight: "90vh",
             overflowY: "auto", padding: "28px 28px 24px",
             boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
           }}>
             {/* Dialog header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0F172A", margin: 0 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--ink-strong)", margin: 0 }}>
                 {editIdx !== null ? "Editează educație" : "Adaugă educație"}
               </h2>
               <button
                 onClick={() => setDialogOpen(false)}
-                style={{ padding: 6, borderRadius: 8, border: "none", backgroundColor: "#F1F5F9", cursor: "pointer", display: "flex" }}
+                style={{ padding: 6, borderRadius: 8, border: "none", backgroundColor: "var(--muted)", cursor: "pointer", display: "flex" }}
               >
-                <X size={18} color="#64748B" />
+                <X size={18} color="var(--muted-foreground)" />
               </button>
             </div>
 
@@ -202,15 +202,15 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                   onChange={(e) => set("level", e.target.value)}
                   style={{
                     width: "100%", padding: "10px 36px 10px 12px", fontSize: 14,
-                    borderRadius: 8, border: "1px solid #E2E8F0",
-                    backgroundColor: "#fff", color: form.level ? "#0F172A" : "#9CA3AF",
+                    borderRadius: 8, border: "1px solid var(--hairline)",
+                    backgroundColor: "var(--card)", color: form.level ? "var(--ink-strong)" : "var(--faint)",
                     outline: "none", appearance: "none", cursor: "pointer",
                   }}
                 >
                   <option value="" disabled>Selectează nivelul de studii</option>
                   {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
-                <svg style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                <svg style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted-foreground)" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
               </div>
             </div>
 
@@ -259,7 +259,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
               <div>
                 <label style={labelStyle}>
                   Titlu lucrare finală{" "}
-                  <span style={{ color: "#94A3B8", fontWeight: 400 }}>(opțional)</span>
+                  <span style={{ color: "var(--faint)", fontWeight: 400 }}>(opțional)</span>
                 </label>
                 <Input
                   value={form.thesis}
@@ -270,7 +270,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
               <div>
                 <label style={labelStyle}>
                   Medie absolvire{" "}
-                  <span style={{ color: "#94A3B8", fontWeight: 400 }}>(opțional)</span>
+                  <span style={{ color: "var(--faint)", fontWeight: 400 }}>(opțional)</span>
                 </label>
                 <Input
                   value={form.grade}
@@ -286,8 +286,8 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                 onClick={() => setDialogOpen(false)}
                 style={{
                   flex: 1, padding: "11px", borderRadius: 8,
-                  border: "1px solid #E2E8F0", backgroundColor: "#fff",
-                  fontSize: 14, fontWeight: 500, color: "#64748B", cursor: "pointer",
+                  border: "1px solid var(--hairline)", backgroundColor: "var(--card)",
+                  fontSize: 14, fontWeight: 500, color: "var(--muted-foreground)", cursor: "pointer",
                 }}
               >
                 Anulează
@@ -297,7 +297,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                 data-testid="btn-save-education"
                 style={{
                   flex: 2, padding: "11px", borderRadius: 8,
-                  border: "none", backgroundColor: "#4F46E5",
+                  border: "none", backgroundColor: "var(--primary)",
                   fontSize: 14, fontWeight: 600, color: "#fff", cursor: "pointer",
                 }}
               >

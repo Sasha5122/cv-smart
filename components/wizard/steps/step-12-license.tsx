@@ -33,15 +33,15 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
     >
       {/* License toggle */}
       <div className="mb-5">
-        <p className="text-lg font-medium text-slate-700 mb-3">Ai permis de conducere?</p>
+        <p className="text-lg font-medium text-[var(--foreground)] mb-3">Ai permis de conducere?</p>
         <div className="flex gap-2">
           <button
             onClick={() => onUpdateLicense({ ...license, hasLicense: true })}
             className={cn(
               "flex-1 py-3 rounded-xl border-2 text-lg font-medium transition-all",
               license.hasLicense
-                ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                ? "border-indigo-500 bg-[var(--wash)] text-[var(--primary)]"
+                : "border-[var(--hairline)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--input-border)]"
             )}
           >
             ✅ Da
@@ -51,8 +51,8 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
             className={cn(
               "flex-1 py-3 rounded-xl border-2 text-lg font-medium transition-all",
               !license.hasLicense
-                ? "border-slate-500 bg-slate-50 text-slate-700"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                ? "border-slate-500 bg-[var(--muted)] text-[var(--foreground)]"
+                : "border-[var(--hairline)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--input-border)]"
             )}
           >
             ❌ Nu
@@ -63,7 +63,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
       {/* Categories */}
       {license.hasLicense && (
         <div className="mb-5">
-          <p className="text-lg font-medium text-slate-700 mb-2">Categorii permis:</p>
+          <p className="text-lg font-medium text-[var(--foreground)] mb-2">Categorii permis:</p>
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (
               <button
@@ -72,8 +72,8 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
                 className={cn(
                   "w-14 h-11 rounded-lg border-2 text-base font-semibold transition-all",
                   license.categories.includes(cat)
-                    ? "border-indigo-500 bg-indigo-500 text-white"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300"
+                    ? "border-indigo-500 bg-[var(--wash)]0 text-white"
+                    : "border-[var(--hairline)] bg-[var(--card)] text-[var(--foreground)] hover:border-indigo-300"
                 )}
               >
                 {cat}

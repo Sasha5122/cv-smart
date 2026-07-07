@@ -88,6 +88,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
         return (
           <Step09Experience
             sessionId={sessionId}
+            jobDescription={jobDescription}
             experience={cvData.experience}
             onUpdate={(experience) => updateCVData({ experience })}
             onNext={next}
@@ -109,6 +110,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
         return (
           <Step10Skills
             sessionId={sessionId}
+            cvData={cvData}
             skills={cvData.skills}
             onUpdate={(skills) => updateCVData({ skills })}
             onNext={next}

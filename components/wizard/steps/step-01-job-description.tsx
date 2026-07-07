@@ -34,16 +34,38 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
         hint="Cu cât descrierea e mai completă, cu atât CV-ul va fi mai bine adaptat pentru acel job"
       />
 
-      {/* Examples — always visible when no value */}
+      {/* Exemple rapide — bloc separat clar de butoanele de navigare */}
       {!value && (
-        <div className="mt-4">
-          <p className="text-sm text-slate-400 mb-2">Exemple rapide:</p>
-          <div className="flex flex-wrap gap-2">
+        <div style={{ marginTop: 22 }}>
+          <p className="folio" style={{ fontSize: 11, marginBottom: 12 }}>
+            Exemple rapide
+          </p>
+          <div className="flex flex-wrap" style={{ gap: 10 }}>
             {EXAMPLES.map((ex) => (
               <button
                 key={ex}
                 onClick={() => onChange(ex)}
-                className="text-sm bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  color: "var(--foreground)",
+                  backgroundColor: "var(--card)",
+                  border: "1.5px solid var(--border)",
+                  borderRadius: 8,
+                  padding: "9px 15px",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--primary)";
+                  e.currentTarget.style.backgroundColor = "var(--wash)";
+                  e.currentTarget.style.color = "var(--primary-strong)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "var(--border)";
+                  e.currentTarget.style.backgroundColor = "var(--card)";
+                  e.currentTarget.style.color = "var(--foreground)";
+                }}
               >
                 {ex}
               </button>
@@ -53,18 +75,34 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
       )}
 
       {value && (
-        <div className="mt-3 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-          <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
-          <p className="text-xs text-emerald-700">
-            CV-ul va fi personalizat în funcție de jobul ales
+        <div
+          className="flex items-center gap-2.5"
+          style={{
+            marginTop: 16,
+            backgroundColor: "var(--green-soft)",
+            border: "1px solid #6ee7b7",
+            borderRadius: 8,
+            padding: "12px 16px",
+          }}
+        >
+          <Sparkles className="w-4 h-4 shrink-0" style={{ color: "var(--green)" }} />
+          <p style={{ fontSize: 13.5, color: "#065f46", fontWeight: 600 }}>
+            CV-ul va fi ancorat pe acest anunț — vocabular, cerințe, ordine.
           </p>
         </div>
       )}
 
-      <div className="flex flex-col gap-2 mt-6">
+      <div className="flex flex-col mt-10" style={{ gap: 14 }}>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={onBack} className="flex-1">← Înapoi</Button>
-          <Button onClick={onNext} size="lg" className="flex-[2]" iconRight={<ArrowRight className="w-4 h-4" />}>
+          <Button variant="outline" onClick={onBack} className="flex-1">
+            ← Înapoi
+          </Button>
+          <Button
+            onClick={onNext}
+            size="lg"
+            className="flex-[2]"
+            iconRight={<ArrowRight className="w-4 h-4" />}
+          >
             Continuă
           </Button>
         </div>
@@ -72,18 +110,19 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
           onClick={onSkip}
           style={{
             width: "100%",
-            padding: "11px 16px",
-            fontSize: 17,
-            fontWeight: 600,
-            color: "#6366F1",
-            backgroundColor: "#EEF2FF",
-            border: "2px dashed #A5B4FC",
-            borderRadius: 10,
+            padding: "10px 16px",
+            fontSize: 14,
+            fontWeight: 500,
+            color: "var(--muted-foreground)",
+            backgroundColor: "transparent",
+            border: "none",
             cursor: "pointer",
-            letterSpacing: 0.2,
+            textDecoration: "underline",
+            textDecorationColor: "var(--hairline-strong)",
+            textUnderlineOffset: 4,
           }}
         >
-          Sari peste
+          Nu am un anunț — continuă cu un CV general
         </button>
       </div>
     </StepCard>

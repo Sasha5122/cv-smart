@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractJSON } from "@/lib/ai/client";
+import { extractJSON, FAST_MODEL } from "@/lib/ai/client";
 import { getCachedProfile, upsertCachedProfile, updateIdealProfile } from "@/lib/db/queries";
 import { normalizeRole } from "@/lib/utils";
 import type { IdealProfile } from "@/lib/types/cv";
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
     // Extract role from job description
     const intent = await extractJSON<{ role: string; industry: string; seniority: string }>({
-      model: "claude-haiku-4-5-20251001",
+      model: FAST_MODEL,
       system: `Extrage rolul, industria și seniority-ul din descrierea jobului. JSON strict: {"role": "...", "industry": "...", "seniority": "junior|mid|senior"}`,
       userMessage: jobDescription,
       fallback: { role: "necunoscut", industry: "general", seniority: "mid" },
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     // Generate new profile
     const profile = await extractJSON<IdealProfile>({
       system: `Ești un expert HR român. Generează profilul ideal pentru rolul dat.
-JSON strict: {"role": "...", "industry": "...", "seniority": "...", "responsibilities": [...], "hardSkills": [...], "softSkills": [...], "atsKeywords": [...], "typicalKPIs": [...]}
+JSON strict: {"role": "...", "industry": "...", "seniority": "...", "responsibilities": [...], "hardSkills": [...], "softSkills": [...], "atsKeywords": [...]}
 
 Toate listele au 5-8 itemi. Focusat pe piața românească.`,
       userMessage: `Rol: ${intent.role}, Industrie: ${intent.industry}, Seniority: ${intent.seniority}`,
@@ -40,7 +40,6 @@ Toate listele au 5-8 itemi. Focusat pe piața românească.`,
         hardSkills: [],
         softSkills: [],
         atsKeywords: [],
-        typicalKPIs: [],
       },
     });
 

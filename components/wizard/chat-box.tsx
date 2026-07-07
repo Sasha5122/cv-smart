@@ -68,8 +68,8 @@ export function ChatBox({
               className={cn(
                 "max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
                 msg.role === "user"
-                  ? "bg-indigo-600 text-white rounded-br-sm"
-                  : "bg-slate-100 text-slate-800 rounded-bl-sm"
+                  ? "bg-[var(--ink)] text-white rounded-br-sm"
+                  : "bg-[var(--muted)] text-[var(--ink)] rounded-bl-sm"
               )}
             >
               {msg.content}
@@ -82,7 +82,7 @@ export function ChatBox({
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold mr-2 mt-0.5 shrink-0">
               CV
             </div>
-            <div className="bg-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 items-center">
+            <div className="bg-[var(--muted)] px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 items-center">
               <span className="typing-dot w-2 h-2 bg-slate-400 rounded-full inline-block" />
               <span className="typing-dot w-2 h-2 bg-slate-400 rounded-full inline-block" />
               <span className="typing-dot w-2 h-2 bg-slate-400 rounded-full inline-block" />
@@ -104,17 +104,17 @@ export function ChatBox({
             rows={2}
             disabled={loading}
             className={cn(
-              "w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-12 text-sm text-slate-900",
-              "placeholder:text-slate-400 resize-none",
+              "w-full rounded-xl border border-[var(--hairline)] bg-[var(--card)] px-4 py-2.5 pr-12 text-sm text-[var(--ink)]",
+              "placeholder:text-[var(--faint)] resize-none",
               "focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100",
-              "disabled:bg-slate-50 disabled:text-slate-400",
+              "disabled:bg-[var(--muted)] disabled:text-[var(--faint)]",
               "transition-all duration-150"
             )}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || loading}
-            className="absolute right-2 bottom-2 w-8 h-8 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 rounded-lg flex items-center justify-center text-white transition-colors"
+            className="absolute right-2 bottom-2 w-8 h-8 bg-[var(--ink)] hover:bg-[var(--primary-strong)] disabled:bg-slate-200 rounded-lg flex items-center justify-center text-white transition-colors"
           >
             <Send className="w-3.5 h-3.5" />
           </button>
@@ -124,7 +124,7 @@ export function ChatBox({
       {onSkip && (
         <button
           onClick={onSkip}
-          className="text-xs text-slate-400 hover:text-slate-600 transition-colors text-left"
+          className="text-xs text-[var(--faint)] hover:text-[var(--foreground)] transition-colors text-left"
         >
           ✋ {skipLabel}
         </button>

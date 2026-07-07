@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chat, SMART_MODEL } from "@/lib/ai/client";
+import { chat, FAST_MODEL } from "@/lib/ai/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await chat({
-      model: SMART_MODEL,
+      model: FAST_MODEL,
       system: `Ești specialist senior în redactarea CV-urilor profesionale pentru piața muncii din România.
 
 Candidatul a lucrat ca "${jobTitle}" și descrie informal o activitate pe care o făcea.

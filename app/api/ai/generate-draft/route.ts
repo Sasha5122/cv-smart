@@ -35,7 +35,7 @@ ${jobDescription ? `\nJob vizat: ${jobDescription}` : ""}
 ${idealProfile ? `\nCuvinte cheie pentru ATS: ${(idealProfile as {atsKeywords?: string[]}).atsKeywords?.join(", ")}` : ""}
 
 DATE CANDIDAT:
-${JSON.stringify(cvData, null, 2)}
+${JSON.stringify(cvData)}
 
 Generează CV-ul ca text formatat, secțiuni separate cu linie goală, NU markdown bold sau italic.`,
         },

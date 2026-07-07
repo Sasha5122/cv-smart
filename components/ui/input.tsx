@@ -15,18 +15,21 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
-      <div className="flex flex-col gap-1.5 w-full">
+      <div className="flex flex-col gap-2 w-full">
         {label && (
           <label
             htmlFor={inputId}
-            className="text-lg font-medium text-slate-700"
+            className="text-[14px] font-semibold text-[var(--ink)] tracking-wide"
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {icon && (
-            <span className="absolute text-slate-400 pointer-events-none" style={{ left: 16 }}>
+            <span
+              className="absolute text-[var(--faint)] pointer-events-none"
+              style={{ left: 14 }}
+            >
               {icon}
             </span>
           )}
@@ -34,32 +37,36 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             className={cn(
-              "w-full rounded-[10px] border border-slate-400 bg-white py-3 text-lg text-slate-900",
-              "placeholder:text-slate-400",
-              "transition-all duration-150",
-              "focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100",
-              "disabled:bg-slate-50 disabled:text-slate-400",
-              error && "border-red-400 focus:border-red-400 focus:ring-red-100",
+              "w-full rounded-[8px] border border-[var(--input-border)] bg-[var(--card)] py-[13px] text-[15.5px] text-[var(--ink)]",
+              "placeholder:text-[var(--faint)]",
+              "transition-all duration-150 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]",
+              "focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(37,99,235,0.18)] focus:bg-white",
+              "disabled:bg-[var(--muted)] disabled:text-[var(--faint)]",
+              error &&
+                "border-[var(--color-error,#dc2626)] focus:border-[var(--color-error,#dc2626)] focus:ring-[rgba(220,38,38,0.15)]",
               className
             )}
             style={{
-              paddingLeft: icon ? 56 : 20,
-              paddingRight: iconRight ? 56 : 20,
+              paddingLeft: icon ? 44 : 16,
+              paddingRight: iconRight ? 44 : 16,
               ...style,
             }}
             {...props}
           />
           {iconRight && (
-            <span className="absolute text-slate-400 pointer-events-none" style={{ right: 16 }}>
+            <span
+              className="absolute text-[var(--faint)] pointer-events-none"
+              style={{ right: 14 }}
+            >
               {iconRight}
             </span>
           )}
         </div>
         {hint && !error && (
-          <p className="text-lg text-slate-500">{hint}</p>
+          <p className="text-[13px] text-[var(--muted-foreground)]">{hint}</p>
         )}
         {error && (
-          <p className="text-lg text-red-500">{error}</p>
+          <p className="text-[13px] font-medium text-[var(--color-error,#dc2626)]">{error}</p>
         )}
       </div>
     );

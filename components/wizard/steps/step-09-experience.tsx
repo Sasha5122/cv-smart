@@ -1,668 +1,384 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Briefcase, ArrowRight, Trash2, Loader2, Sparkles, Plus, CheckCircle2, GripVertical } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowRight, ArrowLeft, Plus, Trash2, RefreshCcw } from "lucide-react";
 import type { Experience } from "@/lib/types/cv";
+import type { GeneratedBullet, PipelineQuestion } from "@/lib/types/cv-pipeline";
 import { toast } from "sonner";
+
+/* ────────────────────────────────────────────────────────────────
+   Pasul Experiență — pipeline AI în 4 ecrane:
+   input → întrebări (5) → selecție bullet-uri (7) → rezultat.
+   Ancorat pe job description-ul din Pasul 1 (când există).
+   ──────────────────────────────────────────────────────────────── */
 
 interface Props {
   sessionId: string;
+  jobDescription?: string;
   experience: Experience[];
   onUpdate: (exp: Experience[]) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-const EMPTY_EXP = { title: "", company: "", period: "", location: "", responsibilities: "" };
+type Phase =
+  | "summary"
+  | "input"
+  | "analyzing"
+  | "questions"
+  | "generating"
+  | "select"
+  | "manual";
 
-const RESPONSIBILITIES_FALLBACK = [
-  "Gestionarea activităților zilnice specifice rolului",
-  "Colaborarea cu echipa pentru atingerea obiectivelor comune",
-  "Asigurarea calității și respectarea termenelor stabilite",
-  "Comunicarea cu clienții și partenerii în mod profesional",
-  "Contribuirea la îmbunătățirea proceselor interne",
-  "Monitorizarea indicatorilor de performanță relevanți",
-  "Raportarea periodică a rezultatelor către management",
+const INDUSTRIES = [
+  "Retail / Comerț",
+  "HoReCa",
+  "Construcții",
+  "Transport & Logistică",
+  "Producție",
+  "IT & Software",
+  "Financiar & Contabilitate",
+  "Sănătate",
+  "Educație",
+  "Vânzări & Marketing",
+  "Administrativ / Birou",
+  "Servicii",
+  "Alta",
 ];
 
-type Phase = "form" | "loading-questions" | "questions" | "loading-responsibilities" | "responsibilities" | "summary" | "edit";
+const EMPTY_FORM = {
+  title: "",
+  company: "",
+  period: "",
+  location: "",
+  industry: "",
+  years: "",
+  rawText: "",
+};
 
-function punct(s: string): string {
-  const trimmed = s.trim();
-  return /[.!?]$/.test(trimmed) ? trimmed : trimmed + ".";
+const MIN_RAW = 200;
+const MAX_RAW = 5000;
+
+/** mesaje progresive pentru fazele de loading */
+const ANALYZE_MESSAGES = [
+  "Citim ce ne-ai povestit…",
+  "Extragem faptele care contează…",
+  "Căutăm golurile dintr-un CV puternic…",
+  "Pregătim 5 întrebări țintite…",
+];
+const GENERATE_MESSAGES = [
+  "Punem totul cap la cap…",
+  "Scriem descrierile ca un recrutor…",
+  "Verificăm fiecare cifră — nimic inventat…",
+  "Ordonăm de la cel mai puternic…",
+];
+
+function LoadingPanel({ messages }: { messages: string[] }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(
+      () => setIdx((i) => (i + 1 < messages.length ? i + 1 : i)),
+      3600
+    );
+    return () => clearInterval(t);
+  }, [messages]);
+
+  return (
+    <div
+      className="paper-card animate-fade-in"
+      style={{ padding: "44px 36px", textAlign: "center" }}
+    >
+      <div
+        style={{
+          display: "inline-flex",
+          gap: 6,
+          marginBottom: 22,
+          alignItems: "flex-end",
+          height: 18,
+        }}
+      >
+        <span className="typing-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--ink)", display: "inline-block" }} />
+        <span className="typing-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--ink)", display: "inline-block" }} />
+        <span className="typing-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--ink)", display: "inline-block" }} />
+      </div>
+      <p
+        key={idx}
+        className="animate-fade-in"
+        style={{
+          fontFamily: "var(--font-display), sans-serif",
+          fontSize: 19,
+          color: "var(--ink)",
+        }}
+      >
+        {messages[idx]}
+      </p>
+      <p style={{ fontSize: 13, color: "var(--faint)", marginTop: 10 }}>
+        durează câteva secunde
+      </p>
+    </div>
+  );
 }
 
-type Seniority = { label: string; recommended: string; instruction: string; color: string; bg: string; border: string };
+export function Step09Experience({
+  sessionId,
+  jobDescription,
+  experience,
+  onUpdate,
+  onNext,
+  onBack,
+}: Props) {
+  const [phase, setPhase] = useState<Phase>(
+    experience.length > 0 ? "summary" : "input"
+  );
+  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [error, setError] = useState<string | null>(null);
 
-function detectSeniority(period: string): Seniority {
-  const currentYear = new Date().getFullYear();
-  const lower = period.toLowerCase();
-
-  if (lower.includes("prezent") || lower.includes("present") || lower.includes("curent")) {
-    return {
-      label: "Job actual",
-      recommended: "5–6",
-      instruction: "Pentru un CV profesional, selectați doar 5–6 responsabilități pe care le considerați cele mai esențiale și de impact pentru acest rol.",
-      color: "#15803D", bg: "#F0FDF4", border: "#86EFAC",
-    };
-  }
-
-  const years = period.match(/\b(20\d{2}|19\d{2})\b/g);
-  if (!years) {
-    return {
-      label: "Job anterior",
-      recommended: "3–4",
-      instruction: "Pentru un CV profesional, selectați doar 3–4 responsabilități pe care le considerați cele mai relevante pentru cariera ta.",
-      color: "#1D4ED8", bg: "#EFF6FF", border: "#93C5FD",
-    };
-  }
-
-  const endYear = Math.max(...years.map(Number));
-  const ago = currentYear - endYear;
-
-  if (ago <= 2) return {
-    label: "Cel mai recent job",
-    recommended: "5–6",
-    instruction: "Pentru un CV profesional, selectați doar 5–6 responsabilități pe care le considerați cele mai esențiale și de impact pentru acest rol.",
-    color: "#15803D", bg: "#F0FDF4", border: "#86EFAC",
-  };
-  if (ago <= 5) return {
-    label: "Job anterior",
-    recommended: "3–4",
-    instruction: "Pentru un CV profesional, selectați doar 3–4 responsabilități pe care le considerați cele mai relevante pentru cariera ta.",
-    color: "#1D4ED8", bg: "#EFF6FF", border: "#93C5FD",
-  };
-  if (ago <= 10) return {
-    label: "Job mai vechi",
-    recommended: "2–3",
-    instruction: "Pentru un CV profesional, selectați doar 2–3 responsabilități principale — suficiente pentru un job din urmă cu câțiva ani.",
-    color: "#B45309", bg: "#FFFBEB", border: "#FCD34D",
-  };
-  return {
-    label: "Job irelevant",
-    recommended: "1–2",
-    instruction: "Pentru un CV profesional, selectați 1–2 responsabilități reprezentative — mai mult ar dilua impactul CV-ului tău.",
-    color: "#6B7280", bg: "#F9FAFB", border: "#D1D5DB",
-  };
-}
-
-export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props) {
-  const [showForm, setShowForm] = useState(experience.length === 0);
-  const [form, setForm] = useState({ ...EMPTY_EXP });
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [phase, setPhase] = useState<Phase>(experience.length > 0 ? "summary" : "form");
-  const [questions, setQuestions] = useState<string[]>([]);
+  // pipeline state
+  const pipelineIdRef = useRef<string | null>(null);
+  const [questions, setQuestions] = useState<PipelineQuestion[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
-  const [responsibilitiesList, setResponsibilitiesList] = useState<string[]>([]);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [customInput, setCustomInput] = useState("");
-  const [isAddingCustom, setIsAddingCustom] = useState(false);
-  const [editForm, setEditForm] = useState({ title: "", company: "", period: "", location: "" });
-  const [editResponsibilities, setEditResponsibilities] = useState<string[]>([]);
-  const [editIdx, setEditIdx] = useState<number>(-1);
-  const savedIdxRef = useRef<number>(-1);
-  const savedJobRef = useRef({ title: "", company: "", period: "" });
-  const rawDescRef = useRef("");
+  const [bullets, setBullets] = useState<GeneratedBullet[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [manualText, setManualText] = useState("");
 
-  const set = (field: string, val: string) => setForm((prev) => ({ ...prev, [field]: val }));
+  const hasJD = Boolean(jobDescription?.trim());
+  const set = (field: keyof typeof EMPTY_FORM, val: string) =>
+    setForm((prev) => ({ ...prev, [field]: val }));
 
-  const buildEntry = (): Experience => ({
-    title: form.title.trim(),
-    company: form.company.trim(),
-    period: form.period.trim(),
-    location: form.location.trim(),
-    responsibilities: [],
-    achievements: [],
-  });
+  const rawLen = form.rawText.trim().length;
+  const canAnalyze =
+    form.title.trim().length > 1 && rawLen >= MIN_RAW && rawLen <= MAX_RAW;
+  const answeredCount = answers.filter((a) => a.trim().length > 0).length;
 
-  // ── PHASE 1 → 2: Form → Questions ────────────────────────────────────────────
-  const handleNext = async () => {
-    const anyFieldFilled =
-      form.title.trim() || form.company.trim() || form.period.trim() ||
-      form.location.trim() || form.responsibilities.trim();
+  const minSelect = bullets.length >= 6 ? 5 : Math.max(4, bullets.length - 1);
+  const canFinishSelect =
+    selectedIds.size >= minSelect && selectedIds.size <= 6;
 
-    if (!anyFieldFilled) {
-      // Completely empty form — skip or show summary
-      if (experience.length > 0) { setPhase("summary"); } else { onNext(); }
-      return;
-    }
+  /* ── API calls ─────────────────────────────────────────────── */
 
-    // Something was filled → all required fields must be present
-    if (!form.title.trim()) {
-      toast.error("Denumirea jobului (funcția) este obligatorie.");
-      return;
-    }
-    if (!form.company.trim()) {
-      toast.error("Compania este obligatorie.");
-      return;
-    }
-    if (!form.period.trim()) {
-      toast.error("Perioada este obligatorie.");
-      return;
-    }
-
-    const entry = buildEntry();
-    const idx = editIndex !== null ? editIndex : experience.length;
-    savedIdxRef.current = idx;
-    savedJobRef.current = { title: entry.title, company: entry.company, period: entry.period };
-    rawDescRef.current = form.responsibilities;
-
-    if (editIndex !== null) {
-      const updated = [...experience]; updated[editIndex] = entry; onUpdate(updated); setEditIndex(null);
-    } else {
-      onUpdate([...experience, entry]);
-    }
-
-    setPhase("loading-questions");
-
+  async function runAnalyze() {
+    setError(null);
+    setPhase("analyzing");
     try {
-      const res = await fetch("/api/ai/experience-questions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobTitle: entry.title, company: entry.company, period: entry.period }),
-      });
-      const data = await res.json();
-      const qs: string[] = data.questions ?? [];
-      setQuestions(qs);
-      setAnswers(new Array(qs.length).fill(""));
-    } catch {
-      const fb = [
-        "Care erau principalele tale responsabilități zilnice?",
-        "Ce rezultate concrete ai obținut? (cifre, procente, proiecte)",
-        "Ce instrumente sau programe foloseai în mod regulat?",
-        "Câți clienți sau colegi gestionai?",
-        "Care a fost cea mai mare provocare și cum ai rezolvat-o?",
-      ];
-      setQuestions(fb); setAnswers(new Array(fb.length).fill(""));
-    }
-
-    setPhase("questions");
-  };
-
-  // ── PHASE 2 → 3: Questions → Responsibilities ────────────────────────────────
-  const handleSubmitAnswers = async () => {
-    setPhase("loading-responsibilities");
-
-    try {
-      const res = await fetch("/api/ai/experience-responsibilities", {
+      const res = await fetch("/api/cv/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          jobTitle: savedJobRef.current.title,
-          company: savedJobRef.current.company,
-          period: savedJobRef.current.period,
-          rawDescription: rawDescRef.current,
-          qna: questions.map((q, i) => ({ question: q, answer: answers[i] ?? "" })),
+          jobTitle: form.title.trim(),
+          industry: form.industry || undefined,
+          yearsExperience: form.years ? Number(form.years) : undefined,
+          rawText: form.rawText.trim(),
+          jobDescription: jobDescription?.trim() || undefined,
+          wizardSessionId: sessionId,
         }),
       });
       const data = await res.json();
-      const list: string[] = Array.isArray(data.responsibilities) && data.responsibilities.length > 0
-        ? data.responsibilities
-        : RESPONSIBILITIES_FALLBACK;
-      setResponsibilitiesList(list);
-      setSelected(new Set());
-    } catch {
-      setResponsibilitiesList(RESPONSIBILITIES_FALLBACK); setSelected(new Set());
+      if (!res.ok) throw new Error(data.error ?? "Analiza a eșuat.");
+      pipelineIdRef.current = data.sessionId;
+      setQuestions(data.questions);
+      setAnswers(new Array(data.questions.length).fill(""));
+      setPhase("questions");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Analiza a eșuat.");
+      setPhase("input");
     }
+  }
 
-    setPhase("responsibilities");
-  };
-
-  // ── PHASE 3 → Summary ────────────────────────────────────────────────────────
-  const handleSubmitResponsibilities = () => {
-    if (selected.size === 0) {
-      toast.error("Selectează cel puțin o responsabilitate pentru a continua.");
-      return;
-    }
-    const picked = responsibilitiesList.filter((_, i) => selected.has(i));
-    const idx = savedIdxRef.current;
-    if (idx >= 0) {
-      const updated = [...experience];
-      updated[idx] = { ...updated[idx], responsibilities: picked };
-      onUpdate(updated);
-    }
-    setPhase("summary");
-  };
-
-  const toggleItem = (i: number) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(i) ? next.delete(i) : next.add(i);
-      return next;
-    });
-  };
-
-  const handleAddCustom = async () => {
-    if (!customInput.trim() || isAddingCustom) return;
-    setIsAddingCustom(true);
+  async function runGenerate(force = false) {
+    setError(null);
+    setPhase("generating");
     try {
-      const res = await fetch("/api/ai/format-responsibility", {
+      const pid = pipelineIdRef.current;
+      const answerPayload = questions.map((q, i) => ({
+        questionId: q.id,
+        answer: answers[i] ?? "",
+      }));
+      // Context unic: descrierea + întrebările + răspunsurile → 7 bullets
+      const gen = await fetch("/api/cv/generate-bullets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawText: customInput.trim(), jobTitle: savedJobRef.current.title }),
+        body: JSON.stringify({ sessionId: pid, answers: answerPayload, force }),
+      });
+      const genData = await gen.json();
+      if (!gen.ok) throw new Error(genData.error ?? "Generarea a eșuat.");
+
+      setBullets(genData.bullets);
+      setSelectedIds(new Set());
+      setPhase("select");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Generarea a eșuat.");
+      setPhase("questions");
+    }
+  }
+
+  async function finishSelection() {
+    setError(null);
+    try {
+      const pid = pipelineIdRef.current;
+      const ids = Array.from(selectedIds);
+      const res = await fetch("/api/cv/select-bullets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: pid, selectedIds: ids }),
       });
       const data = await res.json();
-      const formatted: string = data.responsibility ?? customInput.trim();
-      setResponsibilitiesList((prev) => {
-        const next = [...prev, formatted];
-        setSelected((s) => new Set([...s, next.length - 1]));
-        return next;
-      });
-      setCustomInput("");
-    } catch {
-      const fallback = customInput.trim();
-      setResponsibilitiesList((prev) => {
-        const next = [...prev, fallback];
-        setSelected((s) => new Set([...s, next.length - 1]));
-        return next;
-      });
-      setCustomInput("");
-    }
-    setIsAddingCustom(false);
-  };
+      if (!res.ok) throw new Error(data.error ?? "Salvarea selecției a eșuat.");
 
-  const handleEdit = (i: number) => {
-    const exp = experience[i];
-    setEditForm({ title: exp.title, company: exp.company, period: exp.period, location: exp.location ?? "" });
-    setEditResponsibilities([...exp.responsibilities]);
-    setEditIdx(i);
-    setPhase("edit");
-  };
-
-  const handleSaveEdit = () => {
-    if (!editForm.title.trim() || !editForm.company.trim() || !editForm.period.trim()) {
-      toast.error("Funcția, compania și perioada sunt obligatorii.");
-      return;
+      saveEntry(
+        (data.selected as GeneratedBullet[]).map((b) => b.text)
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Salvarea a eșuat.");
     }
-    const updated = [...experience];
-    updated[editIdx] = {
-      ...updated[editIdx],
-      title: editForm.title.trim(),
-      company: editForm.company.trim(),
-      period: editForm.period.trim(),
-      location: editForm.location.trim(),
-      responsibilities: editResponsibilities.filter(r => r.trim()),
+  }
+
+  /* ── helpers ───────────────────────────────────────────────── */
+
+  function saveEntry(responsibilities: string[]) {
+    const entry: Experience = {
+      title: form.title.trim(),
+      company: form.company.trim() || "—",
+      period: form.period.trim() || "",
+      location: form.location.trim() || undefined,
+      responsibilities,
+      achievements: [],
     };
-    onUpdate(updated);
-    toast.success("Modificările au fost salvate.");
+    onUpdate([...experience, entry]);
+    toast.success("Jobul a fost adăugat în CV.");
+    setForm({ ...EMPTY_FORM });
+    setQuestions([]);
+    setAnswers([]);
+    setBullets([]);
+    setSelectedIds(new Set());
+    pipelineIdRef.current = null;
     setPhase("summary");
-  };
-
-  const handleDelete = (i: number) => {
-    const updated = experience.filter((_, idx) => idx !== i);
-    onUpdate(updated);
-    toast.success("Experiență ștearsă");
-    if (updated.length === 0) { setPhase("form"); setShowForm(true); setForm({ ...EMPTY_EXP }); }
-  };
-
-  // ── LOADING SCREEN ────────────────────────────────────────────────────────────
-  if (phase === "loading-questions" || phase === "loading-responsibilities") {
-    const msg = phase === "loading-questions"
-      ? `Generez întrebări pentru rolul de ${savedJobRef.current.title}...`
-      : `Generez lista de responsabilități pentru ${savedJobRef.current.title} la ${savedJobRef.current.company}...`;
-
-    return (
-      <StepCard icon={<Briefcase className="w-5 h-5" />}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, padding: "60px 0" }}>
-          <Loader2 size={44} color="#4F46E5" style={{ animation: "spin 1s linear infinite" }} />
-          <p style={{ fontSize: 18, color: "#64748B", textAlign: "center", maxWidth: 340 }}>{msg}</p>
-        </div>
-        <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-      </StepCard>
-    );
   }
 
-  // ── QUESTIONS PHASE ───────────────────────────────────────────────────────────
-  if (phase === "questions") {
-    return (
-      <StepCard
-        title="Câteva întrebări rapide"
-        subtitle={`Răspunsurile tale ne ajută să descriem cât mai complet experiența la ${savedJobRef.current.company}.`}
-        icon={<Briefcase className="w-5 h-5" />}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-          {questions.map((q, i) => (
-            <div key={i}>
-              <label style={{ display: "block", fontSize: 18, fontWeight: 600, color: "#1E293B", marginBottom: 8, lineHeight: 1.4 }}>
-                {i + 1}. {q}
-              </label>
-              <textarea
-                value={answers[i] ?? ""}
-                onChange={(e) => { const n = [...answers]; n[i] = e.target.value; setAnswers(n); }}
-                placeholder="Scrie răspunsul tău aici..."
-                rows={3}
-                style={{
-                  width: "100%", borderRadius: 10, border: "1px solid #94A3B8",
-                  padding: "12px 16px", fontSize: 17, color: "#111827",
-                  backgroundColor: "#ffffff", resize: "vertical", outline: "none",
-                  fontFamily: "inherit", lineHeight: 1.6, transition: "border-color 0.15s, box-shadow 0.15s",
-                }}
-                onFocus={(e) => { e.target.style.borderColor = "#6366F1"; e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
-                onBlur={(e) => { e.target.style.borderColor = "#94A3B8"; e.target.style.boxShadow = "none"; }}
-              />
-            </div>
-          ))}
-        </div>
-        <p style={{ fontSize: 15, color: "#94A3B8", marginTop: 14, textAlign: "center" }}>
-          Nu trebuie să răspunzi la toate — completează ce știi
-        </p>
-        <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-          <Button variant="outline" onClick={() => { setPhase("form"); setShowForm(true); setEditIndex(savedIdxRef.current); }} style={{ flex: 1 }}>← Înapoi</Button>
-          <Button onClick={handleSubmitAnswers} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>Continuă</Button>
-        </div>
-      </StepCard>
-    );
+  function removeEntry(idx: number) {
+    onUpdate(experience.filter((_, i) => i !== idx));
   }
 
-  // ── RESPONSIBILITIES PHASE ────────────────────────────────────────────────────
-  if (phase === "responsibilities") {
-    const selectedCount = selected.size;
-    const seniority = detectSeniority(savedJobRef.current.period);
-    const [recMin, recMax] = seniority.recommended.split("–").map(Number);
-    const inRange = selectedCount >= recMin && selectedCount <= recMax;
-    const counterColor = selectedCount === 0 ? "#94A3B8" : inRange ? "#15803D" : "#B45309";
-
-    return (
-      <StepCard
-        title="Bifează ce ți se potrivește"
-        subtitle={`Responsabilități generate pentru ${savedJobRef.current.title}. Bifează ce se potrivește cu experiența ta.`}
-        icon={<Sparkles className="w-5 h-5" />}
-      >
-        {/* Seniority guidance banner */}
-        <div style={{
-          backgroundColor: seniority.bg,
-          border: `1.5px solid ${seniority.border}`,
-          borderRadius: 12, padding: "14px 18px", marginBottom: 14,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{
-              fontSize: 13, fontWeight: 700, color: seniority.color,
-              backgroundColor: seniority.border, padding: "2px 10px",
-              borderRadius: 20, letterSpacing: 0.2,
-            }}>
-              {seniority.label}
-            </span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: seniority.color }}>
-              Alege {seniority.recommended} responsabilități
-            </span>
-          </div>
-          <p style={{ fontSize: 14, color: seniority.color, margin: 0, opacity: 0.85, lineHeight: 1.5 }}>
-            {seniority.instruction}
-          </p>
-        </div>
-
-        {/* Counter + select/deselect buttons */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0",
-          borderRadius: 10, padding: "9px 14px", marginBottom: 14,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Sparkles size={15} color={counterColor} />
-            <span style={{ fontSize: 15, fontWeight: 600, color: counterColor }}>
-              {selectedCount} din {responsibilitiesList.length} selectate
-            </span>
-            <span style={{ fontSize: 13, color: "#94A3B8" }}>
-              — recomandat: {seniority.recommended}
-            </span>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={() => setSelected(new Set(responsibilitiesList.map((_, i) => i)))}
-              style={{ fontSize: 13, color: "#4F46E5", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
-            >
-              Selectează tot
-            </button>
-            <span style={{ color: "#CBD5E1" }}>|</span>
-            <button
-              onClick={() => setSelected(new Set())}
-              style={{ fontSize: 13, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}
-            >
-              Deselectează tot
-            </button>
-          </div>
-        </div>
-
-        {/* Checkboxes list */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 360, overflowY: "auto", paddingRight: 4 }}>
-          {responsibilitiesList.map((r, i) => (
-            <label
-              key={i}
-              style={{
-                display: "flex", alignItems: "flex-start", gap: 12,
-                padding: "12px 16px",
-                backgroundColor: selected.has(i) ? "#EEF2FF" : "#ffffff",
-                border: `1.5px solid ${selected.has(i) ? "#A5B4FC" : "#E2E8F0"}`,
-                borderRadius: 10, cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={selected.has(i)}
-                onChange={() => toggleItem(i)}
-                style={{ width: 18, height: 18, marginTop: 2, accentColor: "#4F46E5", flexShrink: 0, cursor: "pointer" }}
-              />
-              <span style={{ fontSize: 17, color: "#1E293B", lineHeight: 1.5 }}>{r}</span>
-            </label>
-          ))}
-        </div>
-
-        {/* Custom responsibility input */}
-        <div style={{ marginTop: 16, backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12, padding: "14px 16px" }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginBottom: 10 }}>Vrei să adaugi ceva?</p>
-          <div style={{ display: "flex", gap: 10 }}>
-            <textarea
-              value={customInput}
-              onChange={(e) => setCustomInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddCustom(); } }}
-              placeholder="Scrie orice, oricât de informal — ex: raspundeam la telefon, faceam facturi..."
-              rows={2}
-              style={{ flex: 1, borderRadius: 10, border: "1px solid #94A3B8", padding: "10px 14px", fontSize: 16, color: "#111827", backgroundColor: "#ffffff", resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.5 }}
-              onFocus={(e) => { e.target.style.borderColor = "#6366F1"; }}
-              onBlur={(e) => { e.target.style.borderColor = "#94A3B8"; }}
-              disabled={isAddingCustom}
-            />
-            <button
-              onClick={handleAddCustom}
-              disabled={!customInput.trim() || isAddingCustom}
-              style={{ padding: "0 18px", backgroundColor: customInput.trim() && !isAddingCustom ? "#4F46E5" : "#E2E8F0", color: customInput.trim() && !isAddingCustom ? "#ffffff" : "#9CA3AF", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: customInput.trim() && !isAddingCustom ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 8, transition: "all 0.15s", flexShrink: 0, minWidth: 90, justifyContent: "center" }}
-            >
-              {isAddingCustom ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <>+ Adaugă</>}
-            </button>
-          </div>
-          <p style={{ fontSize: 13, color: "#94A3B8", marginTop: 6 }}>
-            Scrie orice, cum vrei — vom analiza și transforma automat în limbaj profesional de CV
-          </p>
-        </div>
-
-        <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-          <Button variant="outline" onClick={() => setPhase("questions")} style={{ flex: 1 }}>← Înapoi</Button>
-          <Button
-            onClick={handleSubmitResponsibilities}
-            style={{ flex: 2, opacity: selectedCount === 0 ? 0.5 : 1, cursor: selectedCount === 0 ? "not-allowed" : "pointer" }}
-            iconRight={<ArrowRight className="w-4 h-4" />}
-          >
-            Salvează ({selectedCount})
-          </Button>
-        </div>
-      </StepCard>
-    );
+  function toggleBullet(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 6) next.add(id);
+      return next;
+    });
   }
 
-  // ── EDIT PHASE ───────────────────────────────────────────────────────────────
-  if (phase === "edit") {
-    const setEF = (field: string, val: string) => setEditForm(prev => ({ ...prev, [field]: val }));
+  /* ── render pe faze ────────────────────────────────────────── */
 
-    return (
-      <StepCard
-        title="Editează experiența"
-        subtitle="Modifică datele jobului și responsabilitățile direct."
-        icon={<Briefcase className="w-5 h-5" />}
-      >
-        {/* Basic fields */}
-        <div style={{ backgroundColor: "#ffffff", border: "1px solid #CBD5E1", borderRadius: 14, padding: 20, marginBottom: 20 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <Input label="Funcție / Titlu job *" value={editForm.title} onChange={e => setEF("title", e.target.value)} />
-            <Input label="Companie *" value={editForm.company} onChange={e => setEF("company", e.target.value)} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Input label="Perioadă *" value={editForm.period} onChange={e => setEF("period", e.target.value)} hint="ex: Ian 2019 – Prezent" />
-              <Input label="Locație (opțional)" value={editForm.location} onChange={e => setEF("location", e.target.value)} />
-            </div>
-          </div>
-        </div>
+  const ErrorCard = error ? (
+    <div
+      className="animate-fade-in"
+      style={{
+        backgroundColor: "var(--red-soft)",
+        border: "1px solid #fca5a5",
+        borderRadius: 8,
+        padding: "12px 16px",
+        marginBottom: 20,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+      }}
+    >
+      <span style={{ fontSize: 14, color: "#b91c1c", fontWeight: 500 }}>{error}</span>
+    </div>
+  ) : null;
 
-        {/* Responsibilities editor */}
-        <div style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 14, padding: 20, marginBottom: 16 }}>
-          <p style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 14 }}>
-            Responsabilități ({editResponsibilities.filter(r => r.trim()).length})
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {editResponsibilities.map((r, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                <div style={{ paddingTop: 10, color: "#CBD5E1", flexShrink: 0 }}>
-                  <GripVertical size={16} />
-                </div>
-                <textarea
-                  value={r}
-                  onChange={e => {
-                    const next = [...editResponsibilities];
-                    next[i] = e.target.value;
-                    setEditResponsibilities(next);
-                  }}
-                  rows={2}
-                  style={{
-                    flex: 1, borderRadius: 10, border: "1px solid #CBD5E1",
-                    padding: "9px 13px", fontSize: 15, color: "#1E293B",
-                    backgroundColor: "#ffffff", resize: "vertical", outline: "none",
-                    fontFamily: "inherit", lineHeight: 1.5,
-                  }}
-                  onFocus={e => { e.target.style.borderColor = "#6366F1"; e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
-                  onBlur={e => { e.target.style.borderColor = "#CBD5E1"; e.target.style.boxShadow = "none"; }}
-                />
-                <button
-                  onClick={() => setEditResponsibilities(prev => prev.filter((_, idx) => idx !== i))}
-                  style={{ padding: "8px", color: "#EF4444", backgroundColor: "#FEF2F2", border: "none", borderRadius: 8, cursor: "pointer", flexShrink: 0, marginTop: 2 }}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Add new bullet */}
-          <button
-            onClick={() => setEditResponsibilities(prev => [...prev, ""])}
-            style={{
-              marginTop: 12, display: "flex", alignItems: "center", gap: 6,
-              padding: "9px 14px", fontSize: 14, fontWeight: 600,
-              color: "#4F46E5", backgroundColor: "#EEF2FF",
-              border: "1.5px dashed #A5B4FC", borderRadius: 10, cursor: "pointer",
-            }}
-          >
-            <Plus size={15} />
-            Adaugă responsabilitate
-          </button>
-        </div>
-
-        <div style={{ display: "flex", gap: 12 }}>
-          <Button variant="outline" onClick={() => setPhase("summary")} style={{ flex: 1 }}>← Înapoi</Button>
-          <Button onClick={handleSaveEdit} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
-            Salvează modificările
-          </Button>
-        </div>
-      </StepCard>
-    );
-  }
-
-  // ── SUMMARY PHASE ─────────────────────────────────────────────────────────────
+  /* ── ECRAN: rezumat joburi salvate ─────────────────────────── */
   if (phase === "summary") {
     return (
       <StepCard
-        title="Experiențele tale"
-        subtitle="Iată ce ai adăugat. Poți adăuga mai multe joburi sau continui spre educație."
-        icon={<Briefcase className="w-5 h-5" />}
+        kicker="Experiență profesională"
+        title="Joburile tale, negru pe alb."
+        subtitle="Fiecare job trece printr-un mic interviu cu AI-ul — descrierile rezultate sunt scrise ca de un recrutor."
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {experience.map((exp, i) => (
-            <div key={i} style={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", borderRadius: 14, overflow: "hidden" }}>
-              {/* Card header */}
-              <div style={{ padding: "16px 20px 12px", borderBottom: exp.responsibilities.length > 0 ? "1px solid #F1F5F9" : "none" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                  <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <div style={{ width: 38, height: 38, backgroundColor: "#EEF2FF", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                      <Briefcase size={17} color="#4F46E5" />
-                    </div>
-                    <div>
-                      <p style={{ fontSize: 19, fontWeight: 700, color: "#0F172A", lineHeight: 1.3 }}>{exp.title}</p>
-                      <p style={{ fontSize: 16, fontWeight: 600, color: "#4F46E5", marginTop: 2 }}>{exp.company}</p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", marginTop: 4 }}>
-                        <span style={{ fontSize: 14, color: "#64748B" }}>📅 {exp.period}</span>
-                        {exp.location && <span style={{ fontSize: 14, color: "#64748B" }}>📍 {exp.location}</span>}
-                      </div>
-                    </div>
+            <div key={i} className="paper-card" style={{ padding: "18px 20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 16, color: "var(--ink-strong)" }}>
+                    {exp.title}
                   </div>
-                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                    <button
-                      onClick={() => handleEdit(i)}
-                      style={{ padding: "5px 12px", fontSize: 14, color: "#4F46E5", backgroundColor: "#EEF2FF", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
-                    >
-                      Editează
-                    </button>
-                    <button
-                      data-testid="btn-delete-exp"
-                      onClick={() => handleDelete(i)}
-                      style={{ padding: "5px 8px", color: "#EF4444", backgroundColor: "#FEF2F2", border: "none", borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center" }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-display), sans-serif",
+                      fontSize: 14,
+                      color: "var(--primary)",
+                      marginTop: 2,
+                    }}
+                  >
+                    {exp.company}
+                    {exp.period ? ` · ${exp.period}` : ""}
                   </div>
                 </div>
+                <button
+                  onClick={() => removeEntry(i)}
+                  aria-label={`Șterge ${exp.title}`}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--faint)",
+                    padding: 6,
+                  }}
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
-
-              {/* Responsibilities list */}
               {exp.responsibilities.length > 0 && (
-                <div style={{ padding: "14px 20px 16px" }}>
-                  <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
-                    {exp.responsibilities.map((r, j) => (
-                      <li key={j} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                        <span style={{ color: "#4F46E5", fontWeight: 700, fontSize: 16, flexShrink: 0, lineHeight: "1.6" }}>•</span>
-                        <span style={{ fontSize: 16, color: "#334155", lineHeight: 1.6 }}>{punct(r)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {exp.responsibilities.length === 0 && (
-                <div style={{ padding: "10px 20px 14px" }}>
-                  <p style={{ fontSize: 14, color: "#94A3B8", fontStyle: "italic" }}>Nicio responsabilitate adăugată încă.</p>
-                </div>
+                <ul style={{ listStyle: "none", margin: "12px 0 0", padding: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+                  {exp.responsibilities.map((r, j) => (
+                    <li key={j} style={{ display: "flex", gap: 8, fontSize: 13.5, color: "var(--foreground)", lineHeight: 1.55 }}>
+                      <span style={{ color: "var(--amber)", fontWeight: 600, flexShrink: 0 }}>—</span>
+                      {r}
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           ))}
+
+          <button
+            onClick={() => setPhase("input")}
+            className="animate-fade-in"
+            style={{
+              border: "1px dashed var(--hairline-strong)",
+              borderRadius: 8,
+              padding: "14px 18px",
+              background: "transparent",
+              color: "var(--muted-foreground)",
+              fontSize: 14.5,
+              fontWeight: 500,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <Plus size={16} />
+            Adaugă încă un job
+          </button>
         </div>
 
-        {/* Add new experience */}
-        <button
-          onClick={() => { setForm({ ...EMPTY_EXP }); setEditIndex(null); setShowForm(true); setPhase("form"); }}
-          style={{
-            width: "100%", padding: "14px 20px", marginBottom: 16,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            border: "2px dashed #C7D2FE", borderRadius: 12,
-            backgroundColor: "#FAFBFF", color: "#4F46E5",
-            fontSize: 17, fontWeight: 600, cursor: "pointer",
-          }}
-        >
-          <Plus size={18} />
-          Adaugă o altă experiență
-        </button>
-
-        <div style={{ display: "flex", gap: 12 }}>
-          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
-          <Button onClick={onNext} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
+        <div className="flex gap-3 mt-10">
+          <Button variant="outline" onClick={onBack} className="flex-1">
+            ← Înapoi
+          </Button>
+          <Button
+            onClick={onNext}
+            size="lg"
+            className="flex-[2]"
+            disabled={experience.length === 0}
+            iconRight={<ArrowRight className="w-4 h-4" />}
+          >
             Continuă
           </Button>
         </div>
@@ -670,67 +386,444 @@ export function Step09Experience({ experience, onUpdate, onNext, onBack }: Props
     );
   }
 
-  // ── FORM PHASE ────────────────────────────────────────────────────────────────
-  return (
-    <StepCard
-      title="Experiență profesională"
-      subtitle="Adaugă joburile tale în ordine cronologică inversă (cel mai recent primul)."
-      icon={<Briefcase className="w-5 h-5" />}
-    >
-      {/* Existing entries (compact, for context while adding) */}
-      {experience.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-          {experience.map((exp, i) => (
-            <div key={i} style={{ backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-              <CheckCircle2 size={16} color="#16A34A" style={{ flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 16, fontWeight: 700, color: "#166534", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{exp.title}</p>
-                <p style={{ fontSize: 14, color: "#15803D" }}>{exp.company} · {exp.period}</p>
+  /* ── ECRAN 1: input ────────────────────────────────────────── */
+  if (phase === "input" || phase === "analyzing") {
+    if (phase === "analyzing")
+      return (
+        <StepCard kicker="Experiență · Pas 1 din 3" title="Analizăm experiența ta">
+          <LoadingPanel messages={ANALYZE_MESSAGES} />
+        </StepCard>
+      );
+
+    return (
+      <StepCard
+        kicker="Experiență · Pas 1 din 3"
+        title="Povestește-ne ce faci la job."
+        subtitle="Scrie liber, ca și cum i-ai povesti unui prieten. Fără formulări pretențioase — de asta ne ocupăm noi."
+      >
+        {ErrorCard}
+
+        {hasJD && (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              backgroundColor: "var(--amber-soft)",
+              border: "1px solid #6ee7b7",
+              borderRadius: 5,
+              padding: "6px 12px",
+              marginBottom: 22,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "var(--amber)" }} />
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: "#065f46" }}>
+              Ancorat pe anunțul tău din Pasul 1
+            </span>
+          </div>
+        )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+          <Input
+            label="Funcția / titlul jobului *"
+            placeholder="ex: Contabil"
+            value={form.title}
+            onChange={(e) => set("title", e.target.value)}
+          />
+          <Input
+            label="Compania"
+            placeholder="ex: SC Exemplu SRL"
+            value={form.company}
+            onChange={(e) => set("company", e.target.value)}
+          />
+          <Input
+            label="Perioada"
+            placeholder="ex: 2021 – prezent"
+            value={form.period}
+            onChange={(e) => set("period", e.target.value)}
+          />
+          <Input
+            label="Localitatea"
+            placeholder="ex: Cluj-Napoca"
+            value={form.location}
+            onChange={(e) => set("location", e.target.value)}
+          />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14, marginBottom: 18 }}>
+          <div className="flex flex-col gap-1.5">
+            <label style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
+              Industria
+            </label>
+            <select
+              value={form.industry}
+              onChange={(e) => set("industry", e.target.value)}
+              style={{
+                width: "100%",
+                borderRadius: 8,
+                border: "1px solid var(--input-border)",
+                backgroundColor: "var(--card)",
+                padding: "12px 14px",
+                fontSize: 15,
+                color: form.industry ? "var(--ink)" : "var(--faint)",
+                fontFamily: "inherit",
+              }}
+            >
+              <option value="">alege…</option>
+              {INDUSTRIES.map((ind) => (
+                <option key={ind} value={ind}>
+                  {ind}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Input
+            label="Ani în acest rol"
+            placeholder="ex: 5"
+            type="number"
+            min={0}
+            max={50}
+            value={form.years}
+            onChange={(e) => set("years", e.target.value)}
+          />
+        </div>
+
+        <Textarea
+          label="Ce faci acolo, cu cuvintele tale? *"
+          value={form.rawText}
+          onChange={(e) => set("rawText", e.target.value)}
+          placeholder="Descrie cu cuvintele tale ce faci la job, ca și cum i-ai povesti unui prieten. Nu-ți face griji de formulare."
+          rows={7}
+        />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 6,
+            fontSize: 12.5,
+            color: rawLen >= MIN_RAW ? "var(--color-success,#3d7a4e)" : "var(--faint)",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          <span>
+            {rawLen < MIN_RAW
+              ? `încă ${MIN_RAW - rawLen} caractere ca AI-ul să aibă cu ce lucra`
+              : "✓ suficient de detaliat"}
+          </span>
+          <span>
+            {rawLen}/{MAX_RAW}
+          </span>
+        </div>
+
+        <div className="flex gap-3 mt-10">
+          <Button
+            variant="outline"
+            onClick={() => (experience.length > 0 ? setPhase("summary") : onBack())}
+            className="flex-1"
+          >
+            ← Înapoi
+          </Button>
+          <Button
+            onClick={runAnalyze}
+            size="lg"
+            className="flex-[2]"
+            disabled={!canAnalyze}
+            iconRight={<ArrowRight className="w-4 h-4" />}
+          >
+            Analizează
+          </Button>
+        </div>
+        <button
+          onClick={() => setPhase("manual")}
+          style={{
+            width: "100%",
+            marginTop: 12,
+            padding: "8px",
+            fontSize: 13.5,
+            color: "var(--muted-foreground)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            textDecoration: "underline",
+            textDecorationColor: "var(--hairline-strong)",
+            textUnderlineOffset: 4,
+          }}
+        >
+          Prefer să scriu descrierile manual
+        </button>
+      </StepCard>
+    );
+  }
+
+  /* ── ECRAN 2: întrebările ──────────────────────────────────── */
+  if (phase === "questions" || phase === "generating") {
+    if (phase === "generating")
+      return (
+        <StepCard kicker="Experiență · Pas 2 din 3" title="Scriem descrierile">
+          <LoadingPanel messages={GENERATE_MESSAGES} />
+        </StepCard>
+      );
+
+    return (
+      <StepCard
+        kicker="Experiență · Pas 2 din 3"
+        title="5 întrebări, ca la un interviu bun."
+        subtitle="Răspunde scurt și concret — cifre, exemple, denumiri. Poți sări peste unele, dar minim 3 răspunsuri fac diferența."
+      >
+        {ErrorCard}
+
+        {/* progres răspunsuri */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+          <div style={{ display: "flex", gap: 5 }}>
+            {questions.map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  width: 26,
+                  height: 3,
+                  backgroundColor:
+                    (answers[i] ?? "").trim().length > 0 ? "var(--ink)" : "var(--hairline)",
+                  transition: "background-color 0.25s",
+                }}
+              />
+            ))}
+          </div>
+          <span className="folio" style={{ fontSize: 10.5 }}>
+            {answeredCount}/{questions.length} răspunsuri
+          </span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          {questions.map((q, i) => (
+            <div key={q.id} className="animate-fade-in" style={{ animationDelay: `${i * 70}ms` }}>
+              <div style={{ display: "flex", gap: 12, marginBottom: 8 }}>
+                <span
+                  style={{
+                    fontFamily: "var(--font-display), sans-serif",
+                    fontSize: 19,
+                    fontWeight: 600,
+                    color: "var(--amber)",
+                    lineHeight: 1.35,
+                    flexShrink: 0,
+                  }}
+                >
+                  {i + 1}.
+                </span>
+                <p style={{ fontSize: 15.5, fontWeight: 550, color: "var(--ink-strong)", lineHeight: 1.55 }}>
+                  {q.question}
+                </p>
               </div>
-              <button
-                data-testid="btn-delete-exp"
-                onClick={() => handleDelete(i)}
-                style={{ padding: "4px 7px", color: "#EF4444", backgroundColor: "#FEF2F2", border: "none", borderRadius: 7, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}
-              >
-                <Trash2 size={13} />
-              </button>
+              <Textarea
+                value={answers[i] ?? ""}
+                onChange={(e) =>
+                  setAnswers((prev) => {
+                    const next = [...prev];
+                    next[i] = e.target.value;
+                    return next;
+                  })
+                }
+                placeholder="Răspunsul tău… (sau lasă gol)"
+                rows={2}
+                style={{ marginLeft: 0 }}
+              />
             </div>
           ))}
         </div>
-      )}
 
-      {/* Add/edit form */}
-      <div style={{ backgroundColor: "#ffffff", border: "1px solid #CBD5E1", borderRadius: 14, padding: 20, marginBottom: 16 }}>
-        <p style={{ fontSize: 18, fontWeight: 700, color: "#0D0D0D", marginBottom: 16 }}>
-          {editIndex !== null ? "Editează experiența" : "Adaugă experiență"}
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Input label="Funcție / Titlu job *" placeholder="ex: Contabil" value={form.title} onChange={(e) => set("title", e.target.value)} autoFocus />
-          <Input label="Companie *" placeholder="ex: Firma de Contabilitate XYZ" value={form.company} onChange={(e) => set("company", e.target.value)} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <Input label="Perioadă *" placeholder="ex: Ian 2019 – Prezent" value={form.period} onChange={(e) => set("period", e.target.value)} hint="Luna An – Luna An sau Prezent" />
-            <Input label="Locație (opțional)" placeholder="ex: Cluj-Napoca" value={form.location} onChange={(e) => set("location", e.target.value)} />
-          </div>
-          <div>
-            <label style={{ fontSize: 18, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>Ce făceai acolo? (opțional)</label>
-            <textarea
-              value={form.responsibilities}
-              onChange={(e) => set("responsibilities", e.target.value)}
-              placeholder={"Descrie cu cuvintele tale ce anume făceai acolo.\nCu cât mai multe detalii, cu atât CV-ul va fi mai complet.\n\nExemplu:\nGestionam contabilitatea completă pentru aproximativ 15 firme client\nIntroduceam facturile de intrare și ieșire în programul de contabilitate\nÎntocmeam declarațiile fiscale lunare și trimestriale (D300, D394, D112)\nPregăteam balanțele de verificare și situațiile financiare anuale\nMă ocupam de relația cu ANAF — depuneri, răspunsuri la notificări\nReconciliam conturile bancare și verificam extrasele de cont\nComunicam direct cu clienții pentru colectarea documentelor"}
-              rows={6}
-              style={{ width: "100%", borderRadius: 10, border: "1px solid #94A3B8", padding: "10px 14px", fontSize: 17, color: "#111827", backgroundColor: "#ffffff", resize: "vertical", outline: "none", fontFamily: "inherit", lineHeight: 1.6 }}
-            />
-            <p style={{ fontSize: 16, color: "#6B7280", marginTop: 6 }}>
-              Cu cât mai multe detalii, cu atât mai bine 😊 Nu îți face griji pentru formulări și greșeli!
-            </p>
-          </div>
+        <div className="flex gap-3 mt-10">
+          <Button variant="outline" onClick={() => setPhase("input")} className="flex-1">
+            ← Înapoi
+          </Button>
+          <Button
+            onClick={() => runGenerate()}
+            size="lg"
+            className="flex-[2]"
+            disabled={answeredCount < 3}
+            iconRight={<ArrowRight className="w-4 h-4" />}
+          >
+            {answeredCount < 3
+              ? `Răspunde la minim 3 (${answeredCount}/3)`
+              : "Generează descrierile"}
+          </Button>
         </div>
-      </div>
+      </StepCard>
+    );
+  }
 
-      <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-        <Button variant="outline" onClick={() => { experience.length > 0 ? setPhase("summary") : onBack(); }} style={{ flex: 1 }}>← Înapoi</Button>
-        <Button onClick={handleNext} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
-          Continuă
+  /* ── ECRAN 3: selecția bullet-urilor ───────────────────────── */
+  if (phase === "select") {
+    return (
+      <StepCard
+        kicker="Experiență · Pas 3 din 3"
+        title="Alege ce te reprezintă."
+        subtitle={`Toate sunt ancorate strict în ce ne-ai spus — nimic inventat. Alege ${minSelect}–6 pentru CV.`}
+      >
+        {ErrorCard}
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 18,
+          }}
+        >
+          <span className="folio" style={{ fontSize: 10.5 }}>
+            {bullets.length} descrieri generate
+          </span>
+          <span
+            style={{
+              fontSize: 13.5,
+              fontWeight: 600,
+              color: canFinishSelect ? "var(--color-success,#3d7a4e)" : "var(--muted-foreground)",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            Ai ales {selectedIds.size} din {minSelect}–6
+          </span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {bullets.map((b, i) => {
+            const isSelected = selectedIds.has(b.id);
+            return (
+              <button
+                key={b.id}
+                onClick={() => toggleBullet(b.id)}
+                className="animate-fade-in"
+                style={{
+                  animationDelay: `${i * 60}ms`,
+                  textAlign: "left",
+                  display: "flex",
+                  gap: 14,
+                  alignItems: "flex-start",
+                  padding: "16px 18px",
+                  borderRadius: 8,
+                  border: isSelected
+                    ? "1.5px solid var(--primary)"
+                    : "1px solid var(--hairline)",
+                  backgroundColor: isSelected ? "var(--wash)" : "var(--card)",
+                  boxShadow: isSelected ? "none" : "var(--shadow-paper)",
+                  cursor: "pointer",
+                  transition: "all 0.16s ease",
+                }}
+              >
+                {/* caseta de cerneală */}
+                <span
+                  aria-hidden
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 4,
+                    border: isSelected ? "1.5px solid var(--primary)" : "1px solid var(--hairline-strong)",
+                    backgroundColor: isSelected ? "var(--primary)" : "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    marginTop: 1,
+                    transition: "all 0.16s ease",
+                  }}
+                >
+                  {isSelected && (
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6.2L4.8 9L10 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </span>
+                <span style={{ fontSize: 14.5, lineHeight: 1.6, color: "var(--ink)" }}>
+                  {b.text}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex gap-3 mt-10">
+          <Button
+            variant="outline"
+            onClick={() => runGenerate(true)}
+            className="flex-1"
+            icon={<RefreshCcw className="w-4 h-4" />}
+          >
+            Regenerează
+          </Button>
+          <Button
+            onClick={finishSelection}
+            size="lg"
+            className="flex-[2]"
+            disabled={!canFinishSelect}
+            iconRight={<ArrowRight className="w-4 h-4" />}
+          >
+            {canFinishSelect
+              ? "Finalizează jobul"
+              : `Alege minim ${minSelect} descrieri`}
+          </Button>
+        </div>
+      </StepCard>
+    );
+  }
+
+  /* ── ECRAN: mod manual (fallback) ──────────────────────────── */
+  return (
+    <StepCard
+      kicker="Experiență · manual"
+      title="Scrie descrierile manual."
+      subtitle="Câte o responsabilitate pe rând. Le poți rafina mai târziu, la draftul final."
+    >
+      {ErrorCard}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+        <Input
+          label="Funcția *"
+          placeholder="ex: Contabil"
+          value={form.title}
+          onChange={(e) => set("title", e.target.value)}
+        />
+        <Input
+          label="Compania"
+          placeholder="ex: SC Exemplu SRL"
+          value={form.company}
+          onChange={(e) => set("company", e.target.value)}
+        />
+        <Input
+          label="Perioada"
+          placeholder="ex: 2021 – prezent"
+          value={form.period}
+          onChange={(e) => set("period", e.target.value)}
+        />
+        <Input
+          label="Localitatea"
+          placeholder="ex: Cluj-Napoca"
+          value={form.location}
+          onChange={(e) => set("location", e.target.value)}
+        />
+      </div>
+      <Textarea
+        label="Responsabilități (una pe rând)"
+        value={manualText}
+        onChange={(e) => setManualText(e.target.value)}
+        placeholder={"Gestionat facturile lunare\nCoordonat echipa de 3 colegi\n…"}
+        rows={6}
+      />
+      <div className="flex gap-3 mt-10">
+        <Button variant="outline" onClick={() => setPhase("input")} className="flex-1" icon={<ArrowLeft className="w-4 h-4" />}>
+          Înapoi la AI
+        </Button>
+        <Button
+          onClick={() =>
+            saveEntry(
+              manualText
+                .split("\n")
+                .map((l) => l.trim())
+                .filter(Boolean)
+            )
+          }
+          size="lg"
+          className="flex-[2]"
+          disabled={form.title.trim().length < 2 || manualText.trim().length < 3}
+          iconRight={<ArrowRight className="w-4 h-4" />}
+        >
+          Salvează jobul
         </Button>
       </div>
     </StepCard>

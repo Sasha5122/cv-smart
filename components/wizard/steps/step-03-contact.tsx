@@ -107,8 +107,8 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
               gap: 8,
             }}
           >
-            <User size={14} color="#4F46E5" />
-            <span style={{ fontSize: 18, fontWeight: 700, color: "#3730A3" }}>
+            <User size={14} color="var(--primary)" />
+            <span style={{ fontSize: 18, fontWeight: 700, color: "var(--primary-strong)" }}>
               {[value?.firstName, value?.lastName].filter(Boolean).join(" ")}
             </span>
           </div>
@@ -149,7 +149,7 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
             icon={<MapPin className="w-4 h-4" />}
           />
           <div>
-            <label style={{ fontSize: 18, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>
+            <label style={{ fontSize: 18, fontWeight: 500, color: "var(--foreground)", display: "block", marginBottom: 6 }}>
               Județ
             </label>
             <select
@@ -158,8 +158,8 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
               style={{
                 width: "100%",
                 borderRadius: 10,
-                border: "1px solid #94A3B8",
-                backgroundColor: "#ffffff",
+                border: "1px solid var(--faint)",
+                backgroundColor: "var(--card)",
                 padding: "12px 20px",
                 fontSize: 18,
                 color: "#111827",

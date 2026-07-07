@@ -46,6 +46,7 @@ export const ExperienceSchema = z.object({
 export const SkillSchema = z.object({
   name: z.string(),
   source: z.string().optional(),
+  category: z.enum(["hard", "software", "soft"]).optional(),
 });
 
 export const LanguageSchema = z.object({
@@ -137,7 +138,6 @@ export interface IdealProfile {
   hardSkills: string[];
   softSkills: string[];
   atsKeywords: string[];
-  typicalKPIs: string[];
 }
 
 // ─── Template ──────────────────────────────────────────────────────────────

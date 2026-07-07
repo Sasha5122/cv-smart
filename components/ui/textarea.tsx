@@ -13,9 +13,12 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
-      <div className="flex flex-col gap-1.5 w-full">
+      <div className="flex flex-col gap-2 w-full">
         {label && (
-          <label htmlFor={inputId} className="text-lg font-medium text-slate-700">
+          <label
+            htmlFor={inputId}
+            className="text-[14px] font-semibold text-[var(--ink)] tracking-wide"
+          >
             {label}
           </label>
         )}
@@ -23,18 +26,23 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={inputId}
           ref={ref}
           className={cn(
-            "w-full rounded-[10px] border border-slate-400 bg-white px-5 py-3 text-lg text-slate-900",
-            "placeholder:text-slate-400 resize-none",
-            "transition-all duration-150",
-            "focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100",
-            "disabled:bg-slate-50 disabled:text-slate-400",
-            error && "border-red-400 focus:border-red-400 focus:ring-red-100",
+            "w-full rounded-[8px] border border-[var(--input-border)] bg-[var(--card)] px-[16px] py-[14px] text-[15.5px] text-[var(--ink)] leading-relaxed",
+            "placeholder:text-[var(--faint)] resize-none",
+            "transition-all duration-150 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]",
+            "focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(37,99,235,0.18)] focus:bg-white",
+            "disabled:bg-[var(--muted)] disabled:text-[var(--faint)]",
+            error &&
+              "border-[var(--color-error,#dc2626)] focus:border-[var(--color-error,#dc2626)] focus:ring-[rgba(220,38,38,0.15)]",
             className
           )}
           {...props}
         />
-        {hint && !error && <p className="text-lg text-slate-500">{hint}</p>}
-        {error && <p className="text-lg text-red-500">{error}</p>}
+        {hint && !error && (
+          <p className="text-[13px] text-[var(--muted-foreground)]">{hint}</p>
+        )}
+        {error && (
+          <p className="text-[13px] font-medium text-[var(--color-error,#dc2626)]">{error}</p>
+        )}
       </div>
     );
   }

@@ -83,8 +83,8 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
         {/* OK tips */}
         <div style={{
-          backgroundColor: "#ffffff",
-          border: "1px solid #CBD5E1",
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--faint)",
           borderLeft: "3px solid #22C55E",
           borderRadius: 10,
           padding: "14px 16px",
@@ -92,15 +92,15 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
           <p style={{ fontSize: 14, fontWeight: 700, color: "#166534", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Recomandat</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {TIPS_OK.map((tip, i) => (
-              <p key={i} style={{ fontSize: 16, color: "#374151", lineHeight: 1.5 }}>• {tip}</p>
+              <p key={i} style={{ fontSize: 16, color: "var(--foreground)", lineHeight: 1.5 }}>• {tip}</p>
             ))}
           </div>
         </div>
 
         {/* NO tips */}
         <div style={{
-          backgroundColor: "#ffffff",
-          border: "1px solid #CBD5E1",
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--faint)",
           borderLeft: "3px solid #EF4444",
           borderRadius: 10,
           padding: "14px 16px",
@@ -108,7 +108,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
           <p style={{ fontSize: 14, fontWeight: 700, color: "#991B1B", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Evită</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {TIPS_NO.map((tip, i) => (
-              <p key={i} style={{ fontSize: 16, color: "#374151", lineHeight: 1.5 }}>• {tip}</p>
+              <p key={i} style={{ fontSize: 16, color: "var(--foreground)", lineHeight: 1.5 }}>• {tip}</p>
             ))}
           </div>
         </div>
@@ -125,7 +125,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
                 width: 120, height: 150,
                 objectFit: "cover",
                 borderRadius: 16,
-                border: "3px solid #E2E8F0",
+                border: "3px solid var(--hairline)",
                 boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
               }}
             />
@@ -159,12 +159,12 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
           onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
           onClick={() => document.getElementById("photo-input")?.click()}
           style={{
-            border: `2px dashed ${isDragging ? "#4F46E5" : "#94A3B8"}`,
+            border: `2px dashed ${isDragging ? "var(--primary)" : "var(--faint)"}`,
             borderRadius: 16,
             padding: "40px 20px",
             textAlign: "center",
             cursor: "pointer",
-            backgroundColor: isDragging ? "#EEF2FF" : "#F8FAFC",
+            backgroundColor: isDragging ? "var(--wash)" : "var(--muted)",
             transition: "all 0.2s",
             marginBottom: 32,
           }}
@@ -180,26 +180,26 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
               <div style={{
                 width: 32, height: 32,
-                border: "3px solid #4F46E5", borderTopColor: "transparent",
+                border: "3px solid var(--primary)", borderTopColor: "transparent",
                 borderRadius: "50%", animation: "spin 0.8s linear infinite",
               }} />
-              <p style={{ fontSize: 18, color: "#64748B" }}>Încarc fotografia...</p>
+              <p style={{ fontSize: 18, color: "var(--muted-foreground)" }}>Încarc fotografia...</p>
             </div>
           ) : (
             <>
               <div style={{
                 width: 56, height: 56,
-                backgroundColor: "#EEF2FF", borderRadius: 14,
+                backgroundColor: "var(--wash)", borderRadius: 14,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 margin: "0 auto 16px",
               }}>
-                <Upload style={{ width: 24, height: 24, color: "#6366F1" }} />
+                <Upload style={{ width: 24, height: 24, color: "var(--primary)" }} />
               </div>
-              <p style={{ fontSize: 20, fontWeight: 600, color: "#1E293B", marginBottom: 6 }}>
+              <p style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>
                 Trage fotografia sau{" "}
-                <span style={{ color: "#4F46E5" }}>alege din calculator</span>
+                <span style={{ color: "var(--primary)" }}>alege din calculator</span>
               </p>
-              <p style={{ fontSize: 16, color: "#94A3B8" }}>JPG, PNG sau WEBP · max 5MB</p>
+              <p style={{ fontSize: 16, color: "var(--faint)" }}>JPG, PNG sau WEBP · max 5MB</p>
             </>
           )}
         </div>
@@ -226,9 +226,9 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
               padding: "11px 16px",
               fontSize: 17,
               fontWeight: 600,
-              color: "#6366F1",
-              backgroundColor: "#EEF2FF",
-              border: "2px dashed #A5B4FC",
+              color: "var(--primary)",
+              backgroundColor: "var(--wash)",
+              border: "2px dashed var(--hairline-strong)",
               borderRadius: 10,
               cursor: "pointer",
               letterSpacing: 0.2,

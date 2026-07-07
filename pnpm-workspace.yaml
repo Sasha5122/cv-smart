@@ -1,9 +1,4 @@
-allowBuilds:
-  core-js: true
-  msw: true
-  protobufjs: true
-  sharp: false
-  unrs-resolver: false
-ignoredBuiltDependencies:
+onlyBuiltDependencies:
+  - esbuild
   - sharp
-  - unrs-resolver
+  - "@tailwindcss/oxide"

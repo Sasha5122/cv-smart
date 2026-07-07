@@ -9,11 +9,11 @@ interface SkillTagProps {
 
 export function SkillTag({ skill, onRemove }: SkillTagProps) {
   return (
-    <div className="group flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all duration-150">
+    <div className="group flex items-center gap-2 bg-[var(--card)] border border-[var(--hairline)] rounded-xl px-3 py-2 hover:border-indigo-300 hover:bg-[var(--wash)]/50 transition-all duration-150">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-800 truncate">{skill.name}</p>
+        <p className="text-sm font-medium text-[var(--ink)] truncate">{skill.name}</p>
         {skill.source && (
-          <p className="text-xs text-slate-400 truncate">{skill.source}</p>
+          <p className="text-xs text-[var(--faint)] truncate">{skill.source}</p>
         )}
       </div>
       <button

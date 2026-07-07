@@ -139,11 +139,11 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onBack }: Props
           icon={<Sparkles className="w-5 h-5" />}
         >
           <div className="py-8 text-center">
-            <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+            <div className="w-16 h-16 bg-[var(--wash)] rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Loader2 className="w-8 h-8 text-[var(--primary)] animate-spin" />
             </div>
-            <p className="text-sm font-medium text-slate-700 animate-pulse">{loadingMsg}</p>
-            <p className="text-xs text-slate-400 mt-2">Poate dura 20-30 secunde</p>
+            <p className="text-sm font-medium text-[var(--foreground)] animate-pulse">{loadingMsg}</p>
+            <p className="text-xs text-[var(--faint)] mt-2">Poate dura 20-30 secunde</p>
           </div>
         </StepCard>
       )}
@@ -156,7 +156,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onBack }: Props
             subtitle="Revizuiește CV-ul tău. Scrie modificările dorite în chat-ul de mai jos."
             icon={<FileText className="w-5 h-5" />}
           >
-            <div className="bg-slate-50 rounded-xl p-4 font-mono text-xs text-slate-700 leading-relaxed whitespace-pre-wrap max-h-80 overflow-y-auto border border-slate-200">
+            <div className="bg-[var(--muted)] rounded-xl p-4 font-mono text-xs text-[var(--foreground)] leading-relaxed whitespace-pre-wrap max-h-80 overflow-y-auto border border-[var(--hairline)]">
               {draft}
             </div>
 

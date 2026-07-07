@@ -10,6 +10,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   iconRight?: React.ReactNode;
 }
 
+/**
+ * Butoane în limbajul „atelier editorial”:
+ * primary = cerneală plină, outline = hairline, ghost = discret.
+ */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
@@ -26,25 +30,25 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const base =
-      "inline-flex items-center justify-center gap-2 font-medium rounded-[10px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer";
+      "inline-flex items-center justify-center gap-2 font-semibold rounded-[8px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] disabled:pointer-events-none disabled:opacity-45 select-none cursor-pointer";
 
     const variants = {
       primary:
-        "bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 shadow-sm hover:shadow-md",
+        "bg-[var(--primary)] text-white border border-[var(--primary)] hover:bg-[var(--primary-strong)] hover:border-[var(--primary-strong)] hover:-translate-y-px active:translate-y-0 shadow-[0_1px_2px_rgba(37,99,235,0.3),0_6px_16px_-6px_rgba(37,99,235,0.5)]",
       secondary:
-        "bg-slate-100 text-slate-800 hover:bg-slate-200 active:bg-slate-300",
+        "bg-[var(--muted)] text-[var(--ink)] border border-[var(--border)] hover:bg-[#e2e8f0]",
       ghost:
-        "bg-transparent text-slate-600 hover:bg-slate-100 active:bg-slate-200",
+        "bg-transparent text-[var(--muted-foreground)] hover:text-[var(--ink)] hover:bg-[rgba(15,23,42,0.05)]",
       outline:
-        "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300",
+        "border-[1.5px] border-[var(--border)] bg-white text-[var(--ink)] hover:border-[var(--ink)] hover:bg-[#f8fafc]",
       danger:
-        "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm",
+        "bg-[var(--red,#dc2626)] text-white border border-transparent hover:opacity-90 shadow-[var(--shadow-paper)]",
     };
 
     const sizes = {
-      sm: "text-base px-3 py-2 h-10",
-      md: "text-lg px-4 py-2.5 h-12",
-      lg: "text-xl px-6 py-3 h-14",
+      sm: "text-[13.5px] px-3.5 h-9",
+      md: "text-[15px] px-5 h-11",
+      lg: "text-[16px] px-7 h-[52px]",
     };
 
     return (

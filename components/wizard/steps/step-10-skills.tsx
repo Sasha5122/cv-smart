@@ -1,105 +1,254 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StepCard } from "../step-card";
-import { ChatBox } from "../chat-box";
-import { SkillTag } from "../skill-tag";
 import { Button } from "@/components/ui/button";
-import { Star, ArrowRight, Plus } from "lucide-react";
-import type { ChatMessage, Skill } from "@/lib/types/cv";
-import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
+import { Star, ArrowRight, Plus, X, Loader2 } from "lucide-react";
+import type { Skill, CVData } from "@/lib/types/cv";
 
-const INITIAL_MESSAGE: ChatMessage = {
-  role: "assistant",
-  content:
-    "Acum să vorbim despre abilitățile tale! ⭐\n\nDescrie cu cuvintele tale ce crezi că faci cel mai bine la muncă. Nu îți face griji de formulare — eu le voi organiza profesional.",
-};
+interface SkillPool {
+  hardSkills: string[];
+  softwareTools: string[];
+  softSkills: string[];
+}
+
+const SECTIONS = [
+  {
+    key: "hardSkills" as const,
+    label: "Abilități tehnice / Hard skills",
+    testId: "section-hard",
+    recommended: "4–6",
+    min: 4,
+    max: 6,
+  },
+  {
+    key: "softwareTools" as const,
+    label: "Software / Tools",
+    testId: "section-software",
+    recommended: "3–4",
+    min: 3,
+    max: 4,
+  },
+  {
+    key: "softSkills" as const,
+    label: "Soft skills",
+    testId: "section-soft",
+    recommended: "2–3",
+    min: 2,
+    max: 3,
+  },
+] as const;
 
 interface Props {
   sessionId: string;
+  cvData: CVData;
   skills: Skill[];
   onUpdate: (skills: Skill[]) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-export function Step10Skills({ sessionId, skills, onUpdate, onNext, onBack }: Props) {
-  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [newSkill, setNewSkill] = useState("");
+export function Step10Skills({ cvData, onUpdate, onNext, onBack }: Props) {
+  const [phase, setPhase] = useState<"loading" | "selection">("loading");
+  const [pool, setPool] = useState<SkillPool>({ hardSkills: [], softwareTools: [], softSkills: [] });
+  const [selectedHard, setSelectedHard] = useState<Set<string>>(new Set());
+  const [selectedSoftware, setSelectedSoftware] = useState<Set<string>>(new Set());
+  const [selectedSoft, setSelectedSoft] = useState<Set<string>>(new Set());
+  const [customSkills, setCustomSkills] = useState<string[]>([]);
+  const [manualInput, setManualInput] = useState("");
+  const [isFormatting, setIsFormatting] = useState(false);
 
-  const sendMessage = async (text: string) => {
-    const userMsg: ChatMessage = { role: "user", content: text };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
-    setIsLoading(true);
+  const selectionSets = { hardSkills: selectedHard, softwareTools: selectedSoftware, softSkills: selectedSoft };
+  const setters = { hardSkills: setSelectedHard, softwareTools: setSelectedSoftware, softSkills: setSelectedSoft };
 
+  useEffect(() => {
+    fetch("/api/ai/generate-skills", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cvData),
+    })
+      .then((res) => res.json())
+      .then((data: SkillPool) => { setPool(data); setPhase("selection"); })
+      .catch(() => { setPhase("selection"); });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleSkill = (key: "hardSkills" | "softwareTools" | "softSkills", skill: string) => {
+    const next = new Set(selectionSets[key]);
+    if (next.has(skill)) next.delete(skill); else next.add(skill);
+    setters[key](next);
+  };
+
+  const handleAddManual = async () => {
+    const trimmed = manualInput.trim();
+    if (!trimmed) return;
+    setIsFormatting(true);
+    setManualInput("");
     try {
-      const res = await fetch("/api/ai/chat", {
+      const res = await fetch("/api/ai/format-skill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, step: "skills", message: text, history: newMessages }),
+        body: JSON.stringify({ skill: trimmed }),
       });
-      if (!res.ok) throw new Error("Eroare API");
-      const data = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
-      if (data.done && data.data?.skills) onUpdate(data.data.skills);
+      const { corrected } = await res.json();
+      setCustomSkills((prev) => [...prev, corrected || trimmed]);
     } catch {
-      toast.error("Eroare. Încearcă din nou.");
+      setCustomSkills((prev) => [...prev, trimmed]);
     } finally {
-      setIsLoading(false);
+      setIsFormatting(false);
     }
   };
 
-  const addManual = () => {
-    if (!newSkill.trim()) return;
-    onUpdate([...skills, { name: newSkill.trim(), source: "adăugat manual" }]);
-    setNewSkill("");
+  const handleContinue = () => {
+    const built: Skill[] = [
+      ...[...selectedHard].map((name) => ({ name, category: "hard" as const })),
+      ...[...selectedSoftware].map((name) => ({ name, category: "software" as const })),
+      ...[...selectedSoft].map((name) => ({ name, category: "soft" as const })),
+      ...customSkills.map((name) => ({ name, category: "hard" as const })),
+    ];
+    onUpdate(built);
+    onNext();
   };
 
-  const removeSkill = (i: number) => {
-    onUpdate(skills.filter((_, idx) => idx !== i));
+  const counterColor = (count: number, min: number, max: number) => {
+    if (count >= min && count <= max) return "#15803D";
+    if (count === 0) return "var(--muted-foreground)";
+    return "#B45309";
   };
+
+  if (phase === "loading") {
+    return (
+      <StepCard
+        title="Abilități"
+        subtitle="AI analizează profilul tău și generează abilități potrivite..."
+        icon={<Star className="w-5 h-5" />}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 0", gap: 16 }}>
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--primary)" }} />
+          <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>Generăm abilitățile personalizate pentru tine...</p>
+        </div>
+        <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+        </div>
+      </StepCard>
+    );
+  }
 
   return (
     <StepCard
       title="Abilități"
-      subtitle="Adaugă abilitățile tale manual sau prin conversație."
+      subtitle="Selectează abilitățile tale relevante pentru CV."
       icon={<Star className="w-5 h-5" />}
     >
-      <ChatBox
-        messages={messages}
-        onSend={sendMessage}
-        loading={isLoading}
-        placeholder="Ce faci cel mai bine?"
-        onSkip={onNext}
-      />
+      <div data-testid="skills-selection" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {SECTIONS.map((section) => {
+          const items = pool[section.key];
+          const selected = selectionSets[section.key];
+          const count = selected.size;
+          const color = counterColor(count, section.min, section.max);
 
-      {/* Manual add */}
-      <div className="mt-4 flex gap-2">
-        <Input
-          placeholder="Adaugă abilitate manual"
-          value={newSkill}
-          onChange={(e) => setNewSkill(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addManual()}
-        />
-        <Button variant="outline" onClick={addManual} icon={<Plus className="w-4 h-4" />}>
-          Adaugă
-        </Button>
+          return (
+            <div
+              key={section.key}
+              data-testid={section.testId}
+              style={{ border: "1px solid var(--hairline)", borderRadius: 10, padding: "14px 16px", background: "#FAFAFA" }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{section.label}</span>
+                <span style={{ fontSize: 13, color, fontWeight: 500 }}>
+                  {count} / {items.length} — recomandat: {section.recommended}
+                </span>
+              </div>
+
+              {items.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--faint)" }}>Niciun item generat.</p>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "6px 12px" }}>
+                  {items.map((skill) => (
+                    <label
+                      key={skill}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
+                        fontSize: 13, color: selected.has(skill) ? "#111827" : "#4B5563", padding: "3px 0",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected.has(skill)}
+                        onChange={() => toggleSkill(section.key, skill)}
+                        style={{ width: 15, height: 15, accentColor: "var(--primary)", cursor: "pointer" }}
+                      />
+                      {skill}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Manual add */}
+        <div style={{ border: "1px dashed var(--input-border)", borderRadius: 10, padding: "14px 16px" }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 10 }}>
+            Adaugă abilitate manuală
+          </p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              data-testid="manual-skill-input"
+              type="text"
+              placeholder="Ex: Managementul timpului"
+              value={manualInput}
+              onChange={(e) => setManualInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !isFormatting && handleAddManual()}
+              style={{
+                flex: 1, padding: "8px 12px", border: "1px solid var(--hairline)",
+                borderRadius: 8, fontSize: 14, outline: "none",
+              }}
+            />
+            <button
+              data-testid="btn-add-manual"
+              onClick={handleAddManual}
+              disabled={isFormatting || !manualInput.trim()}
+              style={{
+                padding: "8px 16px",
+                background: isFormatting || !manualInput.trim() ? "var(--hairline)" : "var(--primary)",
+                color: isFormatting || !manualInput.trim() ? "var(--faint)" : "#fff",
+                border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500,
+                cursor: isFormatting ? "default" : "pointer",
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              {isFormatting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Adaugă
+            </button>
+          </div>
+
+          {customSkills.length > 0 && (
+            <div data-testid="custom-skills-list" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+              {customSkills.map((skill, i) => (
+                <span
+                  key={i}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "4px 10px", background: "var(--wash)", border: "1px solid #C7D2FE",
+                    borderRadius: 20, fontSize: 13, color: "var(--primary-strong)",
+                  }}
+                >
+                  {skill}
+                  <button
+                    onClick={() => setCustomSkills((prev) => prev.filter((_, idx) => idx !== i))}
+                    style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", color: "var(--primary)" }}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Tags */}
-      {skills.length > 0 && (
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {skills.map((skill, i) => (
-            <SkillTag key={i} skill={skill} onRemove={() => removeSkill(i)} />
-          ))}
-        </div>
-      )}
-
-      <div className="flex gap-3 mt-4">
-        <Button variant="outline" onClick={onBack} className="flex-1">← Înapoi</Button>
-        <Button onClick={onNext} className="flex-[2]" iconRight={<ArrowRight className="w-4 h-4" />}>
+      <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+        <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+        <Button onClick={handleContinue} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
           Continuă
         </Button>
       </div>

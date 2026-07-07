@@ -68,7 +68,7 @@ Nu repeta același tip de activitate. Acoperă: responsabilități tehnice/opera
 GENEREAZĂ 13-15 bullet points, ordonate de la cele mai specifice (bazate pe info candidat) la cele mai generale (tipice rolului).
 
 Răspunde EXCLUSIV cu un array JSON de stringuri. Fără alt text.`,
-      userMessage: `Generează responsabilități profesionale pentru: ${jobTitle} la ${company}, ${period}`,
+      userMessage: "Generează responsabilități.",
       fallback: FALLBACK,
     });
 

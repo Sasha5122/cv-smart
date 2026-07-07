@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractJSON } from "@/lib/ai/client";
+import { extractJSON, FAST_MODEL } from "@/lib/ai/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       suggestion?: string;
       alternatives?: string[];
     }>({
-      model: "claude-haiku-4-5-20251001",
+      model: FAST_MODEL,
       system: `Ești un verificator de adrese email profesionale.
 Analizezi dacă emailul este profesional pentru un CV.
 Răspunde cu JSON strict: {"ok": boolean, "suggestion": "string sau null", "alternatives": ["email1", "email2"]}

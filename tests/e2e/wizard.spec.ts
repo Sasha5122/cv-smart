@@ -1,735 +1,242 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 
-// ─── Helper: skip step 1 + 2, arrive at contact form ────────────────────────
-async function goToContact(page: import("@playwright/test").Page) {
+/* ────────────────────────────────────────────────────────────────
+   Wizard e2e — fluxul editorial + pipeline-ul AI de experiență.
+   Rutele AI sunt mock-uite (determinist, zero cost) — integrarea
+   reală e acoperită de scripts/test-pipeline.ts.
+   ──────────────────────────────────────────────────────────────── */
+
+const QUESTIONS = [1, 2, 3, 4, 5].map((i) => ({
+  id: `q${i}`,
+  question: `Întrebarea de test numărul ${i} despre experiența ta?`,
+  expected_info: "detalii",
+}));
+
+const BULLETS = [
+  "Întocmit și depus lunar declarațiile D112, D300 și D394 pentru 12 firme.",
+  "Procesat circa 300 de facturi lunar pentru portofoliul de clienți.",
+  "Scurtat închiderea de lună de la 10 la 6 zile prin reorganizarea verificărilor.",
+  "Soluționat un control ANAF cu anularea unei amenzi de 8000 lei.",
+  "Coordonat o colegă junioară, cu verificarea lucrărilor contabile.",
+  "Utilizat zilnic Saga, Excel și SmartBill pentru operațiuni contabile.",
+  "Menținut comunicarea directă cu clienții pe mail și telefon.",
+].map((text, i) => ({
+  id: `b${i + 1}`,
+  text,
+  category: "responsabilitate_core",
+}));
+
+async function mockPipeline(page: Page) {
+  await page.route("**/api/cv/analyze", (route) =>
+    route.fulfill({
+      json: { sessionId: "test-pipeline-id", questions: QUESTIONS },
+    })
+  );
+  await page.route("**/api/cv/generate-bullets", (route) =>
+    route.fulfill({ json: { bullets: BULLETS, regenerated: false, droppedCount: 0 } })
+  );
+  await page.route("**/api/cv/select-bullets", (route, request) => {
+    const ids: string[] = request.postDataJSON().selectedIds;
+    route.fulfill({
+      json: { selected: BULLETS.filter((b) => ids.includes(b.id)) },
+    });
+  });
+  // reduce zgomotul: research-ul din pasul 1 nu contează aici
+  await page.route("**/api/ai/research", (route) => route.fulfill({ json: { ok: true } }));
+}
+
+const RAW_TEXT =
+  "ma ocup de contabilitate primara si declaratii pentru firme mici. bag facturi in program, fac pontaje si salarii, depun declaratii la anaf lunar, tin legatura cu clientii, fac balante la inchidere de luna si verific conturile. lucrez in saga si excel zilnic.";
+
+/** Navighează de la început până la pasul Experiență (ecranul de input). */
+async function gotoExperience(page: Page, withJD = true) {
   await page.goto("/creare-cv");
-  await page.getByText("Sari peste").click();
-  await page.waitForTimeout(300);
+  // Pas 1 — Job vizat
+  await expect(
+    page.getByRole("heading", { name: "Ce job vrei să obții?" })
+  ).toBeVisible({ timeout: 15000 });
+  if (withJD) {
+    await page
+      .getByPlaceholder(/copy-paste la descrierea/i)
+      .fill("Căutăm Contabil Senior: D112, D300, D394, Saga, portofoliu de clienți.");
+    await page.getByRole("button", { name: "Continuă", exact: true }).click();
+  } else {
+    await page.getByText(/Nu am un anunț/).click();
+  }
+  // Pas 2 — Fotografie (skip)
   await page.getByText("Nu am fotografie potrivită").click();
-  await page.waitForTimeout(300);
+  // Pas 3 — Contact
+  await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({
+    timeout: 8000,
+  });
+  await page.getByLabel(/prenume/i).fill("Elena");
+  await page.getByLabel(/nume de familie/i).fill("Stanciu");
+  await page.getByLabel(/email/i).fill("elena.stanciu@gmail.com");
+  await page.getByLabel(/telefon/i).fill("0722314558");
+  await page.getByLabel(/oraș/i).first().fill("București");
+  await page.getByRole("button", { name: /Continuă/ }).click();
+  // Experiență — input
+  await expect(page.getByRole("heading", { name: /Povestește-ne ce faci/ })).toBeVisible({
+    timeout: 10000,
+  });
 }
 
-// ─── Helper: fill contact form + arrive at Experience (step 8) ───────────────
-async function goToExperience(page: import("@playwright/test").Page) {
-  await goToContact(page);
-  await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-  await page.getByLabel(/Prenume/i).fill("Andrei");
-  await page.getByLabel(/Nume de familie/i).fill("Popescu");
-  await page.getByLabel(/Email/i).fill("andrei@gmail.com");
-  await page.getByLabel(/Telefon/i).fill("0721234567");
-  await page.getByLabel(/Oraș/i).fill("Cluj-Napoca");
-  await page.getByRole("button", { name: "Continuă" }).click();
-  await page.waitForTimeout(300);
-}
-
-// ─── Helper: arrive at Education (step 9) ────────────────────────────────────
-async function goToEducation(page: import("@playwright/test").Page) {
-  await goToExperience(page);
-  await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
-  await page.getByRole("button", { name: /Continuă/ }).last().click();
-  await page.waitForTimeout(300);
-}
-
-// ─── Helper: arrive at Skills ────────────────────────────────────────────────
-async function goToSkills(page: import("@playwright/test").Page) {
-  await goToEducation(page);
-  await expect(page.getByRole("heading", { name: "Educație" })).toBeVisible({ timeout: 8000 });
-  await page.getByRole("button", { name: /Continuă|Sari peste/ }).last().click();
-  await page.waitForTimeout(300);
-}
-
-// ─── Helper: arrive at Languages ─────────────────────────────────────────────
-async function goToLanguages(page: import("@playwright/test").Page) {
-  await goToSkills(page);
-  await expect(page.getByRole("heading", { name: "Abilități" })).toBeVisible({ timeout: 8000 });
-  await page.getByRole("button", { name: "Continuă" }).click();
-  await page.waitForTimeout(300);
-}
-
-// ─── Helper: arrive at License ───────────────────────────────────────────────
-async function goToLicense(page: import("@playwright/test").Page) {
-  await goToLanguages(page);
-  await expect(page.getByRole("heading", { name: "Limbi străine" })).toBeVisible({ timeout: 8000 });
-  await page.getByRole("button", { name: "Continuă" }).click();
-  await page.waitForTimeout(300);
-}
-
-// ─── Helper: arrive at Hobbies ───────────────────────────────────────────────
-async function goToHobbies(page: import("@playwright/test").Page) {
-  await goToLicense(page);
-  await expect(page.getByRole("heading", { name: "Permis & Calificări" })).toBeVisible({ timeout: 8000 });
-  await page.getByRole("button", { name: "Continuă" }).click();
-  await page.waitForTimeout(300);
-}
-
-// ─── Helper: arrive at Draft ─────────────────────────────────────────────────
-async function goToDraft(page: import("@playwright/test").Page) {
-  await goToHobbies(page);
-  await expect(page.getByRole("heading", { name: "Hobby-uri & Pasiuni" })).toBeVisible({ timeout: 8000 });
-  await page.getByRole("button", { name: "Generează CV-ul!" }).click();
-  await page.waitForTimeout(300);
-}
-
-// ─── STEP 1 — Job Description ────────────────────────────────────────────────
-test.describe("Wizard — Step 1: Job Description", () => {
-  test("wizardul pornește direct la step 1", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await expect(page.getByRole("heading", { name: "Ce job vrei să obții?" })).toBeVisible({ timeout: 10000 });
-  });
-
-  test("logo CV Smart vizibil în wizard", async ({ page }) => {
-    await page.goto("/creare-cv");
-    // Logo is in sidebar (desktop) or mobile header (mobile) — check either
-    const sidebarLogo = await page.locator(".wizard-sidebar").getByText("CV Smart").isVisible();
-    const mobileLogo = await page.locator(".wizard-mobile-header").getByText("CV Smart").isVisible();
-    expect(sidebarLogo || mobileLogo).toBe(true);
-  });
-
-  test("textarea și butoane vizibile", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await expect(page.getByRole("heading", { name: "Ce job vrei să obții?" })).toBeVisible({ timeout: 8000 });
-    await expect(page.locator("textarea").first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continuă" })).toBeVisible();
-    await expect(page.getByText("Sari peste")).toBeVisible();
-  });
-
-  test("exemplele rapide populează textarea", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await expect(page.getByText("Sales Manager la Mega Image")).toBeVisible({ timeout: 8000 });
-    await page.getByText("Sales Manager la Mega Image").click();
-    await expect(page.locator("textarea").first()).toHaveValue("Sales Manager la Mega Image");
-  });
-
-  test("'Sari peste' navighează la step fotografie", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await page.getByText("Sari peste").click();
-    await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
-  });
-
-  test("completare job description + Continuă merge la fotografie", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await page.locator("textarea").first().fill("Programator Full-Stack React la o companie IT din Cluj");
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
-  });
-});
-
-// ─── STEP 2 — Photo ──────────────────────────────────────────────────────────
-test.describe("Wizard — Step 2: Photo", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/creare-cv");
-    await page.getByText("Sari peste").click();
-    await page.waitForTimeout(300);
-  });
-
-  test("ecranul fotografiei are toate elementele", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByText("+38% șanse mai multe cu fotografie")).toBeVisible();
-    await expect(page.getByText("Nu am fotografie potrivită")).toBeVisible();
-  });
-
-  test("zona de upload este prezentă în DOM", async ({ page }) => {
-    await expect(page.locator("input[type='file']")).toBeAttached({ timeout: 8000 });
-  });
-
-  test("'Sari peste' navighează la date de contact", async ({ page }) => {
-    await page.getByText("Nu am fotografie potrivită").click();
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-  });
-});
-
-// ─── STEP 3 — Contact Form ───────────────────────────────────────────────────
-test.describe("Wizard — Step 3: Contact Form", () => {
-  test.beforeEach(async ({ page }) => {
-    await goToContact(page);
-  });
-
-  test("formularul de contact are toate câmpurile", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByLabel(/Prenume/i)).toBeVisible();
-    await expect(page.getByLabel(/Nume de familie/i)).toBeVisible();
-    await expect(page.getByLabel(/Email/i)).toBeVisible();
-    await expect(page.getByLabel(/Telefon/i)).toBeVisible();
-    await expect(page.getByLabel(/Oraș/i)).toBeVisible();
-    await expect(page.getByLabel(/Stradă/i)).toBeVisible();
-    await expect(page.getByLabel(/Număr \(opțional\)/i)).toBeVisible();
-    await expect(page.getByLabel(/Apartament/i)).toBeVisible();
-    await expect(page.getByLabel(/LinkedIn/i)).toBeVisible();
-  });
-
-  test("câmpurile de adresă sunt opționale — Continuă funcționează fără ele", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.getByLabel(/Prenume/i).fill("Andrei");
-    await page.getByLabel(/Nume de familie/i).fill("Popescu");
-    await page.locator('input[type="email"]').fill("andrei@gmail.com");
-    await page.locator('input[type="tel"]').fill("0721234567");
-    await page.locator('input[placeholder*="Cluj"]').fill("Cluj-Napoca");
-    // Leave stradă, număr, apartament empty — should still proceed
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByText("Pas 4 din 10")).toBeVisible({ timeout: 5000 });
-  });
-
-  test("câmpurile de adresă se completează și salvează corect", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.getByLabel(/Stradă/i).fill("Str. Mihai Eminescu");
-    await expect(page.getByLabel(/Stradă/i)).toHaveValue("Str. Mihai Eminescu");
-    await page.getByLabel(/Număr \(opțional\)/i).fill("12");
-    await expect(page.getByLabel(/Număr \(opțional\)/i)).toHaveValue("12");
-    await page.getByLabel(/Apartament/i).fill("4A");
-    await expect(page.getByLabel(/Apartament/i)).toHaveValue("4A");
-  });
-
-  test("icon email nu se suprapune cu textul — padding suficient", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    // Use direct input locator; getByLabel returns the label element not the input
-    const emailInput = page.locator('input[type="email"]');
-    const paddingLeft = await emailInput.evaluate((el) =>
-      parseInt(window.getComputedStyle(el).paddingLeft)
-    );
-    // Inline style sets 56px when icon present — must clear icon (left:16px + w:16px = 32px)
-    expect(paddingLeft).toBeGreaterThanOrEqual(48);
-  });
-
-  test("icon telefon nu se suprapune cu textul — padding suficient", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    const phoneInput = page.locator('input[type="tel"]');
-    const paddingLeft = await phoneInput.evaluate((el) =>
-      parseInt(window.getComputedStyle(el).paddingLeft)
-    );
-    expect(paddingLeft).toBeGreaterThanOrEqual(48);
-  });
-
-  test("icon oraș nu se suprapune cu textul — padding suficient", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    const cityInput = page.locator('input[placeholder*="Cluj"]');
-    const paddingLeft = await cityInput.evaluate((el) =>
-      parseInt(window.getComputedStyle(el).paddingLeft)
-    );
-    expect(paddingLeft).toBeGreaterThanOrEqual(48);
-  });
-
-  test("câmpurile cu icon se completează corect fără trunchiere", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.locator('input[type="email"]').fill("andrei.popescu@gmail.com");
-    await expect(page.locator('input[type="email"]')).toHaveValue("andrei.popescu@gmail.com");
-    await page.locator('input[type="tel"]').fill("0721234567");
-    await expect(page.locator('input[type="tel"]')).toHaveValue("0721 234 567");
-    await page.locator('input[placeholder*="Cluj"]').fill("Cluj-Napoca");
-    await expect(page.locator('input[placeholder*="Cluj"]')).toHaveValue("Cluj-Napoca");
-  });
-
-  test("validare — câmpuri obligatorii goale", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByText("Introdu prenumele")).toBeVisible();
-    await expect(page.getByText("Introdu numele de familie")).toBeVisible();
-    await expect(page.getByText("Introdu adresa de email")).toBeVisible();
-    await expect(page.getByText("Introdu numărul de telefon")).toBeVisible();
-    await expect(page.getByText("Introdu orașul")).toBeVisible();
-  });
-
-  test("validare — email invalid", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.getByLabel(/Prenume/i).fill("Andrei");
-    await page.getByLabel(/Nume de familie/i).fill("Popescu");
-    await page.getByLabel(/Email/i).fill("nu-este-email");
-    await page.getByLabel(/Telefon/i).fill("0721234567");
-    await page.getByLabel(/Oraș/i).fill("București");
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByText("Email invalid")).toBeVisible();
-  });
-
-  test("validare — telefon format invalid", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.getByLabel(/Prenume/i).fill("Andrei");
-    await page.getByLabel(/Nume de familie/i).fill("Popescu");
-    await page.getByLabel(/Email/i).fill("andrei@gmail.com");
-    await page.getByLabel(/Telefon/i).fill("123");
-    await page.getByLabel(/Oraș/i).fill("București");
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByText("Format: 07XX XXX XXX")).toBeVisible();
-  });
-
-  test("preview nume complet apare în timp real", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.getByLabel(/Prenume/i).fill("Andrei");
-    await page.getByLabel(/Nume de familie/i).fill("Popescu");
-    await expect(page.getByText("Andrei Popescu").first()).toBeVisible();
-  });
-
-  test("completare corectă → merge la experiență (Pas 4)", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.getByLabel(/Prenume/i).fill("Andrei");
-    await page.getByLabel(/Nume de familie/i).fill("Popescu");
-    await page.getByLabel(/Email/i).fill("andrei.popescu@gmail.com");
-    await page.getByLabel(/Telefon/i).fill("0721234567");
-    await page.getByLabel(/Oraș/i).fill("București");
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByText("Pas 4 din 10")).toBeVisible({ timeout: 5000 });
-  });
-});
-
-// ─── STEP 8 — Work Experience ────────────────────────────────────────────────
-test.describe("Wizard — Step 8: Work Experience", () => {
-  test("pagina experiență are form de adăugare", async ({ page }) => {
-    await goToExperience(page);
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByLabel(/Funcție|Titlu job/i)).toBeVisible({ timeout: 5000 });
-    await expect(page.getByLabel(/Companie/i)).toBeVisible();
-    await expect(page.getByLabel(/Perioadă/i)).toBeVisible();
-  });
-
-  test("validare — descriere fără titlu job arată eroare, nu sare la educație", async ({ page }) => {
-    await goToExperience(page);
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
-    // Fill only the description textarea, leave title/company/period empty
-    await page.locator("textarea").first().fill("Gestionam contabilitatea pentru mai multe firme client");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    // Should show error toast, NOT navigate away
-    await expect(page.getByText(/obligatorie/i)).toBeVisible({ timeout: 3000 });
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible();
-  });
-
-  test("validare — titlu fără companie arată eroare", async ({ page }) => {
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Contabil");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByText(/Compania este obligatorie/i)).toBeVisible({ timeout: 3000 });
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible();
-  });
-
-  test("validare — formular complet gol trece la educație (skip valid)", async ({ page }) => {
-    await goToExperience(page);
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
-    // All fields empty — valid skip
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByRole("heading", { name: "Educație" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("adaugă un job și navighează la întrebări AI", async ({ page }) => {
-    await goToExperience(page);
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Software Developer");
-    await page.getByLabel(/Companie/i).fill("TechCorp SRL");
-    await page.getByLabel(/Perioadă/i).fill("Ian 2022 – Prezent");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    // After Continuă, questions phase appears
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-  });
-
-  test("șterge un job adăugat", async ({ page }) => {
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Developer");
-    await page.getByLabel(/Companie/i).fill("TestCo");
-    await page.getByLabel(/Perioadă/i).fill("2023 – Prezent");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    // Wait for questions to load, then go back to see the saved entry
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByText("Developer").first()).toBeVisible({ timeout: 3000 });
-    await page.getByTestId("btn-delete-exp").first().click();
-    await expect(page.getByText("Developer")).not.toBeVisible({ timeout: 3000 });
-  });
-
-  test("faza întrebări AI — 5 întrebări vizibile cu textarea de răspuns", async ({ page }) => {
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Contabil");
-    await page.getByLabel(/Companie/i).fill("Firma XYZ");
-    await page.getByLabel(/Perioadă/i).fill("Ian 2020 – Prezent");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-    // Should have at least 3 question labels (numbered)
-    const labels = page.locator("label").filter({ hasText: /^[1-5]\. / });
-    await expect(labels.first()).toBeVisible();
-    // Should have textarea for each question
-    const textareas = page.locator("textarea[placeholder*='răspuns']");
-    await expect(textareas.first()).toBeVisible();
-    // Continuă button visible
-    await expect(page.getByRole("button", { name: /Continuă/ })).toBeVisible();
-    // Înapoi button visible
-    await expect(page.getByRole("button", { name: "← Înapoi" })).toBeVisible();
-  });
-
-  test("faza întrebări — Înapoi revine la formular cu datele salvate", async ({ page }) => {
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Manager");
-    await page.getByLabel(/Companie/i).fill("RetailCo");
-    await page.getByLabel(/Perioadă/i).fill("2021 – 2023");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    // Back to form phase — entry card visible
-    await expect(page.getByText("Manager").first()).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText("RetailCo").first()).toBeVisible();
-  });
-
-  test("faza responsabilități AI — lista checkbox-uri apare după răspunsuri", async ({ page }) => {
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Vânzător");
-    await page.getByLabel(/Companie/i).fill("Shop SRL");
-    await page.getByLabel(/Perioadă/i).fill("2022 – Prezent");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-    // Answer first question
-    await page.locator("textarea").first().fill("Vindeam produse și consiliuam clienții");
-    await page.getByRole("button", { name: /Continuă/ }).click();
-    // Responsibilities phase
-    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
-    // At least one checkbox visible
-    await expect(page.locator("input[type='checkbox']").first()).toBeVisible();
-    // Header bar with count visible
-    await expect(page.getByText(/din \d+ selectate/)).toBeVisible();
-    // Salvează button visible
-    await expect(page.getByRole("button", { name: /Salvează/ })).toBeVisible();
-  });
-
-  test("responsabilități — Salvează cu 0 selectate este blocat cu eroare", async ({ page }) => {
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Ospătar");
-    await page.getByLabel(/Companie/i).fill("Restaurant XYZ");
-    await page.getByLabel(/Perioadă/i).fill("2021 – Prezent");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-    await page.getByRole("button", { name: /Continuă/ }).click();
-    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
-    // Make sure all are deselected (default)
-    await page.getByRole("button", { name: "Deselectează tot", exact: true }).click();
-    await expect(page.getByText("0 din")).toBeVisible();
-    // Try to save with 0 selected
-    await page.getByRole("button", { name: /Salvează/ }).click();
-    await expect(page.getByText(/cel puțin o responsabilitate/i)).toBeVisible({ timeout: 3000 });
-    // Should stay on responsibilities phase
-    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible();
-  });
-
-  test("faza responsabilități — Selectează tot și Deselectează tot funcționează", async ({ page }) => {
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Recepționer");
-    await page.getByLabel(/Companie/i).fill("Hotel ABC");
-    await page.getByLabel(/Perioadă/i).fill("2021 – Prezent");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-    await page.getByRole("button", { name: /Continuă/ }).click();
-    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
-    // Deselect all
-    await page.getByRole("button", { name: "Deselectează tot", exact: true }).click();
-    await expect(page.getByText("0 din")).toBeVisible();
-    // Select all
-    await page.getByRole("button", { name: "Selectează tot", exact: true }).click();
-    const countText = await page.getByText(/\d+ din \d+ selectate/).textContent();
-    expect(countText).toMatch(/^\d+ din \d+ selectate$/);
-    const parts = countText!.match(/(\d+) din (\d+)/);
-    expect(parts![1]).toBe(parts![2]); // selected === total
-  });
-
-  test("faza responsabilități — Salvează duce la summary cu jobul salvat", async ({ page }) => {
-    test.setTimeout(90000);
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Asistent");
-    await page.getByLabel(/Companie/i).fill("Birou SRL");
-    await page.getByLabel(/Perioadă/i).fill("2020 – 2022");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-    await page.getByRole("button", { name: /Continuă/ }).click();
-    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
-    await page.getByRole("button", { name: /Salvează/ }).click();
-    // Should show summary with the saved job
-    await expect(page.getByRole("heading", { name: "Experiențele tale" })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText("Asistent").first()).toBeVisible();
-    await expect(page.getByText("Birou SRL").first()).toBeVisible();
-    // Continuă in summary → Education (Pas 5)
-    await page.getByRole("button", { name: "Continuă" }).last().click();
-    await expect(page.getByText("Pas 5 din 10")).toBeVisible({ timeout: 5000 });
-  });
-
-  test("summary — Adaugă o altă experiență reia fluxul", async ({ page }) => {
-    test.setTimeout(90000);
-    await goToExperience(page);
-    await page.getByLabel(/Funcție|Titlu job/i).fill("Contabil");
-    await page.getByLabel(/Companie/i).fill("Firma ABC");
-    await page.getByLabel(/Perioadă/i).fill("2018 – 2023");
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByRole("heading", { name: "Câteva întrebări rapide" })).toBeVisible({ timeout: 15000 });
-    await page.getByRole("button", { name: /Continuă/ }).click();
-    await expect(page.getByRole("heading", { name: "Bifează ce ți se potrivește" })).toBeVisible({ timeout: 20000 });
-    await page.getByRole("button", { name: /Salvează/ }).click();
-    await expect(page.getByRole("heading", { name: "Experiențele tale" })).toBeVisible({ timeout: 5000 });
-    // Click "+ Adaugă o altă experiență"
-    await page.getByRole("button", { name: /Adaugă o altă experiență/ }).click();
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 3000 });
-    // Previous job visible as compact card
-    await expect(page.getByText("Contabil").first()).toBeVisible();
-  });
-
-  test("Continuă fără experiență → merge la educație (Pas 5)", async ({ page }) => {
-    await goToExperience(page);
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: /Continuă/ }).last().click();
-    await expect(page.getByText("Pas 5 din 10")).toBeVisible({ timeout: 5000 });
-  });
-});
-
-// ─── STEP 9 — Education ──────────────────────────────────────────────────────
-test.describe("Wizard — Step 9: Education", () => {
-  test("pagina educație are buton Adaugă și formular dialog", async ({ page }) => {
-    await goToEducation(page);
-    await expect(page.getByRole("heading", { name: "Educație" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByTestId("btn-add-education")).toBeVisible();
-    // open dialog
-    await page.getByTestId("btn-add-education").click();
-    await expect(page.getByRole("heading", { name: "Adaugă educație" })).toBeVisible();
-    await expect(page.locator("select")).toBeVisible();
-    await expect(page.getByPlaceholder(/Universitatea/)).toBeVisible();
-    await expect(page.getByPlaceholder(/2018/)).toBeVisible();
-    // close dialog
-    await page.getByRole("button", { name: "Anulează" }).click();
-    await expect(page.getByRole("heading", { name: "Adaugă educație" })).not.toBeVisible();
-  });
-
-  test("adaugă educație completă și apare în listă", async ({ page }) => {
-    await goToEducation(page);
-    await page.getByTestId("btn-add-education").click();
-    await page.locator("select").selectOption("Licență");
-    await page.getByPlaceholder(/Informatică/).fill("Informatică");
-    await page.getByPlaceholder(/Universitatea/).fill("Universitatea Politehnica");
-    await page.getByPlaceholder(/Cluj-Napoca/).fill("București");
-    await page.getByPlaceholder(/2018/).fill("2018 – 2022");
-    await page.getByTestId("btn-save-education").click();
-    await expect(page.getByText("Licență — Informatică").first()).toBeVisible({ timeout: 3000 });
-    await expect(page.getByText(/Universitatea Politehnica/).first()).toBeVisible();
-  });
-
-  test("Continuă din educație → merge la abilități (Pas 6)", async ({ page }) => {
-    await goToEducation(page);
-    await expect(page.getByRole("heading", { name: "Educație" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "Sari peste" }).click();
-    await expect(page.getByText("Pas 6 din 10")).toBeVisible({ timeout: 5000 });
-  });
-});
-
-// ─── STEP 10 — Skills ────────────────────────────────────────────────────────
-test.describe("Wizard — Step 10: Skills", () => {
-  test("pagina abilități are chat AI și adăugare manuală", async ({ page }) => {
-    await goToSkills(page);
-    await expect(page.getByRole("heading", { name: "Abilități" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByText("Acum să vorbim despre abilitățile tale!")).toBeVisible();
-    await expect(page.getByPlaceholder("Adaugă abilitate manual")).toBeVisible();
-  });
-
-  test("adaugă abilitate manuală cu Enter", async ({ page }) => {
-    await goToSkills(page);
-    await expect(page.getByRole("heading", { name: "Abilități" })).toBeVisible({ timeout: 8000 });
-    await page.getByPlaceholder("Adaugă abilitate manual").fill("React.js");
-    await page.getByPlaceholder("Adaugă abilitate manual").press("Enter");
-    await expect(page.getByText("React.js").first()).toBeVisible({ timeout: 3000 });
-  });
-
-  test("Continuă din abilități → merge la limbi (Pas 12)", async ({ page }) => {
-    await goToSkills(page);
-    await expect(page.getByRole("heading", { name: "Abilități" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByText("Pas 7 din 10")).toBeVisible({ timeout: 5000 });
-  });
-});
-
-// ─── STEP 11 — Languages ─────────────────────────────────────────────────────
-test.describe("Wizard — Step 11: Languages", () => {
-  test("pagina limbi are quick-add și formular", async ({ page }) => {
-    await goToLanguages(page);
-    await expect(page.getByRole("heading", { name: "Limbi străine" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByText("Engleză").first()).toBeVisible();
-    await expect(page.getByText("Franceză").first()).toBeVisible();
-  });
-
-  test("adaugă engleză cu quick-add și buton Adaugă", async ({ page }) => {
-    await goToLanguages(page);
-    await expect(page.getByRole("heading", { name: "Limbi străine" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "Engleză" }).click();
-    await page.getByRole("button", { name: "Adaugă" }).click();
-    // Entry should appear in the list
-    await expect(page.getByText("Engleză").first()).toBeVisible({ timeout: 3000 });
-    await expect(page.getByText("B1").first()).toBeVisible();
-  });
-
-  test("Continuă din limbi → merge la permis (Pas 13)", async ({ page }) => {
-    await goToLanguages(page);
-    await expect(page.getByRole("heading", { name: "Limbi străine" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByText("Pas 8 din 10")).toBeVisible({ timeout: 5000 });
-  });
-});
-
-// ─── STEP 12 — License & Qualifications ─────────────────────────────────────
-test.describe("Wizard — Step 12: License", () => {
-  test("pagina permis are toggle Da/Nu", async ({ page }) => {
-    await goToLicense(page);
-    await expect(page.getByRole("heading", { name: "Permis & Calificări" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByText("✅ Da")).toBeVisible();
-    await expect(page.getByText("❌ Nu")).toBeVisible();
-  });
-
-  test("toggle 'Da' afișează categoriile de permis", async ({ page }) => {
-    await goToLicense(page);
-    await expect(page.getByRole("heading", { name: "Permis & Calificări" })).toBeVisible({ timeout: 8000 });
-    await page.getByText("✅ Da").click();
-    await expect(page.getByText("Categorii permis:")).toBeVisible();
-    await expect(page.getByRole("button", { name: "B", exact: true })).toBeVisible();
-  });
-
-  test("selectează categoria B și C", async ({ page }) => {
-    await goToLicense(page);
-    await page.getByText("✅ Da").click();
-    await page.getByRole("button", { name: "B", exact: true }).click();
-    await page.getByRole("button", { name: "C", exact: true }).click();
-    await expect(page.getByRole("button", { name: "B", exact: true })).toBeVisible();
-  });
-
-  test("Continuă din permis → merge la hobby-uri (Pas 14)", async ({ page }) => {
-    await goToLicense(page);
-    await expect(page.getByRole("heading", { name: "Permis & Calificări" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "Continuă" }).click();
-    await expect(page.getByText("Pas 9 din 10")).toBeVisible({ timeout: 5000 });
-  });
-});
-
-// ─── STEP 13 — Hobbies ───────────────────────────────────────────────────────
-test.describe("Wizard — Step 13: Hobbies", () => {
-  test("pagina hobby-uri are chat AI și adăugare manuală", async ({ page }) => {
-    await goToHobbies(page);
-    await expect(page.getByRole("heading", { name: "Hobby-uri & Pasiuni" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByPlaceholder("Adaugă hobby manual")).toBeVisible();
-    await expect(page.getByText("✋ Sari peste hobby-uri")).toBeVisible();
-  });
-
-  test("adaugă hobby manual cu buton", async ({ page }) => {
-    await goToHobbies(page);
-    await expect(page.getByRole("heading", { name: "Hobby-uri & Pasiuni" })).toBeVisible({ timeout: 8000 });
-    await page.getByPlaceholder("Adaugă hobby manual").fill("Fotografie");
-    await page.getByRole("button", { name: "Adaugă" }).last().click();
-    await expect(page.locator('.text-violet-700').filter({ hasText: "Fotografie" })).toBeVisible({ timeout: 3000 });
-  });
-
-  test("'Generează CV-ul!' → merge la draft (Pas 15)", async ({ page }) => {
-    await goToHobbies(page);
-    await expect(page.getByRole("heading", { name: "Hobby-uri & Pasiuni" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "Generează CV-ul!" }).click();
-    await expect(page.getByText("Pas 10 din 10")).toBeVisible({ timeout: 5000 });
-  });
-});
-
-// ─── STEP 14 — Draft Generation ─────────────────────────────────────────────
-test.describe("Wizard — Step 14: Draft", () => {
-  test("step 14 pornește generarea AI", async ({ page }) => {
-    await goToDraft(page);
-    await expect(page.getByText("Pas 10 din 10")).toBeVisible({ timeout: 5000 });
-    // Wait for either loading state or finished draft heading to appear (useEffect is async)
+test.describe("Wizard — navigare și shell editorial", () => {
+  test("ruta / redirecționează direct la wizard", async ({ page }) => {
+    await page.goto("/");
+    await expect(page).toHaveURL(/\/creare-cv/);
     await expect(
-      page.getByText("Generez CV-ul tău...").or(page.getByRole("heading", { name: "Draft CV generat" }))
-    ).toBeVisible({ timeout: 10000 });
+      page.getByRole("heading", { name: "Ce job vrei să obții?" })
+    ).toBeVisible({ timeout: 15000 });
   });
 
-  test("draft-ul CV este generat și afișat (test cu timeout AI)", async ({ page }) => {
-    test.setTimeout(120000);
-    await goToDraft(page);
-    await expect(page.getByText("Pas 10 din 10")).toBeVisible({ timeout: 5000 });
-    // Wait for generation to start (useEffect runs async)
-    await page.waitForTimeout(500);
-    // Wait until generation completes (loading disappears) or draft heading appears — whichever comes first
-    await Promise.race([
-      page.getByRole("heading", { name: "Draft CV generat" }).waitFor({ timeout: 90000 }).catch(() => null),
-      page.getByText("Generez CV-ul tău...").waitFor({ state: "hidden", timeout: 90000 }).catch(() => null),
-    ]);
-    const hasDraft = await page.getByRole("heading", { name: "Draft CV generat" }).isVisible().catch(() => false);
-    if (hasDraft) {
-      await expect(page.getByText("Andrei Popescu").first()).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText("Finalizează & Descarcă PDF")).toBeVisible();
+  test("pasul 1 se încarcă cu titlu, cuprins și preview", async ({ page }) => {
+    await page.goto("/creare-cv");
+    await expect(
+      page.getByRole("heading", { name: "Ce job vrei să obții?" })
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Cuprins")).toBeVisible();
+    await expect(page.getByText(/Pasul 1 din 10/i)).toBeVisible();
+    await expect(page.getByText("Preview CV")).toBeVisible();
+  });
+
+  test("skip-ul pasului 1 duce la fotografie", async ({ page }) => {
+    await page.goto("/creare-cv");
+    await expect(
+      page.getByRole("heading", { name: "Ce job vrei să obții?" })
+    ).toBeVisible({ timeout: 15000 });
+    await page.getByText(/Nu am un anunț/).click();
+    await expect(page.getByText(/Pasul 2 din 10/i)).toBeVisible();
+  });
+
+  test("chip-ul de ancorare apare când există anunț", async ({ page }) => {
+    await mockPipeline(page);
+    await gotoExperience(page, true);
+    await expect(page.getByText(/Ancorat pe anunțul tău/)).toBeVisible();
+  });
+
+  test("preview-ul live afișează numele după contact", async ({ page }) => {
+    test.skip(
+      (page.viewportSize()?.width ?? 1440) < 900,
+      "preview-ul e ascuns pe mobil (by design)"
+    );
+    await mockPipeline(page);
+    await gotoExperience(page);
+    await expect(
+      page.locator(".wizard-preview").getByText("Elena Stanciu")
+    ).toBeVisible();
+  });
+});
+
+test.describe("Wizard — pipeline experiență (AI mock)", () => {
+  test("gate: butonul Analizează cere minim 200 caractere", async ({ page }) => {
+    await mockPipeline(page);
+    await gotoExperience(page);
+    await page.getByLabel(/funcția/i).fill("Contabil");
+    await page.getByPlaceholder(/povesti unui prieten/i).fill("text scurt");
+    await expect(page.getByRole("button", { name: /Analizează/ })).toBeDisabled();
+    await expect(page.getByText(/încă \d+ caractere/)).toBeVisible();
+  });
+
+  test("fluxul complet: input → 5 întrebări → selecție → salvare în CV", async ({ page }) => {
+    await mockPipeline(page);
+    await gotoExperience(page);
+
+    // ecran 1 — input
+    await page.getByLabel(/funcția/i).fill("Contabil");
+    await page.getByLabel(/compania/i).fill("SC ContExpert SRL");
+    await page.getByLabel(/perioada/i).fill("2021 – prezent");
+    await page.getByPlaceholder(/povesti unui prieten/i).fill(RAW_TEXT);
+    await expect(page.getByText(/suficient de detaliat/)).toBeVisible();
+    await page.getByRole("button", { name: /Analizează/ }).click();
+
+    // ecran 2 — întrebări
+    await expect(page.getByText("0/5 răspunsuri")).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByRole("heading", { name: /5 întrebări, ca la un interviu/ })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Răspunde la minim 3/ })
+    ).toBeDisabled();
+
+    const areas = page.locator("textarea");
+    await areas.nth(0).fill("procesez 300 de facturi pe luna");
+    await areas.nth(1).fill("folosesc Saga si Excel");
+    await expect(
+      page.getByRole("button", { name: /Răspunde la minim 3 \(2\/3\)/ })
+    ).toBeVisible();
+    await areas.nth(2).fill("coordonez o colega juniora");
+    await expect(page.getByText("3/5 răspunsuri")).toBeVisible();
+
+    await page.getByRole("button", { name: /Generează descrierile/ }).click();
+
+    // ecran 3 — selecție
+    await expect(page.getByText("7 descrieri generate")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Ai ales 0 din 5–6")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Alege minim/ })).toBeDisabled();
+
+    // selectează 5
+    for (let i = 0; i < 5; i++) {
+      await page.getByText(BULLETS[i].text).click();
+    }
+    await expect(page.getByText("Ai ales 5 din 5–6")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Finalizează jobul/ })).toBeEnabled();
+
+    // limita superioară: a 7-a selecție nu intră (max 6)
+    await page.getByText(BULLETS[5].text).click();
+    await page.getByText(BULLETS[6].text).click();
+    await expect(page.getByText("Ai ales 6 din 5–6")).toBeVisible();
+
+    await page.getByRole("button", { name: /Finalizează jobul/ }).click();
+
+    // rezumat + CV actualizat
+    await expect(page.getByRole("heading", { name: /Joburile tale/ })).toBeVisible({
+      timeout: 10000,
+    });
+    if ((page.viewportSize()?.width ?? 1440) >= 900) {
+      await expect(
+        page.locator(".wizard-preview").getByText(/D112, D300 și D394/)
+      ).toBeVisible();
+    } else {
+      await expect(page.getByText(/D112, D300 și D394/).first()).toBeVisible();
     }
   });
-});
 
-// ─── Back Navigation Tests ───────────────────────────────────────────────────
-test.describe("Wizard — Navigare Înapoi", () => {
-  test("Step 1: buton Înapoi este vizibil", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await expect(page.getByRole("heading", { name: "Ce job vrei să obții?" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByRole("button", { name: "← Înapoi" })).toBeVisible();
+  test("ruta manuală salvează jobul fără AI", async ({ page }) => {
+    await gotoExperience(page);
+    await page.getByText(/prefer să scriu descrierile manual/i).click();
+    await expect(
+      page.getByRole("heading", { name: /Scrie descrierile manual/ })
+    ).toBeVisible();
+
+    await page.getByLabel(/funcția/i).fill("Vânzător");
+    await page.getByLabel(/compania/i).fill("Profi");
+    await page
+      .getByLabel(/responsabilit/i)
+      .fill("Servit clienții la casă\nAranjat marfa la raft");
+    await page.getByRole("button", { name: /Salvează jobul/ }).click();
+
+    await expect(page.getByRole("heading", { name: /Joburile tale/ })).toBeVisible();
+    await expect(page.getByText("Servit clienții la casă").first()).toBeVisible();
   });
 
-  test("Step 1: Înapoi navighează la pagina principală", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await expect(page.getByRole("heading", { name: "Ce job vrei să obții?" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page).toHaveURL("/", { timeout: 5000 });
-  });
+  test("eroarea de API e afișată elegant, cu revenire la input", async ({ page }) => {
+    await page.route("**/api/cv/analyze", (route) =>
+      route.fulfill({
+        status: 500,
+        json: { error: "Baza de date nu e pregătită: rulează migrarea." },
+      })
+    );
+    await page.route("**/api/ai/research", (route) => route.fulfill({ json: { ok: true } }));
+    await gotoExperience(page);
+    await page.getByLabel(/funcția/i).fill("Contabil");
+    await page.getByPlaceholder(/povesti unui prieten/i).fill(RAW_TEXT);
+    await page.getByRole("button", { name: /Analizează/ }).click();
 
-  test("Step 2: buton Înapoi este vizibil", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await page.getByText("Sari peste").click();
-    await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
-    await expect(page.getByRole("button", { name: "← Înapoi" })).toBeVisible();
-  });
-
-  test("Step 2: Înapoi navighează la Step 1", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await page.getByText("Sari peste").click();
-    await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByRole("heading", { name: "Ce job vrei să obții?" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("Step 3 (contact): Înapoi navighează la fotografie", async ({ page }) => {
-    await goToContact(page);
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByRole("heading", { name: "Adaugă o fotografie" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("Step 8 (experiență): Înapoi navighează la contact", async ({ page }) => {
-    await goToExperience(page);
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).last().click();
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("Step 9 (educație): Înapoi navighează la experiență", async ({ page }) => {
-    await goToEducation(page);
-    await expect(page.getByRole("heading", { name: "Educație" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByRole("heading", { name: "Experiență profesională" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("Step 10 (abilități): Înapoi navighează la educație", async ({ page }) => {
-    await goToSkills(page);
-    await expect(page.getByRole("heading", { name: "Abilități" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByRole("heading", { name: "Educație" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("Step 11 (limbi): Înapoi navighează la abilități", async ({ page }) => {
-    await goToLanguages(page);
-    await expect(page.getByRole("heading", { name: "Limbi străine" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByRole("heading", { name: "Abilități" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("Step 12 (permis): Înapoi navighează la limbi", async ({ page }) => {
-    await goToLicense(page);
-    await expect(page.getByRole("heading", { name: "Permis & Calificări" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByRole("heading", { name: "Limbi străine" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("Step 13 (hobby-uri): Înapoi navighează la permis", async ({ page }) => {
-    await goToHobbies(page);
-    await expect(page.getByRole("heading", { name: "Hobby-uri & Pasiuni" })).toBeVisible({ timeout: 8000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByRole("heading", { name: "Permis & Calificări" })).toBeVisible({ timeout: 5000 });
-  });
-
-  test("Step 14 (draft): Înapoi navighează la hobby-uri", async ({ page }) => {
-    await goToDraft(page);
-    await expect(page.getByText("Pas 10 din 10")).toBeVisible({ timeout: 5000 });
-    await page.getByRole("button", { name: "← Înapoi" }).click();
-    await expect(page.getByRole("heading", { name: "Hobby-uri & Pasiuni" })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Baza de date nu e pregătită/)).toBeVisible({
+      timeout: 10000,
+    });
+    // formularul rămâne completat
+    await expect(page.getByLabel(/funcția/i)).toHaveValue("Contabil");
   });
 });

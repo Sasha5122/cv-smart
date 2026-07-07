@@ -1,11 +1,25 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Sora, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({
+/**
+ * Tipografie modernă, contrast puternic:
+ *  — Sora: geometric, crisp (display, titluri, numerale)
+ *  — Instrument Sans: neutru, foarte lizibil (body, UI)
+ * Ambele cu latin-ext → diacritice perfecte (ă â î ș ț).
+ */
+const sora = Sora({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-inter",
+  weight: ["400", "600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
   display: "swap",
 });
 
@@ -29,8 +43,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ro" className={`${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col antialiased" style={{ fontFamily: "var(--font-inter, 'Inter', sans-serif)" }}>
+    <html lang="ro" data-scroll-behavior="smooth" className={`${sora.variable} ${instrumentSans.variable} h-full`}>
+      <body className="min-h-full flex flex-col antialiased">
         {children}
         <Toaster position="top-right" richColors />
       </body>

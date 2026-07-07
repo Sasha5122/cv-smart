@@ -11,10 +11,9 @@ export async function POST(req: NextRequest) {
       revisions: ChatMessage[];
     };
 
-    const revisionsText = revisions
-      .filter((m) => m.role === "user")
-      .map((m) => `- ${m.content}`)
-      .join("\n");
+    // Only the latest user request — previous ones are already applied in `draft`
+    const lastRequest = [...revisions].reverse().find((m) => m.role === "user");
+    const revisionsText = lastRequest ? lastRequest.content : "";
 
     const response = await chat({
       system: `Ești un editor expert de CV-uri în română.
@@ -24,7 +23,7 @@ Format: {updatedDraft: "...", message: "Am aplicat modificarea: ..."}`,
       messages: [
         {
           role: "user",
-          content: `CV curent:\n${draft}\n\nModificări cerute:\n${revisionsText}\n\nAplică modificările și returnează JSON.`,
+          content: `CV curent:\n${draft}\n\nModificare cerută: ${revisionsText}\n\nAplică modificarea și returnează JSON.`,
         },
       ],
     });

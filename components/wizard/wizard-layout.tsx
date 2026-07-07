@@ -3,18 +3,18 @@ import Link from "next/link";
 import { CVPreview } from "./cv-preview";
 import type { WizardStep, CVData } from "@/lib/types/cv";
 
-// Maps sidebar items to our internal step numbers
+// Maparea intrărilor din sidebar la pașii interni
 const SIDEBAR_STEPS = [
-  { label: "Job vizat",         steps: [1] },
-  { label: "Fotografie",        steps: [2] },
-  { label: "Contact",           steps: [3, 4, 5, 6, 7] },
-  { label: "Experiență",        steps: [8] },
-  { label: "Educație",          steps: [9] },
-  { label: "Abilități",         steps: [10] },
-  { label: "Limbi",             steps: [11] },
-  { label: "Permis",            steps: [12] },
-  { label: "Hobby-uri",         steps: [13] },
-  { label: "Finalizare",        steps: [14] },
+  { label: "Job vizat", steps: [1] },
+  { label: "Fotografie", steps: [2] },
+  { label: "Contact", steps: [3, 4, 5, 6, 7] },
+  { label: "Experiență", steps: [8] },
+  { label: "Educație", steps: [9] },
+  { label: "Abilități", steps: [10] },
+  { label: "Limbi", steps: [11] },
+  { label: "Permis", steps: [12] },
+  { label: "Hobby-uri", steps: [13] },
+  { label: "Finalizare", steps: [14] },
 ];
 
 type StepStatus = "done" | "current" | "future";
@@ -32,197 +32,358 @@ interface WizardLayoutProps {
 }
 
 export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProps) {
-  return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+  const sidebarIdx = SIDEBAR_STEPS.findIndex((s) => s.steps.includes(currentStep));
+  const currentItem = SIDEBAR_STEPS[sidebarIdx];
+  const progressPct = Math.round(((sidebarIdx + 1) / SIDEBAR_STEPS.length) * 100);
 
-      {/* ── LEFT SIDEBAR ─────────────────────────────────────────── */}
-      <aside className="wizard-sidebar" style={{
-        width: 220,
-        flexShrink: 0,
-        backgroundColor: "#0F172A",
-        display: "flex",
-        flexDirection: "column",
-        padding: "24px 0",
-        position: "sticky",
-        top: 0,
-        height: "100vh",
-        overflowY: "auto",
-      }}>
+  return (
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      {/* ── SIDEBAR — navy, contrast maxim ──────────────────────── */}
+      <aside
+        className="wizard-sidebar"
+        style={{
+          width: 248,
+          flexShrink: 0,
+          backgroundColor: "var(--sidebar-bg)",
+          display: "flex",
+          flexDirection: "column",
+          padding: "28px 0 24px",
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          overflowY: "auto",
+        }}
+      >
         {/* Logo */}
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 20px", marginBottom: 36, textDecoration: "none" }}>
-          <div style={{
-            width: 30, height: 30, borderRadius: 8,
-            backgroundColor: "#4F46E5",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <span style={{ color: "#fff", fontSize: 10, fontWeight: 800 }}>CV</span>
+        <Link
+          href="/creare-cv"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 11,
+            padding: "0 26px",
+            marginBottom: 10,
+            textDecoration: "none",
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: "linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(37,99,235,0.45)",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-display), sans-serif",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+              }}
+            >
+              CV
+            </span>
           </div>
-          <span style={{ color: "#fff", fontWeight: 700, fontSize: 20, letterSpacing: -0.3 }}>CV Smart</span>
+          <span
+            style={{
+              fontFamily: "var(--font-display), sans-serif",
+              color: "var(--sidebar-fg)",
+              fontWeight: 700,
+              fontSize: 17,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            CV Smart
+          </span>
         </Link>
 
-        {/* Steps */}
-        <nav style={{ padding: "0 16px", display: "flex", flexDirection: "column" }}>
+        <div
+          className="folio"
+          style={{ padding: "20px 26px 12px", fontSize: 10.5, color: "var(--sidebar-muted)" }}
+        >
+          Pașii tăi
+        </div>
+
+        {/* Pași */}
+        <nav style={{ display: "flex", flexDirection: "column", gap: 2, padding: "0 14px" }}>
           {SIDEBAR_STEPS.map((item, idx) => {
             const status = getStatus(item.steps, currentStep);
+            const isCurrent = status === "current";
+            const isDone = status === "done";
             return (
-              <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 0 }}>
-                {/* Circle + connector */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                  {/* Circle */}
-                  <div style={{
-                    width: 28, height: 28, borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 14, fontWeight: 700,
-                    backgroundColor:
-                      status === "done" ? "#22C55E" :
-                      status === "current" ? "#4F46E5" : "transparent",
-                    border:
-                      status === "done" ? "2px solid #22C55E" :
-                      status === "current" ? "2px solid #4F46E5" : "2px solid #334155",
-                    color:
-                      status === "done" ? "#fff" :
-                      status === "current" ? "#fff" : "#64748B",
+              <div
+                key={idx}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "9px 12px",
+                  borderRadius: 8,
+                  backgroundColor: isCurrent ? "rgba(37, 99, 235, 0.22)" : "transparent",
+                  border: isCurrent ? "1px solid rgba(59,130,246,0.45)" : "1px solid transparent",
+                  transition: "background-color 0.2s",
+                }}
+              >
+                {/* indicator */}
+                <span
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 6,
                     flexShrink: 0,
-                  }}>
-                    {status === "done" ? (
-                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                        <path d="M2 6.5L5.5 10L11 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    ) : status === "current" ? (
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ animation: "spin 1.5s linear infinite" }}>
-                        <circle cx="6" cy="6" r="5" stroke="rgba(255,255,255,0.3)" strokeWidth="2"/>
-                        <path d="M6 1a5 5 0 0 1 5 5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    ) : (
-                      <span>{idx + 1}</span>
-                    )}
-                  </div>
-                  {/* Connector line */}
-                  {idx < SIDEBAR_STEPS.length - 1 && (
-                    <div style={{
-                      width: 2, height: 28,
-                      backgroundColor: status === "done" ? "#22C55E" : "#1E293B",
-                      margin: "2px 0",
-                    }} />
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    fontVariantNumeric: "tabular-nums",
+                    backgroundColor: isDone
+                      ? "var(--green)"
+                      : isCurrent
+                        ? "var(--primary)"
+                        : "rgba(241,245,249,0.08)",
+                    color: isDone || isCurrent ? "#fff" : "var(--sidebar-muted)",
+                    border: isDone || isCurrent ? "none" : "1px solid var(--sidebar-line)",
+                  }}
+                >
+                  {isDone ? (
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6.2L4.8 9L10 3.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    idx + 1
                   )}
-                </div>
-
-                {/* Label */}
-                <span style={{
-                  paddingTop: 5,
-                  fontSize: 17,
-                  fontWeight: status === "current" ? 600 : 400,
-                  color:
-                    status === "done" ? "#22C55E" :
-                    status === "current" ? "#A5B4FC" : "#64748B",
-                  lineHeight: 1.2,
-                }}>
+                </span>
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: isCurrent ? 600 : 500,
+                    color: isCurrent
+                      ? "#fff"
+                      : isDone
+                        ? "rgba(241,245,249,0.75)"
+                        : "var(--sidebar-muted)",
+                    lineHeight: 1.3,
+                  }}
+                >
                   {item.label}
                 </span>
               </div>
             );
           })}
         </nav>
+
+        <div style={{ flex: 1 }} />
+
+        {/* footer sidebar */}
+        <div
+          style={{
+            margin: "16px 26px 0",
+            paddingTop: 16,
+            borderTop: "1px solid var(--sidebar-line)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              lineHeight: 1.8,
+              color: "var(--sidebar-muted)",
+              fontWeight: 500,
+            }}
+          >
+            Fără cont · Fără plată
+            <br />
+            PDF direct, în română
+          </div>
+        </div>
       </aside>
 
-      {/* ── MAIN AREA ────────────────────────────────────────────── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", backgroundColor: "#ffffff", minHeight: "100vh" }}>
-
-        {/* Mobile top bar (hidden on desktop, shown on mobile) */}
-        <div className="wizard-mobile-header" style={{
-          display: "none",
-          alignItems: "center",
-          gap: 10,
-          padding: "12px 20px",
-          backgroundColor: "#0F172A",
-          borderBottom: "1px solid #1E293B",
-        }}>
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <div style={{
-              width: 26, height: 26, borderRadius: 7,
-              backgroundColor: "#4F46E5",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <span style={{ color: "#fff", fontSize: 9, fontWeight: 800 }}>CV</span>
-            </div>
-            <span style={{ color: "#fff", fontWeight: 700, fontSize: 18 }}>CV Smart</span>
-          </Link>
-        </div>
-
-        {/* Step counter top bar */}
-        <div style={{
-          borderBottom: "1px solid #F1F5F9",
-          padding: "10px 32px",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}>
-          {(() => {
-            const sidebarIdx = SIDEBAR_STEPS.findIndex(s => s.steps.includes(currentStep));
-            const item = SIDEBAR_STEPS[sidebarIdx];
-            return (
-              <>
-                <span style={{
-                  fontSize: 16, fontWeight: 600, color: "#4F46E5",
-                  backgroundColor: "#EEF2FF", padding: "3px 12px", borderRadius: 50,
-                }}>
-                  Pas {sidebarIdx + 1} din {SIDEBAR_STEPS.length}
-                </span>
-                <span style={{ fontSize: 17, color: "#64748B" }}>{item?.label}</span>
-              </>
-            );
-          })()}
-        </div>
-
-        {/* Content + Preview */}
-        <div className="wizard-grid" style={{
+      {/* ── ZONA PRINCIPALĂ ─────────────────────────────────────── */}
+      <div
+        style={{
           flex: 1,
-          display: "grid",
-          gridTemplateColumns: "1fr 420px",
-          gap: 40,
-          padding: "32px 40px 100px",
-          alignItems: "start",
-        }}>
-          {/* Form */}
-          <div style={{ maxWidth: 600 }}>
-            {children}
-          </div>
-
-          {/* CV Preview */}
-          <div className="wizard-preview" style={{ position: "sticky", top: 24 }}>
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              marginBottom: 12,
-            }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
-                Preview CV
-              </span>
-              <span style={{
-                fontSize: 12, color: "#94A3B8",
-                backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0",
-                padding: "2px 8px", borderRadius: 50,
-              }}>
-                live
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "var(--paper)",
+          minHeight: "100vh",
+          minWidth: 0,
+        }}
+      >
+        {/* Header mobil */}
+        <div
+          className="wizard-mobile-header"
+          style={{
+            display: "none",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 20px",
+            backgroundColor: "var(--sidebar-bg)",
+          }}
+        >
+          <Link href="/creare-cv" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
+            <div
+              style={{
+                width: 27,
+                height: 27,
+                borderRadius: 7,
+                background: "linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <span style={{ fontFamily: "var(--font-display), sans-serif", color: "#fff", fontSize: 10, fontWeight: 700 }}>
+                CV
               </span>
             </div>
-            <div style={{
-              border: "1px solid #E2E8F0",
-              borderRadius: 12,
-              overflow: "hidden",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-            }}>
-              <CVPreview cvData={cvData} />
+            <span style={{ fontFamily: "var(--font-display), sans-serif", color: "var(--sidebar-fg)", fontWeight: 700, fontSize: 16 }}>
+              CV Smart
+            </span>
+          </Link>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--sidebar-muted)", fontVariantNumeric: "tabular-nums" }}>
+            {sidebarIdx + 1} / {SIDEBAR_STEPS.length}
+          </span>
+        </div>
+
+        {/* Bara de progres — pas curent */}
+        <div
+          style={{
+            borderBottom: "1px solid var(--hairline)",
+            padding: "16px 44px 0",
+            backgroundColor: "var(--card)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--primary)",
+                backgroundColor: "var(--wash)",
+                border: "1px solid #bfdbfe",
+                borderRadius: 6,
+                padding: "4px 10px",
+              }}
+            >
+              Pasul {sidebarIdx + 1} din {SIDEBAR_STEPS.length}
+            </span>
+            <span style={{ fontSize: 14.5, fontWeight: 600, color: "var(--ink)" }}>
+              {currentItem?.label}
+            </span>
+            <span style={{ flex: 1 }} />
+            <span
+              style={{
+                fontSize: 12.5,
+                fontWeight: 700,
+                color: "var(--green)",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {progressPct}%
+            </span>
+          </div>
+          {/* șina de progres — verde */}
+          <div style={{ height: 4, backgroundColor: "var(--hairline)", borderRadius: 99, position: "relative", marginBottom: 0 }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: "0 auto 0 0",
+                width: `${progressPct}%`,
+                background: "linear-gradient(90deg, var(--green) 0%, #10b981 100%)",
+                borderRadius: 99,
+                transition: "width 0.5s cubic-bezier(0.22,1,0.36,1)",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Conținut + Preview */}
+        <div
+          className="wizard-grid"
+          style={{
+            flex: 1,
+            display: "grid",
+            gridTemplateColumns: "minmax(0,1fr) 410px",
+            gap: 48,
+            padding: "44px 44px 120px",
+            alignItems: "start",
+          }}
+        >
+          {/* Formular */}
+          <div style={{ maxWidth: 640, minWidth: 0 }}>{children}</div>
+
+          {/* Preview CV */}
+          <div className="wizard-preview" style={{ position: "sticky", top: 28 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 12,
+              }}
+            >
+              <span className="folio">Preview CV</span>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 7,
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  color: "var(--green)",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    backgroundColor: "var(--green)",
+                    boxShadow: "0 0 0 3px rgba(5,150,105,0.2)",
+                  }}
+                />
+                LIVE
+              </span>
+            </div>
+            {/* biroul */}
+            <div
+              style={{
+                backgroundColor: "var(--paper-deep)",
+                border: "1px solid var(--hairline)",
+                borderRadius: 14,
+                padding: 14,
+              }}
+            >
+              <div
+                style={{
+                  border: "1px solid var(--hairline)",
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  boxShadow: "var(--shadow-lift)",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <CVPreview cvData={cvData} />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           .wizard-sidebar { display: none !important; }
           .wizard-preview { display: none !important; }
-          .wizard-grid { grid-template-columns: 1fr !important; padding: 20px 16px 80px !important; }
+          .wizard-grid { grid-template-columns: 1fr !important; padding: 24px 18px 90px !important; }
           .wizard-mobile-header { display: flex !important; }
         }
       `}</style>
