@@ -12,6 +12,8 @@ import {
   buildStage1User,
   buildStage2System,
   buildStage2User,
+  getDefaultPromptVariant,
+  PromptVariant,
 } from "@/lib/prompts/cv-pipeline";
 import {
   AnalyzeInput,
@@ -28,13 +30,15 @@ import {
 // ---------------------------------------------------------------------------
 
 export async function runRecruiterQuestions(
-  input: AnalyzeInput
+  input: AnalyzeInput,
+  variant: PromptVariant = getDefaultPromptVariant()
 ): Promise<PipelineQuestion[]> {
   const result = await callStructured<QuestionsResult>({
-    stage: "apel1-intrebari-recrutor",
+    stage: `apel1-intrebari-recrutor[${variant}]`,
     systemPrompt: buildStage1System(
       input.jobTitle,
-      Boolean(input.jobDescription?.trim())
+      Boolean(input.jobDescription?.trim()),
+      variant
     ),
     userContent: buildStage1User(input),
     schemaName: "recruiter_questions",
@@ -185,6 +189,8 @@ export interface BulletStageResult {
   /** bullet-uri eliminate după a doua validare eșuată */
   dropped: BulletValidationIssue[];
   regenerated: boolean;
+  /** câte bullet-uri au picat PRIMA validare (telemetrie A/B) */
+  firstPassInvalid: number;
 }
 
 export interface BulletContextInput {
@@ -195,7 +201,8 @@ export interface BulletContextInput {
 }
 
 export async function runBulletsFromContext(
-  input: BulletContextInput
+  input: BulletContextInput,
+  variant: PromptVariant = getDefaultPromptVariant()
 ): Promise<BulletStageResult> {
   const hasJD = Boolean(input.jobDescription?.trim());
   // ancora de adevăr pentru validarea cifrelor
@@ -205,8 +212,8 @@ export async function runBulletsFromContext(
   ].join(" \n ");
 
   const first = await callStructured<BulletsResult>({
-    stage: "apel2-bullets",
-    systemPrompt: buildStage2System(hasJD),
+    stage: `apel2-bullets[${variant}]`,
+    systemPrompt: buildStage2System(hasJD, variant),
     userContent: buildStage2User({
       jobTitle: input.jobTitle,
       rawText: input.rawText,
@@ -219,6 +226,7 @@ export async function runBulletsFromContext(
 
   let bullets = first.bullets.slice(0, 7);
   let { valid, invalid } = validateBullets(bullets, contextText);
+  const firstPassInvalid = invalid.length;
   let regenerated = false;
   let dropped: BulletValidationIssue[] = [];
 
@@ -228,8 +236,8 @@ export async function runBulletsFromContext(
       `[cv-pipeline][validare] ${invalid.length} bullet-uri cu cifre inexistente → regenerare țintită`
     );
     const regen = await callStructured<BulletsResult>({
-      stage: "apel2-bullets-regen",
-      systemPrompt: buildStage2System(hasJD),
+      stage: `apel2-bullets-regen[${variant}]`,
+      systemPrompt: buildStage2System(hasJD, variant),
       userContent: buildStage2User({
         jobTitle: input.jobTitle,
         rawText: input.rawText,
@@ -261,5 +269,5 @@ export async function runBulletsFromContext(
     throw new InsufficientBulletsError(valid.length);
   }
 
-  return { bullets: valid, dropped, regenerated };
+  return { bullets: valid, dropped, regenerated, firstPassInvalid };
 }

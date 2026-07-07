@@ -6,9 +6,20 @@
  *  2. „Scriitorul de CV”    — context UNIC (descriere + întrebări +
  *     răspunsuri + anunț opțional) → exact 7 bullet points de CV.
  *
- * Când există un job description țintă, ambele apeluri primesc o secțiune
- * suplimentară care ancorează fluxul pe cerințele acelui anunț.
+ * DOUĂ VARIANTE sub flag (test A/B):
+ *  - "strict" — regulile detaliate + few-shot (versiunea istorică)
+ *  - "liber"  — doar constrângerile esențiale; restul e judecata modelului
+ * Selectare: env PROMPT_VARIANT sau parametru explicit. Default: "strict".
+ *
+ * Când există un job description țintă, varianta strict primește addendum;
+ * varianta liber tratează anunțul inline, în textul de bază.
  */
+
+export type PromptVariant = "strict" | "liber";
+
+export function getDefaultPromptVariant(): PromptVariant {
+  return process.env.PROMPT_VARIANT === "liber" ? "liber" : "strict";
+}
 
 // ---------------------------------------------------------------------------
 // Apel #1 — Întrebările recrutorului
@@ -41,10 +52,25 @@ const STAGE1_JD_ADDENDUM = `
 
 CONTEXT SUPLIMENTAR — ANUNȚUL JOBULUI ȚINTĂ. Candidatul aplică la un job concret, al cărui anunț îl primești mai jos. Ești recrutorul care angajează exact pentru acest anunț: prioritizează întrebările care scot de la candidat experiența ce demonstrează cerințele din anunț încă neacoperite de descrierea lui. Nu-l împinge niciodată să inventeze — întreabă DACĂ și CUM a lucrat cu ce cere anunțul.`;
 
+/** Varianta LIBER — apel #1 (verbatim din instrucțiunea A/B). */
+const STAGE1_LIBER = `Ești un recrutor român cu multă experiență, care face CV-uri profesioniste pentru candidați din toate domeniile — de la șoferi și bucătari la contabili și vânzători.
+
+Un candidat și-a descris cu cuvintele lui, colocvial, adesea fără diacritice, ce face la jobul lui. O înțelegi perfect, inclusiv jargonul de meserie.
+
+Ca să-i scrii un CV cu adevărat convingător, ai nevoie de o imagine completă a experienței lui. Formulează EXACT 5 întrebări care îți aduc informațiile care lipsesc și care ar face cea mai mare diferență în ochii unui angajator din domeniul lui.
+
+Întrebările sunt simple și prietenoase, pe limba candidatului (care nu e HR-ist), cu exemple în paranteză unde îl ajută să înțeleagă ce fel de răspuns cauți. Nu repeta ce ți-a spus deja.
+
+Dacă primești și anunțul jobului la care aplică, prioritizează întrebările care scot experiența relevantă pentru cerințele anunțului — dar nu-l împinge niciodată să inventeze.
+
+Răspunzi STRICT în formatul JSON cerut.`;
+
 export function buildStage1System(
   jobTitle: string,
-  hasJobDescription: boolean
+  hasJobDescription: boolean,
+  variant: PromptVariant = getDefaultPromptVariant()
 ): string {
+  if (variant === "liber") return STAGE1_LIBER;
   return hasJobDescription
     ? stage1Base(jobTitle) + STAGE1_JD_ADDENDUM
     : stage1Base(jobTitle);
@@ -145,7 +171,30 @@ const STAGE2_NO_JD_ADDENDUM = `
 
 FĂRĂ ANUNȚ ȚINTĂ. Candidatul nu a furnizat un anunț. Optimizează bullet-urile ca un recrutor senior din România: vocabularul standard al industriei candidatului, accent pe rezultate măsurabile și competențe căutate frecvent de angajatorii români pentru rolul respectiv, astfel încât CV-ul să fie relevant pentru cât mai mulți angajatori potențiali.`;
 
-export function buildStage2System(hasJobDescription: boolean): string {
+/** Varianta LIBER — apel #2 (verbatim din instrucțiunea A/B). */
+const STAGE2_LIBER = `Ești un recrutor român cu multă experiență, care scrie CV-uri profesioniste care conving angajatorii.
+
+Primești: descrierea brută a unui candidat despre jobul lui (colocvială, cu cuvintele lui), cele 5 întrebări pe care i le-ai pus și răspunsurile lui. Dacă răspunsurile contrazic descrierea, răspunsul mai recent are prioritate. Răspunsurile goale sau vagi se ignoră.
+
+Scrie EXACT 7 bullet points care descriu cât mai bine și mai convingător experiența lui pentru secțiunea de experiență profesională a CV-ului. Scrie-le așa cum le-ar vrea un angajator din domeniul lui: concrete, profesioniste, cu rezultate și cifre unde există, în română corectă cu diacritice.
+
+TREI REGULI OBLIGATORII (restul e judecata ta de recrutor):
+
+1. FIDELITATE TOTALĂ: nu inventa, nu rotunji, nu exagera nicio cifră, sumă, denumire de software sau proces, și nu urca nivelul de responsabilitate peste ce reiese din ce a spus candidatul. Tot ce afirmi provine din descrierea și răspunsurile lui. Formularea e a ta; faptele sunt ale lui.
+
+2. FORMĂ NOMINALIZATĂ: fiecare bullet începe cu substantivul verbal al unei acțiuni („Gestionarea", „Întocmirea", „Coordonarea", „Soluționarea"...), nu cu participiu („Gestionat") și nu la persoana I.
+
+3. Denumirile concrete (software, declarații, certificări) apar cu numele lor exact — sunt cuvinte-cheie pe care angajatorii și sistemele de recrutare le caută.
+
+Dacă primești și anunțul jobului țintă, aliniază vocabularul și ordinea bullet-urilor la cerințele lui, fără să inventezi potriviri.
+
+Răspunzi STRICT în formatul JSON cerut.`;
+
+export function buildStage2System(
+  hasJobDescription: boolean,
+  variant: PromptVariant = getDefaultPromptVariant()
+): string {
+  if (variant === "liber") return STAGE2_LIBER;
   return (
     STAGE2_BASE + (hasJobDescription ? STAGE2_JD_ADDENDUM : STAGE2_NO_JD_ADDENDUM)
   );
