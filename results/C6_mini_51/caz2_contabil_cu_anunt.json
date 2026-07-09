@@ -1,0 +1,106 @@
+{
+  "config": "C6_mini_51",
+  "case": "caz2_contabil_cu_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Ce fel de declaratii ai depus concret pana acum si cam cat de des? (de exemplu D112, D300, D394, alte declaratii lunare/trimestriale)"
+    },
+    {
+      "id": "q2",
+      "question": "Ai lucrat doar cu contabilitate primara sau ai facut si contabilitate completa pana la bilant/inchidere de an? (de exemplu note contabile, solduri, balanta finala, bilant, verificari de conturi)"
+    },
+    {
+      "id": "q3",
+      "question": "Pe partea de salarii si personal, ce ai facut exact? (de exemplu pontaje, calcul salarii, CIM, concedii, inchidere state, Revisal daca ai lucrat)"
+    },
+    {
+      "id": "q4",
+      "question": "Ce volum de clienti ai gestionat in acelasi timp si ce fel de firme erau? (de exemplu numar de clienti, domenii, regim TVA, microintreprinderi, PFA-uri, SRL-uri)"
+    },
+    {
+      "id": "q5",
+      "question": "Ai avut vreodata rol de verificare sau supervizare a muncii altcuiva? (de exemplu ai controlat documente/declarații făcute de colegi juniori, ai corectat erori, ai facut training)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "1",
+      "text": "Gestionarea contabilității primare pentru un portofoliu de aproximativ 12 SRL-uri mici din retail și construcții, incluzând procesarea a circa 300 de facturi lunar și înregistrarea documentelor contabile în Saga conform reglementărilor în vigoare.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "2",
+      "text": "Întocmirea și depunerea lunară a declarațiilor fiscale D112, D300 și D394 pentru toți clienții alocați, prin intermediul Spațiului Privat Virtual (SPV), cu respectarea termenelor legale.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "3",
+      "text": "Efectuarea închiderilor lunare prin întocmirea balanțelor și verificarea conturilor, contribuind la scurtarea timpului de închidere de la 10 zile la 6 zile prin organizarea mai eficientă a fluxului de lucru.",
+      "category": "realizare"
+    },
+    {
+      "id": "4",
+      "text": "Gestionarea evidențelor de personal pentru clienți, inclusiv pontaje și calcul de salarii pentru angajați, cu întocmirea statelor de salarii și corelarea acestora cu declarațiile fiscale aferente.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "5",
+      "text": "Utilizarea avansată a programului Saga pentru contabilitate curentă, a Excel pentru centralizări și verificări și a SmartBill pentru facturarea a doi clienți, asigurând acuratețea înregistrărilor și trasabilitatea documentelor.",
+      "category": "tools"
+    },
+    {
+      "id": "6",
+      "text": "Asigurarea relației operative cu clienții prin comunicare pe e-mail și telefon, transmiterea documentelor solicitate și clarificarea situațiilor fiscale, inclusiv interacțiunea cu ANAF în situații problematice.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "7",
+      "text": "Corectarea și redepunerea declarațiilor fiscale ale unui client, cu documentarea situației către autoritățile fiscale, ceea ce a condus la anularea unei amenzi în valoare de 8.000 lei și la evitarea unor costuri suplimentare pentru client.",
+      "category": "problema_rezolvata"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 675,
+      "cachedTokens": 0,
+      "completionTokens": 433,
+      "reasoningTokens": 0,
+      "costUSD": 0.00245475,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1300,
+      "cachedTokens": 0,
+      "completionTokens": 504,
+      "reasoningTokens": 0,
+      "costUSD": 0.006665,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.00911975,
+    "promptTokens": 1975,
+    "cachedTokens": 0,
+    "completionTokens": 937,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 28.9,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 3.7,
+    "call2_s": 7.4
+  }
+}

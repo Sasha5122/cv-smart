@@ -1,0 +1,106 @@
+{
+  "config": "C1_55_effort_min",
+  "case": "caz2_contabil_cu_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Cât de mult ai dus contabilitatea „cap-coadă” pentru firmele din portofoliu? (ex.: înregistrări, verificări, balanță, TVA, salarii, declarații, închidere lunară, situații pentru administrator)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce declarații ai întocmit și depus efectiv tu, nu doar pregătit acte pentru ele? (ex.: D112, D300, D394, D100, D101, D205 — lunar/trimestrial/anual)"
+    },
+    {
+      "id": "q3",
+      "question": "Cu câte firme lucrai în același timp și ce tip de firme erau? (ex.: SRL-uri mici, PFA, comerț, servicii, construcții, plătitoare/neplătitoare de TVA, câți angajați aveau)"
+    },
+    {
+      "id": "q4",
+      "question": "Ai verificat vreodată munca altor colegi sau ai ajutat colegi mai noi? (ex.: le verificai facturile introduse, declarațiile, pontajele, îi învățai Saga, corectai erori)"
+    },
+    {
+      "id": "q5",
+      "question": "Ce situații mai complicate ai rezolvat cu ANAF sau pe fiscalitate? (ex.: notificări/SPV, diferențe în fișa pe plătitor, TVA, declarații rectificative, popriri, amenzi, erori la declarații)"
+    }
+  ],
+  "bullets": [
+    {
+      "category": "responsabilitate_core",
+      "id": "b1",
+      "text": "Gestionarea contabilității primare și a declarațiilor fiscale pentru un portofoliu de 12 SRL-uri mici din retail și construcții, în cadrul unei firme de contabilitate cu 6 angajați."
+    },
+    {
+      "category": "volum_cifre",
+      "id": "b2",
+      "text": "Înregistrarea lunară a aproximativ 300 de facturi în Saga, cu utilizarea zilnică a Excel și folosirea SmartBill pentru facturare la doi clienți."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b3",
+      "text": "Întocmirea și depunerea declarațiilor D112, D300 și D394 prin SPV pentru cele 12 firme din portofoliu."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b4",
+      "text": "Realizarea pontajelor și salariilor pentru angajații clienților, ca parte a activităților recurente de contabilitate și raportare lunară."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b5",
+      "text": "Efectuarea închiderilor lunare, întocmirea balanțelor și verificarea conturilor, cu reducerea duratei de închidere de la 10 zile la 6 zile."
+    },
+    {
+      "category": "problema_rezolvata",
+      "id": "b6",
+      "text": "Soluționarea problemelor apărute în relația cu ANAF, inclusiv refacerea și redepunerea declarațiilor pentru un client, cu anularea unei amenzi de 8.000 lei."
+    },
+    {
+      "category": "colaborare_leadership",
+      "id": "b7",
+      "text": "Coordonarea unei colege junioare, verificarea lucrărilor acesteia și instruirea ei pentru depunerea independentă a declarațiilor fiscale."
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 676,
+      "cachedTokens": 0,
+      "completionTokens": 485,
+      "reasoningTokens": 0,
+      "costUSD": 0.01793,
+      "jsonRetries": 0,
+      "effortRejected": true
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 1339,
+      "cachedTokens": 0,
+      "completionTokens": 1436,
+      "reasoningTokens": 1024,
+      "costUSD": 0.049775,
+      "jsonRetries": 0,
+      "effortRejected": true
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.067705,
+    "promptTokens": 2015,
+    "cachedTokens": 0,
+    "completionTokens": 1921,
+    "reasoningTokens": 1024,
+    "jsonRetries": 0,
+    "effortRejected": true,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 20,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 9.4,
+    "call2_s": 20.5
+  }
+}

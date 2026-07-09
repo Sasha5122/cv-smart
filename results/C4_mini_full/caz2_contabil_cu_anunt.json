@@ -1,0 +1,106 @@
+{
+  "config": "C4_mini_full",
+  "case": "caz2_contabil_cu_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Cu ce fel de firme ai lucrat mai exact și cam câte erau în portofoliu în paralel? (de exemplu: SRL-uri mici, PFA, microîntreprinderi, domenii diferite)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce declarații ai făcut tu efectiv și ai depus lunar/periodic? (de exemplu: D112, D300, D394, alte declarații fiscale sau raportări)"
+    },
+    {
+      "id": "q3",
+      "question": "Ai lucrat doar pe contabilitate primară și salarii sau ai făcut și contabilitate completă până la bilanț/închidere de exercițiu? (de exemplu: note contabile, reconciliere conturi, situații pentru bilanț)"
+    },
+    {
+      "id": "q4",
+      "question": "Ce fel de lucrări ai mai făcut singură în Saga, pe lângă introducerea facturilor? (de exemplu: registru jurnal, balanțe, note contabile, salarii, declarații, rapoarte)"
+    },
+    {
+      "id": "q5",
+      "question": "Ai verificat sau revizuit vreodată lucrările altcuiva, ori ai coordonat pe cineva mai junior? (de exemplu: ai corectat înregistrări, ai supervizat un coleg nou, ai preluat dosare mai complicate)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "1",
+      "text": "Înregistrarea documentelor contabile primare pentru un portofoliu de 12 firme, inclusiv procesarea a aproximativ 300 de facturi pe lună și introducerea acestora în Saga și Excel.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "2",
+      "text": "Întocmirea și depunerea lunară, prin SPV, a declarațiilor D112, D300 și D394 pentru clienții gestionați.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "3",
+      "text": "Gestionarea pontajelor și a statelor de salarii pentru angajații clienților, în cadrul activității de contabilitate primară.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "4",
+      "text": "Realizarea închiderii de lună prin întocmirea balanțelor și verificarea conturilor, cu reducerea duratei procesului de la 10 zile la 6 zile.",
+      "category": "realizare"
+    },
+    {
+      "id": "5",
+      "text": "Utilizarea zilnică a programelor Saga și Excel în activitatea curentă, precum și a SmartBill pentru facturare la doi clienți.",
+      "category": "tools"
+    },
+    {
+      "id": "6",
+      "text": "Menținerea comunicării cu clienții prin e-mail și telefon pentru solicitări de documente și pentru situațiile apărute în relația cu ANAF.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "7",
+      "text": "Coordonarea unei colege junioare prin verificarea lucrărilor și instruirea acesteia pentru depunerea independentă a declarațiilor, în cadrul unei firme de contabilitate cu 6 angajați, deservind SRL-uri mici din retail și construcții.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 675,
+      "cachedTokens": 0,
+      "completionTokens": 456,
+      "reasoningTokens": 0,
+      "costUSD": 0.00255825,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 1317,
+      "cachedTokens": 0,
+      "completionTokens": 385,
+      "reasoningTokens": 0,
+      "costUSD": 0.00272025,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.0052785,
+    "promptTokens": 1992,
+    "cachedTokens": 0,
+    "completionTokens": 841,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 21.1,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 3.8,
+    "call2_s": 3.1
+  }
+}

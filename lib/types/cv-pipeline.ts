@@ -55,6 +55,10 @@ export interface BulletsResult {
 
 export interface AnalyzeInput {
   jobTitle: string;
+  /** compania/locul acestui job — ancorează întrebările pe jobul vizat */
+  company?: string;
+  /** perioada acestui job (ex: „2021 – prezent”) */
+  period?: string;
   industry?: string;
   yearsExperience?: number;
   rawText: string;

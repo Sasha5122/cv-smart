@@ -1,0 +1,106 @@
+{
+  "config": "C1_55_effort_min",
+  "case": "caz3_raspunsuri_sarace",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "În ce fel de firmă lucrezi mai exact și cât de complexă e contabilitatea? (ex.: comerț/distribuție/producție/servicii, câți angajați sau puncte de lucru, câte gestiuni, plătitoare de TVA, importuri/exporturi/intracomunitare)"
+    },
+    {
+      "id": "q2",
+      "question": "Câtă responsabilitate ai pe zona ta: lucrezi independent pe anumite firme/gestiuni sau ți se verifică tot? (ex.: raportezi la contabil-șef, pregătești balanța pentru verificare, verifici și documentele colegilor)"
+    },
+    {
+      "id": "q3",
+      "question": "Ai avut rezultate de care ești mândru și merită puse în CV? (ex.: declarații depuse mereu la timp, controale ANAF închise fără amenzi, ai găsit/corectat diferențe mari, ai făcut fișiere Excel care au redus timpul de lucru)"
+    },
+    {
+      "id": "q4",
+      "question": "Pe partea de HR/salarizare, ce faci concret în afară de pontaje? (ex.: verifici ore/concedii medicale, ajuți la state de plată, Revisal, tichete, D112 pe partea de salarii sau doar trimiți pontajele)"
+    },
+    {
+      "id": "q5",
+      "question": "Ce studii și cursuri ai pe contabilitate și ce alte skill-uri ar trebui menționate? (ex.: facultate economică, curs contabil, CECCAR în curs, fiscalitate, Excel nivel mediu/avansat, engleză pentru facturi/documente)"
+    }
+  ],
+  "bullets": [
+    {
+      "category": "responsabilitate_core",
+      "id": "1",
+      "text": "Gestionarea evidenței contabile curente, de la prelucrarea facturilor și documentelor de gestiune până la pregătirea declarațiilor fiscale lunare."
+    },
+    {
+      "category": "volum_cifre",
+      "id": "2",
+      "text": "Înregistrarea lunară a aproximativ 900-1.000 de facturi de furnizori și 350-400 de facturi emise către clienți."
+    },
+    {
+      "category": "volum_cifre",
+      "id": "3",
+      "text": "Operarea lunară a aproximativ 600 de NIR-uri și 700-800 de bonuri de consum, cu impact direct în evidența stocurilor și a consumurilor."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "4",
+      "text": "Întocmirea și depunerea declarațiilor fiscale D112, D300, D394 și D390, aceasta din urmă în perioadele cu operațiuni intracomunitare."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "5",
+      "text": "Verificarea jurnalelor de TVA și realizarea verificărilor de închidere lunară pentru solduri furnizori, stocuri și casa-bancă."
+    },
+    {
+      "category": "problema_rezolvata",
+      "id": "6",
+      "text": "Efectuarea punctajelor contabile și a notelor de corecție necesare pentru clarificarea diferențelor identificate la închiderea de lună."
+    },
+    {
+      "category": "tools",
+      "id": "7",
+      "text": "Utilizarea SAGA și Microsoft Excel pentru activitatea contabilă curentă, inclusiv funcții VLOOKUP, Pivot și SUMIF, precum și menținerea legăturii cu ANAF în cazul controalelor sau cererilor."
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 596,
+      "cachedTokens": 0,
+      "completionTokens": 584,
+      "reasoningTokens": 0,
+      "costUSD": 0.0205,
+      "jsonRetries": 0,
+      "effortRejected": true
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 1172,
+      "cachedTokens": 0,
+      "completionTokens": 389,
+      "reasoningTokens": 0,
+      "costUSD": 0.01753,
+      "jsonRetries": 0,
+      "effortRejected": true
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.03803,
+    "promptTokens": 1768,
+    "cachedTokens": 0,
+    "completionTokens": 973,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": true,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 19,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 12.8,
+    "call2_s": 6.3
+  }
+}

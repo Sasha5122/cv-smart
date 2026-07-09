@@ -1,0 +1,112 @@
+{
+  "config": "C4_mini_full",
+  "case": "caz4_sofer_profesionist",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Pe ce tipuri de camion ai mers cel mai des și ce lungime/masă au avut, dacă știi? (ex.: cap tractor + semiremorcă prelată, frig, combinație 40t, automată/manuală)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce fel de marfă ai transportat cel mai des și ce rute internaționale ai făcut mai mult? (ex.: generală, frigorifică, ADR sau fără; Germania pe zone, Olanda, Belgia, alte țări)"
+    },
+    {
+      "id": "q3",
+      "question": "Cum stai cu partea de încărcare/descărcare și operarea la rampă? (ex.: ai folosit prelată cu laterale, ai fixat marfa, ai dat la paleți, ai lucrat cu transpaletul sau doar ai asistat)"
+    },
+    {
+      "id": "q4",
+      "question": "Ai și alte atestate sau cursuri pe lângă categoria C/CE și atestatul de marfă? (ex.: ADR, card tahograf, stivuitor, engleză/germană de bază)"
+    },
+    {
+      "id": "q5",
+      "question": "Ce rezultate sau plusuri ai vrea să apară clar în CV despre felul cum lucrezi? (ex.: consum bun de motorină, respectarea timpilor, fără incidente, livrări la timp, feedback bun de la dispecerat)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "2",
+      "text": "Conducerea unui camion Volvo FH de 460 CP, cu cutie automată, și parcurgerea unui rulaj lunar de aproximativ 10–11 mii de km.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "3",
+      "text": "Întocmirea documentelor de transport și a CMR-urilor, cu gestionarea corectă a actelor aferente curselor internaționale.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "4",
+      "text": "Încărcarea și descărcarea mărfii cu liftul din spate, precum și asigurarea încărcăturii cu chingi și colțuri, în funcție de cerințele cursei.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "5",
+      "text": "Respectarea timpilor de condus și de pauză conform cardului de tahograf, fără amenzi pe tahograf în cei 8 ani de activitate.",
+      "category": "realizare"
+    },
+    {
+      "id": "6",
+      "text": "Verificarea periodică a camionului, inclusiv uleiul și presiunea, și semnalarea din timp a eventualelor necesități de reparație.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "7",
+      "text": "Operarea în condiții de siguranță, fără accidente din vina proprie și fără amenzi mari, cu încrederea angajatorului pentru cursele mai lungi.",
+      "category": "realizare"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 563,
+      "cachedTokens": 0,
+      "completionTokens": 473,
+      "reasoningTokens": 0,
+      "costUSD": 0.00255075,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 1238,
+      "cachedTokens": 0,
+      "completionTokens": 387,
+      "reasoningTokens": 0,
+      "costUSD": 0.00267,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 1676,
+      "cachedTokens": 0,
+      "completionTokens": 87,
+      "reasoningTokens": 0,
+      "costUSD": 0.0016485,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.0068692499999999995,
+    "promptTokens": 3477,
+    "cachedTokens": 0,
+    "completionTokens": 947,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 1,
+    "dropped": 1,
+    "nominalizedOK": 6,
+    "bulletsTotal": 6,
+    "avgWords": 19.5,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 4.7,
+    "call2_s": 4.7
+  }
+}

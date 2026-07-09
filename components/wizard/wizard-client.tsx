@@ -24,6 +24,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
   const wizard = useWizard(sessionId);
   const router = useRouter();
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
+  const lastResearchedJD = useRef<string>("");
 
   // Auto-save to DB debounced
   useEffect(() => {
@@ -47,7 +48,12 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             value={jobDescription}
             onChange={setJobDescription}
             onNext={() => {
-              if (jobDescription.trim()) {
+              // guard anti-duplicat: research doar când anunțul s-a schimbat
+              if (
+                jobDescription.trim() &&
+                lastResearchedJD.current !== jobDescription.trim()
+              ) {
+                lastResearchedJD.current = jobDescription.trim();
                 fetch("/api/ai/research", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },

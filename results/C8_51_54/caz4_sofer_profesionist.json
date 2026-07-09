@@ -1,0 +1,117 @@
+{
+  "config": "C8_51_54",
+  "case": "caz4_sofer_profesionist",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Pe ce tipuri de camioane ai condus mai mult? (marca, model, tonaj – de ex. Volvo FH 500, 40t, manual/automat, Euro 5/Euro 6)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce fel de marfă ai transportat cel mai des și cât de valoroasă sau sensibilă era? (ex.: marfă generală pe palet, textile, electronice, marfă frigorifică, ADR fără atestat nu)"
+    },
+    {
+      "id": "q3",
+      "question": "Cam câți kilometri faci pe an și pe ce rute principale te învârți? (ex.: România–Germania, intern doar Germania, tur-retur fix, distribuție pe mai multe orașe etc.)"
+    },
+    {
+      "id": "q4",
+      "question": "Cu ce te descurci pe partea de tehnologie la bord? (ex.: tahograf digital, GPS/flote, comunicare pe tabletă/telefon, aplicații pentru documente/scanare CMR)"
+    },
+    {
+      "id": "q5",
+      "question": "Ai avut responsabilități în plus față de condus? (ex.: încasat bani/ramburs, predat acte la client, comunicat direct cu dispeceratul/clientei, instruit șoferi noi etc.)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Efectuarea curselor internaționale de transport marfă pe rute preponderent în Germania, Olanda și Belgia, în regim de lucru de aproximativ 3 săptămâni plecat și o săptămână acasă.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Conducerea autocamionului Volvo FH 460 cu cutie automată în cadrul curselor de transport internațional, cu un volum de 10-11 mii de km pe lună.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b3",
+      "text": "Transportarea mărfii generale pe prelată, inclusiv curse ocazionale cu marfă frigorifică, cu asigurarea corespunzătoare a încărcăturii cu chingi și colțuri.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Întocmirea documentelor de transport, inclusiv CMR, și gestionarea operațiunilor de încărcare/descărcare la rampă, inclusiv cu liftul din spate când a fost necesar.",
+      "category": "tools"
+    },
+    {
+      "id": "b5",
+      "text": "Respectarea strictă a timpilor de conducere prin utilizarea cardului de tahograf și conformarea cu regulile de pauză, fără nicio amendă pe tahograf în 8 ani de activitate.",
+      "category": "realizare"
+    },
+    {
+      "id": "b6",
+      "text": "Monitorizarea stării tehnice a camionului prin verificarea uleiului și a presiunii, precum și semnalarea din timp a necesităților de reparație pentru prevenirea problemelor în cursă.",
+      "category": "problema_rezolvata"
+    },
+    {
+      "id": "b7",
+      "text": "Menținerea unui istoric profesional stabil, cu activitate în 2 firme în 8 ani și 5 ani la angajatorul actual, fiind ales pentru cursele mai lungi datorită seriozității și lipsei incidentelor din vina proprie.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 563,
+      "cachedTokens": 0,
+      "completionTokens": 475,
+      "reasoningTokens": 0,
+      "costUSD": 0.00545375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1212,
+      "cachedTokens": 0,
+      "completionTokens": 448,
+      "reasoningTokens": 0,
+      "costUSD": 0.00975,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1710,
+      "cachedTokens": 0,
+      "completionTokens": 70,
+      "reasoningTokens": 0,
+      "costUSD": 0.005325,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.02052875,
+    "promptTokens": 3485,
+    "cachedTokens": 0,
+    "completionTokens": 993,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 1,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 25.4,
+    "inventionFlags": 6
+  },
+  "durations": {
+    "call1_s": 8.5,
+    "call2_s": 8.8
+  }
+}

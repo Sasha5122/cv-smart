@@ -1,0 +1,106 @@
+{
+  "config": "C4_mini_full",
+  "case": "caz3_raspunsuri_sarace",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Cu ce tip de firmă ai lucrat cel mai mult și în ce domeniu era? (de exemplu: retail, producție, distribuție, servicii, import-export)"
+    },
+    {
+      "id": "q2",
+      "question": "Ai lucrat și la partea de închidere anuală sau la bilanț? (de exemplu: situații financiare, inventar, amortizări, reconcilierea conturilor la final de an)"
+    },
+    {
+      "id": "q3",
+      "question": "Ai mai avut contact cu alte declarații sau raportări în afară de cele lunare pe care le faci acum? (de exemplu: 100, 101, SAF-T, e-Factura, e-Transport, VIES)"
+    },
+    {
+      "id": "q4",
+      "question": "Ce fel de lucruri ai îmbunătățit sau rezolvat concret în munca ta? (de exemplu: ai redus erori, ai scurtat timpul de lucru, ai ordonat evidențe, ai pus un mod mai bun de lucru în Excel/Saga)"
+    },
+    {
+      "id": "q5",
+      "question": "Ai lucrat doar în rol de contabil sau ai avut și alte responsabilități în plus? (de exemplu: relația cu auditorii, inventariere, salarizare/pontaje mai detaliat, suport pentru colegi, training pentru oameni noi)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "1",
+      "text": "Gestionarea evidenței contabile curente, de la înregistrarea facturilor până la întocmirea declarațiilor lunare, în cadrul unei echipe financiar-contabile de 4 persoane.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "2",
+      "text": "Înregistrarea lunară a aproximativ 900–1000 de facturi de furnizori și 350–400 de facturi emise către clienți, cu menținerea fluxului operațional al documentelor contabile.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "3",
+      "text": "Procesarea a circa 600 de NIR-uri și 700–800 de bonuri de consum lunar, cu urmărirea corectă a documentelor aferente stocurilor și consumurilor.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "4",
+      "text": "Întocmirea și depunerea declarațiilor D112, D300 și D394, precum și a declarației D390 atunci când au existat operațiuni intracomunitare.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "5",
+      "text": "Verificarea jurnalelor de TVA și realizarea punctajelor de la închiderea lunii pentru solduri la furnizori, stocuri și casă-bancă.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "6",
+      "text": "Întocmirea notelor de corecție și efectuarea verificărilor de sold pentru susținerea corectitudinii evidențelor contabile lunare.",
+      "category": "problema_rezolvata"
+    },
+    {
+      "id": "7",
+      "text": "Utilizarea aplicațiilor Saga și Excel, inclusiv funcțiile VLOOKUP, Pivot și SUMIF, pentru prelucrarea datelor contabile și analiza evidențelor.",
+      "category": "tools"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 595,
+      "cachedTokens": 0,
+      "completionTokens": 437,
+      "reasoningTokens": 0,
+      "costUSD": 0.00241275,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 1106,
+      "cachedTokens": 0,
+      "completionTokens": 392,
+      "reasoningTokens": 0,
+      "costUSD": 0.0025935,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.00500625,
+    "promptTokens": 1701,
+    "cachedTokens": 0,
+    "completionTokens": 829,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 19.4,
+    "inventionFlags": 6
+  },
+  "durations": {
+    "call1_s": 4.4,
+    "call2_s": 3.2
+  }
+}

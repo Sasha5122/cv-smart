@@ -1,0 +1,106 @@
+{
+  "config": "C7_nano_54",
+  "case": "caz1_contabil_fara_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Cand inchizi luna, pe ce anume faci verificari/punctaje si cum te asiguri ca ies corect (ex: sold furnizori/ clienti, TVA, stocuri)? (ex: ce liste/rapoarte scoți din SAGA si ce iti iese “suspicios” cel mai des)"
+    },
+    {
+      "id": "q2",
+      "question": "La facturile de furnizori si la cele emise catre clienti, ce faci concret cu ele: validare date, incadrare (cheltuiala/activ), regim TVA, corectii/ajustari, si cum le postezi in SAGA? (ex: cum tratezi facturi fara date complete / cu TVA diferit / storno)"
+    },
+    {
+      "id": "q3",
+      "question": "Cum gestionezi partea de declaratii si datele de raportare: cum te pregatesti pentru D112, D300, D394 si D390 (mai ales cand zici ca D394/D390 doar cand ai operatiuni intracomunitare)? (ex: de unde iei datele, ce verifici inainte sa depui)"
+    },
+    {
+      "id": "q4",
+      "question": "Ai lucrat efectiv la partea de controale/relatia cu ANAF? Cum arata un “caz” tipic: ce ti-au cerut, in ce termen, si ce documente/justificari ai pregatit? (ex: confruntari TVA, documente justificative, clarificari)"
+    },
+    {
+      "id": "q5",
+      "question": "Cand apar diferente (solduri care nu se potrivesc, punctaje neinchise, TVA nealiniat), ce faci ca sa le repari: ce metode/etape urmezi si cum te asiguri ca dupa corectie ramane “inchis”? (ex: note de corectie—cine le cere/ce justificare folosesti)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Gestionarea activităților de contabilitate curentă, de la înregistrarea documentelor până la întocmirea și depunerea declarațiilor fiscale, în cadrul unei echipe financiar-contabile de 4 persoane.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Înregistrarea lunară în SAGA a unui volum de aproximativ 900–1000 facturi de furnizori, 350–400 facturi emise către clienți, 600 NIR-uri și 700–800 bonuri de consum.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b3",
+      "text": "Întocmirea și depunerea integrală, în mod independent, a declarațiilor lunare D112, D300 și D394, precum și a declarației D390 atunci când existau operațiuni intracomunitare, activitate realizată cap-coadă de aproximativ 3 ani.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Verificarea la închiderea de lună a soldurilor pe furnizori, stocuri și casă-bancă, inclusiv efectuarea de punctaje, verificarea jurnalelor de TVA și întocmirea notelor de corecție.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b5",
+      "text": "Soluționarea unei diferențe de aproximativ 38.000 lei pe contul de furnizori, prin verificare lună cu lună, efectuarea corecțiilor necesare și confirmarea punctajului cu furnizorii.",
+      "category": "problema_rezolvata"
+    },
+    {
+      "id": "b6",
+      "text": "Utilizarea SAGA pentru gestionarea facturilor, NIR-urilor, bonurilor de consum, jurnalelor de TVA și fișelor de cont, precum și a Microsoft Excel cu funcțiile VLOOKUP, Pivot și SUMIF pentru verificări și prelucrări de date.",
+      "category": "tools"
+    },
+    {
+      "id": "b7",
+      "text": "Pregătirea documentelor solicitate în cadrul controalelor și cererilor de la ANAF, menținerea legăturii cu instituția și acordarea de suport HR prin întocmirea pontajelor.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-nano",
+      "promptTokens": 595,
+      "cachedTokens": 0,
+      "completionTokens": 610,
+      "reasoningTokens": 0,
+      "costUSD": 0.0008815,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1335,
+      "cachedTokens": 0,
+      "completionTokens": 491,
+      "reasoningTokens": 0,
+      "costUSD": 0.0107025,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.011584,
+    "promptTokens": 1930,
+    "cachedTokens": 0,
+    "completionTokens": 1101,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 26.4,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 4.9,
+    "call2_s": 5
+  }
+}

@@ -14,7 +14,7 @@ import { openai, OPENAI_MODEL } from "@/lib/openai";
  * din ChatOptions este ignorat intenționat.
  */
 export const SMART_MODEL = OPENAI_MODEL;
-export const FAST_MODEL = OPENAI_MODEL;
+export const FAST_MODEL = "gpt-5.4-mini";
 
 export interface ChatMessage {
   role: "user" | "assistant";

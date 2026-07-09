@@ -1,0 +1,117 @@
+{
+  "config": "C0_baseline_55",
+  "case": "caz2_contabil_cu_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Pentru firmele de care te ocupi, duci contabilitatea completă cap-coadă sau doar partea primară? (ex.: note contabile, TVA, salarii, amortizări, închidere lunară, bilanț / situații anuale)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce declarații faci și depui efectiv în SPV/ANAF? (ex.: D112, D300, D394, D100, D101, D205, bilanțuri) Și cât de des le faci?"
+    },
+    {
+      "id": "q3",
+      "question": "Cam câte firme ai în grijă lunar și ce fel de firme sunt? (ex.: SRL micro/plătitoare TVA, PFA, comerț, servicii, construcții; aproximativ câte facturi/salariați pe lună)"
+    },
+    {
+      "id": "q4",
+      "question": "Când apar probleme cu ANAF sau cu clienții, ce rezolvi tu direct? (ex.: somații, neconcordanțe D394, fișă pe plătitor, cereri în SPV, corecții declarații, explicații către client)"
+    },
+    {
+      "id": "q5",
+      "question": "Ai verificat sau ajutat colegi mai juniori până acum? (ex.: le-ai verificat înregistrările, declarațiile, pontajele/salariile, i-ai învățat Saga sau procedurile interne)"
+    }
+  ],
+  "bullets": [
+    {
+      "category": "responsabilitate_core",
+      "id": "b1",
+      "text": "Gestionarea contabilității primare pentru un portofoliu de 12 firme, clienți SRL-uri mici din retail și construcții, într-o firmă de contabilitate cu 6 angajați."
+    },
+    {
+      "category": "volum_cifre",
+      "id": "b2",
+      "text": "Procesarea lunară a aproximativ 300 de facturi în total, cu înregistrarea documentelor contabile în Saga și verificarea corectitudinii datelor introduse."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b3",
+      "text": "Întocmirea și depunerea declarațiilor fiscale D112, D300 și D394 pentru 12 firme, prin SPV/ANAF, cu respectarea termenelor lunare."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b4",
+      "text": "Întocmirea pontajelor și a salariilor pentru angajații clienților, ca parte a proceselor lunare de contabilitate și raportare."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b5",
+      "text": "Realizarea închiderilor lunare prin întocmirea balanțelor și verificarea conturilor, contribuind la reducerea duratei de închidere de la 10 zile la 6 zile."
+    },
+    {
+      "category": "problema_rezolvata",
+      "id": "b6",
+      "text": "Soluționarea unei situații cu ANAF prin refacerea și redepunerea declarațiilor unui client, obținând anularea unei amenzi de 8.000 lei."
+    },
+    {
+      "category": "colaborare_leadership",
+      "id": "b7",
+      "text": "Coordonarea unei colege junioare prin verificarea lucrărilor acesteia și instruirea ei pentru depunerea independentă a declarațiilor, cu utilizare zilnică Saga și Excel."
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 676,
+      "cachedTokens": 0,
+      "completionTokens": 476,
+      "reasoningTokens": 0,
+      "costUSD": 0.01766,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 1331,
+      "cachedTokens": 0,
+      "completionTokens": 700,
+      "reasoningTokens": 273,
+      "costUSD": 0.027655,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 1788,
+      "cachedTokens": 0,
+      "completionTokens": 187,
+      "reasoningTokens": 107,
+      "costUSD": 0.01455,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.059864999999999995,
+    "promptTokens": 3795,
+    "cachedTokens": 0,
+    "completionTokens": 1363,
+    "reasoningTokens": 380,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 1,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 20.1,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 9.3,
+    "call2_s": 14.4
+  }
+}

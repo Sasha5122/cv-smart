@@ -1,0 +1,117 @@
+{
+  "config": "C7_nano_54",
+  "case": "caz4_sofer_profesionist",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Pe ce tipuri de marfa si rute ai facut cel mai des (ex: alimentara, piese auto, retail etc.) si cam ce greutati/dimensiuni intalnesti? (ex: „Prelata pe marfa generala, dar a fost mai mult X si am avut marfuri pana la Y tone / Y paleti”)"
+    },
+    {
+      "id": "q2",
+      "question": "Cum arata, pas cu pas, pregatirea cursei si executia la livrare? (ex: verificare dispozitie/foi, preluare marfa, fixare prelata, control sigilii/ETD, rutare, incasare acte la descarcare, predare la timp)"
+    },
+    {
+      "id": "q3",
+      "question": "Ce fel de camion conduci si ce experienta ai cu sistemele/echipamentele de bord? (ex: euro6, cutie automata/manuala, tahograf digital/analog, retarder, ABS/ESP, sistem de franare, card tahograf, prelate/linge, eventual frig? – daca frig, e pe standul camionului sau pe marfa?)"
+    },
+    {
+      "id": "q4",
+      "question": "La curse internationale, ce probleme ai intalnit si cum le-ai rezolvat rapid? (ex: descarcare mai dura, cozi/vama, rute inchise, intarzieri, refuz marfa, schimbare locatie, probleme la incarcare)"
+    },
+    {
+      "id": "q5",
+      "question": "Care e disponibilitatea ta si cum stai la capitolul conformitate: ai carnețele/acte mereu la zi si ce program preferi (3 saptamani plecat / 1 acasa sau altfel)? (ex: „am CE/C la zi, atestat marfa valabil pana…, card tahograf, ADR nu, dar…”)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Efectuarea de curse internaționale de transport marfă, în special pe rutele Germania, Olanda și Belgia, cu experiență de 8 ani în domeniu și stabilitate profesională la actuala firmă de 5 ani.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Conducerea unui camion Volvo FH de 460 CP, cu cutie automată, în regim de aproximativ 10–11 mii km/lună, cu respectarea cerințelor specifice transportului internațional.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b3",
+      "text": "Gestionarea transporturilor de marfă generală pe prelată și, ocazional, pe frig, inclusiv încărcarea și descărcarea cu liftul din spate, când a fost necesar.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Întocmirea documentelor de transport, inclusiv CMR, precum și gestionarea formalităților necesare la livrare și descărcare la rampă.",
+      "category": "tools"
+    },
+    {
+      "id": "b5",
+      "text": "Respectarea strictă a timpilor de condus și de odihnă, utilizând card de tahograf, fără nicio amendă pe tahograf în 8 ani de activitate.",
+      "category": "realizare"
+    },
+    {
+      "id": "b6",
+      "text": "Asigurarea mărfii cu chingi și colțuri și verificarea stării tehnice de bază a camionului, inclusiv controlul uleiului și al presiunii, cu semnalarea din timp a necesarului de reparații.",
+      "category": "problema_rezolvata"
+    },
+    {
+      "id": "b7",
+      "text": "Comunicarea operațională la rampe și în controale, utilizând cunoștințe de bază de germană și engleză, și menținerea unui istoric profesional fără accidente din vina proprie și fără amenzi mari.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-nano",
+      "promptTokens": 563,
+      "cachedTokens": 0,
+      "completionTokens": 579,
+      "reasoningTokens": 0,
+      "costUSD": 0.00083635,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1328,
+      "cachedTokens": 0,
+      "completionTokens": 439,
+      "reasoningTokens": 0,
+      "costUSD": 0.009905,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1815,
+      "cachedTokens": 0,
+      "completionTokens": 82,
+      "reasoningTokens": 0,
+      "costUSD": 0.0057675,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.01650885,
+    "promptTokens": 3706,
+    "cachedTokens": 0,
+    "completionTokens": 1100,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 1,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 25,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 4.7,
+    "call2_s": 7.6
+  }
+}

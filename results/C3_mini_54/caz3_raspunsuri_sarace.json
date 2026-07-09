@@ -1,0 +1,106 @@
+{
+  "config": "C3_mini_54",
+  "case": "caz3_raspunsuri_sarace",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Cu ce tip de firme sau domenii ai lucrat cel mai mult și ce volum/complexitate avea munca ta? (de exemplu: SRL-uri mici, grup de firme, producție, comerț, servicii, TVA la încasare, stocuri multe, intracomunitar)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce responsabilități ai avut pe închidere de lună sau de an, dincolo de verificările de solduri? (de exemplu: balanță, provizioane, amortizări, reconciliere conturi, raportări către management, inventar, închidere exercițiu)"
+    },
+    {
+      "id": "q3",
+      "question": "Ai mai făcut și altceva în zona de contabilitate fiscală sau raportări către autorități? (de exemplu: D301, SAF-T, e-Factura, e-Transport, bilanț, revisal/pontaj doar dacă ai legătură cu partea administrativă)"
+    },
+    {
+      "id": "q4",
+      "question": "Cât de mult ai lucrat singur pe partea asta și ce ai putea prelua fără să fii ghidat pas cu pas? (de exemplu: introducere documente, verificări, întocmire declarații, relația cu ANAF, rezolvarea diferențelor)"
+    },
+    {
+      "id": "q5",
+      "question": "Ce rezultate sau îmbunătățiri ai adus în munca ta? (de exemplu: ai redus erori, ai organizat mai bine evidența, ai făcut automatizări în Excel, ai pus ordine în documente sau ai ajutat la controale fără probleme)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Gestionarea evidenței contabile curente, de la înregistrarea documentelor primare până la întocmirea declarațiilor fiscale lunare.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Înregistrarea lunară în SAGA a unui volum de aproximativ 900–1000 facturi de furnizori, 350–400 facturi emise către clienți, 600 NIR-uri și 700–800 bonuri de consum.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b3",
+      "text": "Întocmirea declarațiilor lunare D112, D300, D394 și D390 în situațiile cu operațiuni intracomunitare, cu verificarea jurnalelor de TVA aferente.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Efectuarea la închiderea de lună a verificărilor de solduri pentru furnizori, stocuri și casă-bancă, inclusiv punctaje și note de corecție.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b5",
+      "text": "Utilizarea SAGA și Microsoft Excel pentru prelucrarea și verificarea datelor contabile, inclusiv funcțiile VLOOKUP, Pivot și SUMIF.",
+      "category": "tools"
+    },
+    {
+      "id": "b6",
+      "text": "Gestionarea relației cu ANAF în contextul controalelor și al solicitărilor de informații din partea autorităților.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "b7",
+      "text": "Asigurarea suportului pentru zona de HR prin implicarea în activități de pontaj, în cadrul unei echipe financiar-contabile formate din 4 persoane.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 595,
+      "cachedTokens": 0,
+      "completionTokens": 484,
+      "reasoningTokens": 0,
+      "costUSD": 0.00262425,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1172,
+      "cachedTokens": 0,
+      "completionTokens": 385,
+      "reasoningTokens": 0,
+      "costUSD": 0.008705,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.011329249999999999,
+    "promptTokens": 1767,
+    "cachedTokens": 0,
+    "completionTokens": 869,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 18.9,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 4.4,
+    "call2_s": 4.2
+  }
+}

@@ -5,7 +5,7 @@ import {
   createPipelineSession,
   updatePipelineSession,
 } from "@/lib/cv-pipeline/store";
-import { StructuredCallError } from "@/lib/openai";
+import { PIPELINE_PROD_CONFIG, StructuredCallError } from "@/lib/openai";
 
 export const maxDuration = 60;
 
@@ -28,6 +28,8 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const jobTitle = String(body.jobTitle ?? "").trim();
+    const company = body.company ? String(body.company).trim() : undefined;
+    const period = body.period ? String(body.period).trim() : undefined;
     const industry = body.industry ? String(body.industry).trim() : undefined;
     const yearsExperience =
       body.yearsExperience != null ? Number(body.yearsExperience) : undefined;
@@ -64,6 +66,8 @@ export async function POST(req: Request) {
     const sessionId = await createPipelineSession({
       wizard_session_id: wizardSessionId,
       job_title: jobTitle,
+      company: company ?? null,
+      period: period ?? null,
       industry: industry ?? null,
       years_experience: yearsExperience ?? null,
       raw_text: rawText,
@@ -71,13 +75,10 @@ export async function POST(req: Request) {
     });
 
     // 2) Apel #1 — întrebările recrutorului; salvăm rezultatul.
-    const questions = await runRecruiterQuestions({
-      jobTitle,
-      industry,
-      yearsExperience,
-      rawText,
-      jobDescription,
-    });
+    const questions = await runRecruiterQuestions(
+      { jobTitle, company, period, industry, yearsExperience, rawText, jobDescription },
+      { config: PIPELINE_PROD_CONFIG.call1 }
+    );
 
     await updatePipelineSession(sessionId, {
       extraction_result: { questions },

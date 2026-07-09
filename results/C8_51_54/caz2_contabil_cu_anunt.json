@@ -1,0 +1,106 @@
+{
+  "config": "C8_51_54",
+  "case": "caz2_contabil_cu_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Cam ce fel de firme ai in portofoliu acum si cate sunt, aproximativ? (ex.: PFA, SRL micro/platitor de TVA, comert, servicii, constructii etc.)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce declaratii fiscale faci tu efectiv, cu nume de formular daca stii? (ex.: D112 salarii, D300 TVA, D394, D100, bilant, situatii financiare anuale etc.)"
+    },
+    {
+      "id": "q3",
+      "question": "La inchiderile lunare/anuale, pana unde mergi tu in practica? (ex.: doar balanta si verificari, si/sau faci si note contabile de inchidere, calcul impozit pe profit, pregatire bilant, dosar de inventariere etc.)"
+    },
+    {
+      "id": "q4",
+      "question": "Ai avut situatii in care ai vorbit tu direct cu ANAF (controale, clarificari, raspunsuri la notificari)? Daca da, povesteste pe scurt ce ai facut concret in astfel de cazuri."
+    },
+    {
+      "id": "q5",
+      "question": "Ai avut colegi mai juniori pe care i-ai ajutat sau le-ai verificat lucrarile? Daca da, ce verificai de obicei si cum ii ghidavai? (ex.: facturi, incadrari contabile, state de salarii)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Gestionarea unui portofoliu de 12 firme, în principal SRL-uri mici din retail și construcții, în cadrul unei firme de contabilitate cu 6 angajați.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Înregistrarea contabilității primare și procesarea a aproximativ 300 de facturi pe lună, cu utilizarea zilnică a programelor Saga și Excel.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b3",
+      "text": "Întocmirea și depunerea lunară a declarațiilor fiscale D112, D300 și D394 prin SPV pentru firmele din portofoliu.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Realizarea pontajelor și salariilor pentru angajații clienților, precum și utilizarea SmartBill pentru facturare în cazul a doi clienți.",
+      "category": "tools"
+    },
+    {
+      "id": "b5",
+      "text": "Efectuarea închiderilor de lună prin întocmirea balanțelor și verificarea conturilor, cu reducerea duratei de închidere de la 10 zile la 6 zile.",
+      "category": "realizare"
+    },
+    {
+      "id": "b6",
+      "text": "Menținerea relației directe cu clienții prin e-mail și telefon și gestionarea clarificărilor necesare în relația cu ANAF.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "b7",
+      "text": "Coordonarea unei colege junioare, prin verificarea lucrărilor acesteia și instruirea ei pentru depunerea declarațiilor, inclusiv soluționarea unei situații cu ANAF prin refacerea și redepunerea declarațiilor unui client, care a dus la anularea unei amenzi de 8000 lei.",
+      "category": "problema_rezolvata"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 675,
+      "cachedTokens": 0,
+      "completionTokens": 529,
+      "reasoningTokens": 0,
+      "costUSD": 0.00613375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1324,
+      "cachedTokens": 0,
+      "completionTokens": 405,
+      "reasoningTokens": 0,
+      "costUSD": 0.009385,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.01551875,
+    "promptTokens": 1999,
+    "cachedTokens": 0,
+    "completionTokens": 934,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 22,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 9.5,
+    "call2_s": 5.8
+  }
+}

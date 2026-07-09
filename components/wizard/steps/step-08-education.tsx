@@ -201,7 +201,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                   value={form.level}
                   onChange={(e) => set("level", e.target.value)}
                   style={{
-                    width: "100%", padding: "10px 36px 10px 12px", fontSize: 14,
+                    width: "100%", padding: "12px 36px 12px 16px", fontSize: 14,
                     borderRadius: 8, border: "1px solid var(--hairline)",
                     backgroundColor: "var(--card)", color: form.level ? "var(--ink-strong)" : "var(--faint)",
                     outline: "none", appearance: "none", cursor: "pointer",

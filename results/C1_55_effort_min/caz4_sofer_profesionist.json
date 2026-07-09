@@ -1,0 +1,112 @@
+{
+  "config": "C1_55_effort_min",
+  "case": "caz4_sofer_profesionist",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Ce documente profesionale ai acum valabile și până când? (ex.: permis C/CE, atestat marfă/CPI, card tahograf, aviz medical/psihologic, eventual ADR dacă ai)"
+    },
+    {
+      "id": "q2",
+      "question": "Pe ce tipuri de camion și semiremorcă ai lucrat cel mai mult? (ex.: cap tractor + prelată, frigorifică, mega, tandem, cutie manuală/automată, Euro 6)"
+    },
+    {
+      "id": "q3",
+      "question": "Aproximativ câți kilometri faci pe lună/an și prin ce țări ai mers cel mai des în afară de Germania, Olanda și Belgia? (ex.: Franța, Austria, Italia, UK, Scandinavia)"
+    },
+    {
+      "id": "q4",
+      "question": "Ce fel de marfă ai transportat cel mai des și cum te ocupi de asigurarea ei? (ex.: paleți, marfă industrială, alimente la temperatură controlată, chingi, colțare, sigilii, verificare temperatură)"
+    },
+    {
+      "id": "q5",
+      "question": "Cu ce rezultate te poți lăuda la actualul/ultimul loc de muncă? (ex.: livrări la timp, consum bun, respectarea timpilor de condus și odihnă, relație bună cu dispecerii/clienții, fără incidente)"
+    }
+  ],
+  "bullets": [
+    {
+      "category": "responsabilitate_core",
+      "id": "1",
+      "text": "Efectuarea curselor internaționale ca șofer profesionist de TIR, cu permis categoriile C și CE și atestat de marfă, pe rute frecvente în Germania, Olanda și Belgia."
+    },
+    {
+      "category": "tools",
+      "id": "3",
+      "text": "Operarea unui cap tractor Volvo FH de 460 CP cu cutie automată, utilizat preponderent cu semiremorcă prelată și, ocazional, pentru transport frigorific."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "4",
+      "text": "Întocmirea documentelor de transport CMR și gestionarea formalităților uzuale necesare livrărilor internaționale de marfă."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "5",
+      "text": "Încărcarea și descărcarea mărfii la rampe, inclusiv cu liftul din spate când este cazul, precum și asigurarea încărcăturii cu chingi și colțuri."
+    },
+    {
+      "category": "realizare",
+      "id": "6",
+      "text": "Respectarea timpilor de condus și odihnă pe card tahograf, inclusiv regula de 4 ore și jumătate de condus urmate de pauză, fără nicio amendă pe tahograf în 8 ani."
+    },
+    {
+      "category": "realizare",
+      "id": "7",
+      "text": "Menținerea unui istoric profesional stabil, cu 2 firme în 8 ani și 5 ani la actualul angajator, fără accidente din vina sa și fără amenzi majore, inclusiv pe curse lungi încredințate pentru seriozitate."
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 564,
+      "cachedTokens": 0,
+      "completionTokens": 560,
+      "reasoningTokens": 82,
+      "costUSD": 0.01962,
+      "jsonRetries": 0,
+      "effortRejected": true
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 1235,
+      "cachedTokens": 0,
+      "completionTokens": 832,
+      "reasoningTokens": 396,
+      "costUSD": 0.031135,
+      "jsonRetries": 0,
+      "effortRejected": true
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 1712,
+      "cachedTokens": 0,
+      "completionTokens": 595,
+      "reasoningTokens": 512,
+      "costUSD": 0.02641,
+      "jsonRetries": 0,
+      "effortRejected": true
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.077165,
+    "promptTokens": 3511,
+    "cachedTokens": 0,
+    "completionTokens": 1987,
+    "reasoningTokens": 990,
+    "jsonRetries": 0,
+    "effortRejected": true,
+    "firstPassInvalid": 1,
+    "dropped": 1,
+    "nominalizedOK": 6,
+    "bulletsTotal": 6,
+    "avgWords": 24.3,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 14.7,
+    "call2_s": 1970.9
+  }
+}

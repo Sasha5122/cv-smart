@@ -77,7 +77,7 @@ export function Step06Email({ value, firstName, lastName, onChange, onNext, onBa
         autoFocus
         onKeyDown={(e) => e.key === "Enter" && handleNext()}
         icon={<Mail className="w-4 h-4" />}
-        iconRight={verifying ? <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" /> : undefined}
+        iconRight={verifying ? <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" /> : undefined}
       />
 
       {warning && (

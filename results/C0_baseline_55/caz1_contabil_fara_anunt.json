@@ -1,0 +1,106 @@
+{
+  "config": "C0_baseline_55",
+  "case": "caz1_contabil_fara_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "În ce fel de firmă lucrezi mai exact și cât de mare e activitatea? (ex.: comerț, producție, distribuție, servicii; câți angajați, câte puncte de lucru/gestiuni, plătitoare de TVA lunar/trimestrial)"
+    },
+    {
+      "id": "q2",
+      "question": "Cât faci singur și cât e verificat de altcineva? (ex.: înregistrez singur documentele și pregătesc declarațiile, contabilul-șef doar verifică; sau fac anumite părți sub coordonare)"
+    },
+    {
+      "id": "q3",
+      "question": "Pe partea de salarii/HR, până unde te implici concret? (ex.: doar pontaje, concedii medicale/odihnă, calcul salarii, state de plată, Revisal, D112 pentru câți angajați)"
+    },
+    {
+      "id": "q4",
+      "question": "Ce alte tipuri de operațiuni mai lucrezi în afară de facturi și declarații? (ex.: intrări/ieșiri stoc, importuri/exporturi, achiziții intracomunitare, mijloace fixe și amortizare, deconturi, casierie, bănci, compensări)"
+    },
+    {
+      "id": "q5",
+      "question": "Ai avut rezultate sau îmbunătățiri de care ești mândru la job? (ex.: ai redus erori, ai făcut fișiere Excel care ajută echipa, ai închis luni la timp, ai trecut controale ANAF fără sancțiuni, ai organizat mai bine documentele)"
+    }
+  ],
+  "bullets": [
+    {
+      "category": "responsabilitate_core",
+      "id": "b1",
+      "text": "Gestionarea operațiunilor contabile curente într-o echipă financiar-contabilă de 4 persoane, de la înregistrarea facturilor și documentelor de gestiune până la verificări de închidere lunară și declarații fiscale."
+    },
+    {
+      "category": "volum_cifre",
+      "id": "b2",
+      "text": "Înregistrarea lunară în SAGA a aproximativ 900-1.000 facturi de furnizori, 350-400 facturi emise către clienți, 600 NIR-uri și 700-800 bonuri de consum."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b3",
+      "text": "Întocmirea și depunerea cap-coadă, singură, de aproximativ 3 ani, a declarațiilor lunare D112, D300, D394 și D390 când există operațiuni intracomunitare."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b4",
+      "text": "Verificarea jurnalelor de TVA și a fișelor de cont în SAGA, cu realizarea punctajelor și a notelor de corecție necesare la închiderea de lună."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "b5",
+      "text": "Realizarea verificărilor de solduri pe furnizori, stocuri și casa-bancă la închiderea lunară, inclusiv reconcilierea diferențelor și confirmarea punctajelor cu furnizorii."
+    },
+    {
+      "category": "problema_rezolvata",
+      "id": "b6",
+      "text": "Soluționarea unei diferențe de aproximativ 38.000 lei pe contul de furnizori prin verificări lună cu lună, corecții contabile și confirmarea punctajului cu furnizorii."
+    },
+    {
+      "category": "tools",
+      "id": "b7",
+      "text": "Utilizarea SAGA și Excel pentru prelucrarea și verificarea datelor contabile, inclusiv VLOOKUP, Pivot și SUMIF, precum și pregătirea documentelor pentru controale ANAF și pontaje pentru HR."
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 596,
+      "cachedTokens": 0,
+      "completionTokens": 593,
+      "reasoningTokens": 0,
+      "costUSD": 0.02077,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 1282,
+      "cachedTokens": 0,
+      "completionTokens": 981,
+      "reasoningTokens": 512,
+      "costUSD": 0.03584,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.056609999999999994,
+    "promptTokens": 1878,
+    "cachedTokens": 0,
+    "completionTokens": 1574,
+    "reasoningTokens": 512,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 23.3,
+    "inventionFlags": 3
+  },
+  "durations": {
+    "call1_s": 12.9,
+    "call2_s": 14.4
+  }
+}

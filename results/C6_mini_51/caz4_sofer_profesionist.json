@@ -1,0 +1,117 @@
+{
+  "config": "C6_mini_51",
+  "case": "caz4_sofer_profesionist",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Ce tipuri de marfă ai mai dus în afară de generală și frigorifică? (de exemplu: paleți, ADR, mărfuri agabaritice, încărcări complete/LTL)"
+    },
+    {
+      "id": "q2",
+      "question": "Cu ce fel de camion și remorcă ai mers cel mai des? (de exemplu: cap tractor + semiremorcă prelata/frigo, număr de axe, cutie manuală/automată)"
+    },
+    {
+      "id": "q3",
+      "question": "Ai folosit la lucru sisteme sau echipamente din astea? (de exemplu: tahograf digital, GPS, scaner/telefon cu aplicații de livrare, lift hidraulic, transpaleți)"
+    },
+    {
+      "id": "q4",
+      "question": "Cum stai cu limba și comunicarea la încărcare/descărcare în străinătate? (de exemplu: înțelegi și vorbești puțin germană/engleză, te descurci cu dispecerii și depozitele)"
+    },
+    {
+      "id": "q5",
+      "question": "Ce fel de cursuri, permise sau atestate ai mai făcut și când le-ai obținut? (de exemplu: CPC, ADR, medici?; dacă ai și alte calificări utile pentru camion)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Efectuarea curselor internaționale de transport marfă generală și frigorifică pe rute preponderent Germania–Olanda–Belgia, cu perioade îndelungate pe comunitate și revenire periodică în țară",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Conducerea autotractorului Volvo FH de 460 CP cu cutie automată, cu semiremorcă prelată, inclusiv manevre la rampe și respectarea regulilor de siguranță în trafic",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b3",
+      "text": "Parcurgerea unui volum lunar de aproximativ 10–11 mii km fără accidente din culpă proprie și fără amenzi majore, demonstrând conduită preventivă și stil de condus responsabil",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b4",
+      "text": "Întocmirea documentelor de transport (inclusiv CMR) și utilizarea cardului de tahograf digital cu respectarea strictă a timpilor de conducere și repaus, fără nicio amendă pe tahograf în 8 ani",
+      "category": "realizare"
+    },
+    {
+      "id": "b5",
+      "text": "Manipularea mărfurilor la încărcare/descărcare, inclusiv operarea liftului hidraulic spate când este cazul și asigurarea corectă a încărcăturii cu chingi și colțare",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b6",
+      "text": "Monitorizarea stării tehnice a camionului (verificarea nivelului de ulei, presiunii în pneuri etc.) și raportarea preventivă a eventualelor defecțiuni la timp",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b7",
+      "text": "Dezvoltarea și menținerea colaborării pe termen lung în cadrul unei firme cu flotă de aproximativ 15 camioane și 20 de șoferi, fiind desemnat frecvent pe curse lungi datorită seriozității și lipsei problemelor, cu utilizarea cunoștințelor de bază de germană și engleză la rampe și în relația cu autoritățile",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 563,
+      "cachedTokens": 0,
+      "completionTokens": 414,
+      "reasoningTokens": 0,
+      "costUSD": 0.00228525,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1211,
+      "cachedTokens": 0,
+      "completionTokens": 497,
+      "reasoningTokens": 0,
+      "costUSD": 0.00648375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1776,
+      "cachedTokens": 1152,
+      "completionTokens": 147,
+      "reasoningTokens": 0,
+      "costUSD": 0.002394,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.011163,
+    "promptTokens": 3550,
+    "cachedTokens": 1152,
+    "completionTokens": 1058,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 2,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 27.4,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 4,
+    "call2_s": 11.8
+  }
+}

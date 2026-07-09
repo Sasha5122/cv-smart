@@ -1,0 +1,106 @@
+{
+  "config": "C5_51_full",
+  "case": "caz3_raspunsuri_sarace",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Ce tip de firme ai in portofoliu acum? (de ex. comert cu amanuntul/en-gros, productie, servicii, constructii, import–export, PFA-uri etc.)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce responsabilitati ai tu personal la inchiderea de luna/an, fata de colegii din echipa? (de ex. tu te ocupi de o anumita firma, de stocuri, de decontari, de verificat balanta, de pregatit situatii pentru contabilul sef/auditor etc.)"
+    },
+    {
+      "id": "q3",
+      "question": "Ai lucrat si cu alte softuri de contabilitate sau ERP in afara de Saga? (de ex. WinMentor, Ciel, Nexus, Charisma, SAP, Navision etc.)"
+    },
+    {
+      "id": "q4",
+      "question": "Ai pregatit pana acum rapoarte sau situatii pentru management? (de ex. situatii de vanzari, stocuri, clienti-restante, cash-flow, bugete vs. realizat, analize in Excel pe baza datelor contabile)"
+    },
+    {
+      "id": "q5",
+      "question": "Ce studii si eventuale cursuri/specializari ai in contabilitate/finante? (de ex. facultate, master, CECCAR, cursuri de contabil, cursuri de fiscalitate/Excel etc., plus ani absolviri)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "1",
+      "text": "Înregistrarea lunară a aproximativ 900–1000 de facturi de furnizori și 350–400 de facturi emise către clienți, cu reflectarea corectă în contabilitate și în jurnalele de TVA, utilizând programul Saga.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "2",
+      "text": "Introducerea și verificarea a circa 600 de NIR-uri și 700–800 de bonuri de consum pe lună, cu urmărirea corectă a stocurilor și a consumurilor în evidența contabilă.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "3",
+      "text": "Întocmirea și depunerea declarațiilor fiscale lunare D112, D300 și D394, precum și a declarației D390 pentru operațiuni intracomunitare, cu verificarea concordanței datelor raportate cu jurnalele de TVA.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "4",
+      "text": "Verificarea și reconcilierea lunară a soldurilor pe furnizori, stocuri, casă și conturi bancare, prin efectuarea de punctaje și note de corecție acolo unde este necesar.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "5",
+      "text": "Utilizarea programului Saga și a Microsoft Excel (funcții VLOOKUP, tabele pivot, SUMIF) pentru prelucrarea datelor contabile și realizarea de verificări și centralizări interne.",
+      "category": "tools"
+    },
+    {
+      "id": "6",
+      "text": "Gestionarea relației cu ANAF în cazul controalelor sau solicitărilor de informații, prin furnizarea documentelor și clarificărilor contabile necesare.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "7",
+      "text": "Sprijinirea activității de HR prin preluarea și verificarea pontajelor, în colaborare cu echipa financiar-contabilă formată din 4 persoane.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 595,
+      "cachedTokens": 0,
+      "completionTokens": 489,
+      "reasoningTokens": 0,
+      "costUSD": 0.00563375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1115,
+      "cachedTokens": 0,
+      "completionTokens": 444,
+      "reasoningTokens": 0,
+      "costUSD": 0.00583375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.0114675,
+    "promptTokens": 1710,
+    "cachedTokens": 0,
+    "completionTokens": 933,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 23.9,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 8.9,
+    "call2_s": 6.2
+  }
+}

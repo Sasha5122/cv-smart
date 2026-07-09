@@ -1,0 +1,117 @@
+{
+  "config": "C3_mini_54",
+  "case": "caz4_sofer_profesionist",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Ce alte acte/autorizații mai ai pe lângă categoria C și CE și atestatul de marfă? (de exemplu: card tahograf, ADR, certificat profesionist, pașaport, viză, certificat digital, cursuri extra)"
+    },
+    {
+      "id": "q2",
+      "question": "Cu ce fel de camion și echipamente ai lucrat cel mai des? (de exemplu: cap tractor + semiremorcă prelata/frigo, 12t/40t, cutie automată/manuală, GPS, tahograf analog/digital)"
+    },
+    {
+      "id": "q3",
+      "question": "Cum stai cu încărcarea/descărcarea și fixarea mărfii? (de exemplu: chingi, colțare, verificare sigilii, programare la rampă, lize/transpalet, marfă paletizată)"
+    },
+    {
+      "id": "q4",
+      "question": "Ai avut alte trasee sau țări în afară de Germania, Olanda și Belgia? (de exemplu: Franța, Austria, Italia, Cehia, UK) și cam ce fel de rute ai făcut: doar internațional, și retururi, și comunitar?"
+    },
+    {
+      "id": "q5",
+      "question": "Ce poți spune despre rezultate și seriozitate la job, care să te ajute în CV? (de exemplu: consum bun, livrări la timp, fără daune/accidente, puncte în plus de la dispecer, ai preluat curse urgente sau mai grele)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Efectuarea curselor internaționale de transport marfă generală, preponderent pe rutele Germania, Olanda și Belgia, în regim de lucru de aproximativ 3 săptămâni plecat și o săptămână acasă.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Conducerea capului tractor Volvo FH 460 cu cutie automată, în cadrul curselor internaționale, cu un volum de lucru de aproximativ 10-11 mii de km pe lună.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b3",
+      "text": "Gestionarea transporturilor cu semiremorcă prelată și, ocazional, frigorifică, inclusiv întocmirea documentelor de transport CMR și operarea la rampele de încărcare/descărcare.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Asigurarea încărcării și descărcării mărfii, inclusiv utilizarea liftului din spate când a fost necesar, precum și fixarea corectă a mărfii cu chingi și colțare.",
+      "category": "tools"
+    },
+    {
+      "id": "b5",
+      "text": "Respectarea timpilor de conducere și odihnă prin utilizarea cardului de tahograf, fără nicio amendă pe tahograf în 8 ani de activitate.",
+      "category": "realizare"
+    },
+    {
+      "id": "b6",
+      "text": "Întreținerea preventivă a camionului prin verificarea uleiului și a presiunii, precum și semnalarea din timp a necesităților de reparații pentru evitarea problemelor în cursă.",
+      "category": "problema_rezolvata"
+    },
+    {
+      "id": "b7",
+      "text": "Menținerea unui standard ridicat de seriozitate și siguranță în exploatare, confirmat prin lipsa accidentelor din vina proprie, absența amenzilor mari și încrederea acordată pentru cursele mai lungi; stabilitate profesională demonstrată prin activitatea în 2 firme în 8 ani, dintre care 5 ani la angajatorul actual.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 563,
+      "cachedTokens": 0,
+      "completionTokens": 471,
+      "reasoningTokens": 0,
+      "costUSD": 0.00254175,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1261,
+      "cachedTokens": 0,
+      "completionTokens": 469,
+      "reasoningTokens": 0,
+      "costUSD": 0.0101875,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1780,
+      "cachedTokens": 0,
+      "completionTokens": 73,
+      "reasoningTokens": 0,
+      "costUSD": 0.005545,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.01827425,
+    "promptTokens": 3604,
+    "cachedTokens": 0,
+    "completionTokens": 1013,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 1,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 26.7,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 4.5,
+    "call2_s": 6.7
+  }
+}

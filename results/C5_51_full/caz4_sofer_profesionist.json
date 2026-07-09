@@ -1,0 +1,117 @@
+{
+  "config": "C5_51_full",
+  "case": "caz4_sofer_profesionist",
+  "questions": [
+    {
+      "id": "1",
+      "question": "Ce tip de camioane ai condus mai mult (marca, model, tonaj – de ex. Volvo Euro 6, 40 t, automat) si ce fel de remorci (prelata standard, mega, frig, duba, etc.)?"
+    },
+    {
+      "id": "2",
+      "question": "Pe langa Germania, Olanda si Belgia, in ce alte tari ai mai condus si aproximativ cati km faci pe an (sau ai facut in total, la modul aproximativ)?"
+    },
+    {
+      "id": "3",
+      "question": "Cu ce te descurci in privinta limbilor straine pe traseu (de ex. vorbesti/intelegi engleza sau germana la nivel de baza, pentru rampe, dispecerat, parcari, controale)?"
+    },
+    {
+      "id": "4",
+      "question": "Ce fel de marfa ai dus cel mai des (de ex. FMCG, materiale de constructii, mobila, produse alimentare, marfa sensibila la temperatura) si ai avut si transporturi cu valoare mare sau cu sigiliu?"
+    },
+    {
+      "id": "5",
+      "question": "Ai lucrat cu tahograf digital si poti respecta timpii de conducere si odihna fara probleme? Ai avut vreodata controale la cantar/politie si cum s-au terminat?"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "1",
+      "text": "Efectuarea curselor internaţionale de marfă generală (cu transport frigorific ocazional) preponderent pe relaţiile Germania – Olanda – Belgia, cu organizarea traseelor în funcţie de instrucţiunile de transport şi de termenele de livrare stabilite de dispecerat.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "2",
+      "text": "Conducerea camionului Volvo FH (460 CP, cutie automată), cu remorcă prelată şi, la nevoie, cu remorcă frigorifică, utilizând corect cardul de tahograf digital şi respectând timpii de conducere şi odihnă conform legislaţiei, fără amenzi pe tahograf pe toată perioada de 8 ani.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "3",
+      "text": "Gestionarea documentelor de transport pentru curse internaţionale, inclusiv completarea şi verificarea corectă a CMR şi a documentaţiei aferente încărcării/descărcării în diferite puncte de lucru.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "4",
+      "text": "Efectuarea operaţiunilor de încărcare şi descărcare la rampă, inclusiv manevrarea liftului hidraulic spate atunci când este necesar şi asigurarea mărfii cu chingi şi colţare conform cerinţelor de siguranţă.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "5",
+      "text": "Monitorizarea stării tehnice de bază a camionului (verificarea nivelului de ulei, a presiunii în pneuri şi a altor consumabile) şi raportarea din timp a eventualelor defecţiuni către firmă, pentru prevenirea imobilizărilor neplanificate.",
+      "category": "problema_rezolvata"
+    },
+    {
+      "id": "6",
+      "text": "Menţinerea unui istoric de conducere responsabil, fără accidente din culpă proprie şi fără amenzi majore, fapt care a condus la încrederea angajatorului şi repartizarea constantă pe curse lungi internaţionale.",
+      "category": "realizare"
+    },
+    {
+      "id": "7",
+      "text": "Comunicarea de bază în limba germană şi în limba engleză pentru interacţiunea cu personalul de la rampe, cu autorităţile şi la controale, susţinută de deţinerea atestatului pentru transport marfă şi a atestatului ADR obţinut în urmă cu 2 ani.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 563,
+      "cachedTokens": 0,
+      "completionTokens": 461,
+      "reasoningTokens": 0,
+      "costUSD": 0.00531375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1215,
+      "cachedTokens": 0,
+      "completionTokens": 572,
+      "reasoningTokens": 0,
+      "costUSD": 0.00723875,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1851,
+      "cachedTokens": 0,
+      "completionTokens": 197,
+      "reasoningTokens": 0,
+      "costUSD": 0.00428375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.01683625,
+    "promptTokens": 3629,
+    "cachedTokens": 0,
+    "completionTokens": 1230,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 2,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 32.7,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 8.7,
+    "call2_s": 18.4
+  }
+}

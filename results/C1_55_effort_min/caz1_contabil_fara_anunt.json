@@ -1,0 +1,106 @@
+{
+  "config": "C1_55_effort_min",
+  "case": "caz1_contabil_fara_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "În ce tip de firmă lucrezi și cam cât de mare e activitatea? (ex: comerț, producție, distribuție, servicii; câți angajați/puncte de lucru; plătitoare de TVA; stocuri multe sau puține)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce faci tu cap-coadă singur și ce doar pregătești pentru verificare/aprobare? (ex: declari singur în SPV, pregătești D300 pentru contabilul-șef, faci închiderea lunii până la balanță etc.)"
+    },
+    {
+      "id": "q3",
+      "question": "La partea de salarii și D112, ce anume faci concret? (ex: calculezi salarii, verifici pontaje, concedii medicale, tichete, prime, rețineri, doar introduci datele sau și generezi declarația)"
+    },
+    {
+      "id": "q4",
+      "question": "Ai avut rezultate de care ești mândru și merită trecute în CV? (ex: ai prins diferențe la TVA/stocuri, ai redus întârzieri, ai trecut controale ANAF fără sancțiuni, ai făcut fișiere Excel care au ușurat munca)"
+    },
+    {
+      "id": "q5",
+      "question": "Ce studii sau cursuri ai pe contabilitate și fiscalitate? (ex: facultate economică, curs contabilitate, CECCAR în curs, curs salarizare, actualizări fiscale, engleză/alte programe contabile în afară de Saga)"
+    }
+  ],
+  "bullets": [
+    {
+      "category": "responsabilitate_core",
+      "id": "bullet_1",
+      "text": "Întocmirea și depunerea cap-coadă a declarațiilor D112, D300, D394 și D390 când există operațiuni intracomunitare, realizate independent de aproximativ 3 ani."
+    },
+    {
+      "category": "volum_cifre",
+      "id": "bullet_2",
+      "text": "Operarea lunară în Saga a aproximativ 900-1.000 de facturi de furnizori, 350-400 de facturi emise către clienți, 600 de NIR-uri și 700-800 de bonuri de consum."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "bullet_3",
+      "text": "Realizarea închiderii de lună prin verificări de solduri pe furnizori, stocuri și casa-bancă, punctaje contabile și întocmirea notelor de corecție."
+    },
+    {
+      "category": "problema_rezolvata",
+      "id": "bullet_4",
+      "text": "Identificarea și soluționarea unei diferențe de aproximativ 38.000 lei pe contul de furnizori, prin verificări lună cu lună, corecții contabile și confirmarea punctajului cu furnizorii."
+    },
+    {
+      "category": "responsabilitate_core",
+      "id": "bullet_5",
+      "text": "Verificarea jurnalelor de TVA și a fișelor de cont în Saga, cu pregătirea datelor necesare pentru raportările fiscale lunare."
+    },
+    {
+      "category": "tools",
+      "id": "bullet_6",
+      "text": "Utilizarea Saga pentru facturi, NIR-uri, bonuri de consum, jurnale TVA și fișe de cont, precum și a Excel cu funcții VLOOKUP, Pivot și SUMIF pentru verificări și analize contabile."
+    },
+    {
+      "category": "colaborare_leadership",
+      "id": "bullet_7",
+      "text": "Pregătirea documentelor pentru controale și cereri ANAF, menținerea legăturii cu ANAF și sprijinirea departamentului HR prin realizarea pontajelor."
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 596,
+      "cachedTokens": 0,
+      "completionTokens": 509,
+      "reasoningTokens": 0,
+      "costUSD": 0.01825,
+      "jsonRetries": 0,
+      "effortRejected": true
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.5",
+      "promptTokens": 1267,
+      "cachedTokens": 0,
+      "completionTokens": 968,
+      "reasoningTokens": 512,
+      "costUSD": 0.035375,
+      "jsonRetries": 0,
+      "effortRejected": true
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.05362499999999999,
+    "promptTokens": 1863,
+    "cachedTokens": 0,
+    "completionTokens": 1477,
+    "reasoningTokens": 512,
+    "jsonRetries": 0,
+    "effortRejected": true,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 22.6,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 11,
+    "call2_s": 13.6
+  }
+}

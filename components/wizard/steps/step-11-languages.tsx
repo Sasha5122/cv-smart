@@ -83,7 +83,7 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
             onChange={(e) => setName(e.target.value)}
             placeholder="ex: Engleză"
             onKeyDown={(e) => e.key === "Enter" && addLanguage()}
-            className="w-full rounded-[10px] border border-slate-400 bg-[var(--card)] px-3 py-2.5 text-lg focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            style={{ padding: "12px 16px" }} className="w-full rounded-[10px] border border-[var(--input-border)] bg-[var(--card)] text-lg focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(37,99,235,0.18)]"
           />
         </div>
         <div className="flex-1">
@@ -91,7 +91,7 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
           <select
             value={level}
             onChange={(e) => setLevel(e.target.value)}
-            className="w-full rounded-[10px] border border-slate-400 bg-[var(--card)] px-3 py-2.5 text-lg focus:outline-none focus:border-indigo-400"
+            style={{ padding: "12px 16px" }} className="w-full rounded-[10px] border border-[var(--input-border)] bg-[var(--card)] text-lg focus:outline-none focus:border-[var(--primary)]"
           >
             {LEVELS.map((l) => (
               <option key={l.value} value={l.value}>{l.label}</option>

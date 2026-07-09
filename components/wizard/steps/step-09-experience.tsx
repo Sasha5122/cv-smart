@@ -168,6 +168,8 @@ export function Step09Experience({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jobTitle: form.title.trim(),
+          company: form.company.trim() || undefined,
+          period: form.period.trim() || undefined,
           industry: form.industry || undefined,
           yearsExperience: form.years ? Number(form.years) : undefined,
           rawText: form.rawText.trim(),
@@ -463,7 +465,7 @@ export function Step09Experience({
                 borderRadius: 8,
                 border: "1px solid var(--input-border)",
                 backgroundColor: "var(--card)",
-                padding: "12px 14px",
+                padding: "13px 16px",
                 fontSize: 15,
                 color: form.industry ? "var(--ink)" : "var(--faint)",
                 fontFamily: "inherit",

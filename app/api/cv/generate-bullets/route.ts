@@ -8,7 +8,7 @@ import {
   getPipelineSession,
   updatePipelineSession,
 } from "@/lib/cv-pipeline/store";
-import { StructuredCallError } from "@/lib/openai";
+import { PIPELINE_PROD_CONFIG, StructuredCallError } from "@/lib/openai";
 import type { QuestionAnswer } from "@/lib/types/cv-pipeline";
 
 export const maxDuration = 90;
@@ -86,12 +86,17 @@ export async function POST(req: Request) {
       answer: answerByQuestionId.get(q.id) ?? "",
     }));
 
-    const result = await runBulletsFromContext({
-      jobTitle: session.job_title,
-      rawText: session.raw_text,
-      interview,
-      jobDescription: session.job_description ?? undefined,
-    });
+    const result = await runBulletsFromContext(
+      {
+        jobTitle: session.job_title,
+        company: session.company ?? undefined,
+        period: session.period ?? undefined,
+        rawText: session.raw_text,
+        interview,
+        jobDescription: session.job_description ?? undefined,
+      },
+      { config: PIPELINE_PROD_CONFIG.call2 }
+    );
 
     await updatePipelineSession(sessionId, {
       generated_bullets: result.bullets,

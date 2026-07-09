@@ -32,6 +32,15 @@ export function ChatBox({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // auto-grow: boxul crește pe verticală odată cu textul (max 200px, apoi scroll)
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+    el.style.overflowY = el.scrollHeight > 200 ? "auto" : "hidden";
+  }, [input]);
+
   const handleSend = () => {
     const text = input.trim();
     if (!text || loading) return;
@@ -103,10 +112,11 @@ export function ChatBox({
             placeholder={placeholder}
             rows={2}
             disabled={loading}
+            style={{ padding: "12px 48px 12px 16px" }}
             className={cn(
-              "w-full rounded-xl border border-[var(--hairline)] bg-[var(--card)] px-4 py-2.5 pr-12 text-sm text-[var(--ink)]",
+              "w-full rounded-xl border border-[var(--hairline)] bg-[var(--card)] text-sm text-[var(--ink)]",
               "placeholder:text-[var(--faint)] resize-none",
-              "focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100",
+              "focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(37,99,235,0.18)]",
               "disabled:bg-[var(--muted)] disabled:text-[var(--faint)]",
               "transition-all duration-150"
             )}

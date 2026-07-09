@@ -199,7 +199,7 @@ export function Step10Skills({ cvData, onUpdate, onNext, onBack }: Props) {
               onChange={(e) => setManualInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !isFormatting && handleAddManual()}
               style={{
-                flex: 1, padding: "8px 12px", border: "1px solid var(--hairline)",
+                flex: 1, padding: "10px 16px", border: "1px solid var(--hairline)",
                 borderRadius: 8, fontSize: 14, outline: "none",
               }}
             />

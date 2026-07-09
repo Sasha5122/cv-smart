@@ -1,0 +1,106 @@
+{
+  "config": "C8_51_54",
+  "case": "caz3_raspunsuri_sarace",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Ce tip de firme ai in portofoliu si cam ce volum de activitate au? (ex.: comert en-gros/en-detail, productie, servicii, constructii; cate firme gestionezi in paralel, cifra de afaceri aproximativa)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce fel de operatiuni mai inregistrezi in afara de facturi si nir-uri? (ex.: deconturi de cheltuieli, leasing, amortizari, imprumuturi asociati/banci, provizioane, diferente de curs, obiecte de inventar etc.)"
+    },
+    {
+      "id": "q3",
+      "question": "La ce parte din bilant si situatii financiare contribui concret? (ex.: pregatesti balanta de verificare, note explicative, situatia clientilor/furnizorilor, verifici conturile de TVA, pregatesti documente pentru expert/contabil sef)"
+    },
+    {
+      "id": "q4",
+      "question": "Ce responsabilitati ai avut direct in relatia cu ANAF sau alte institutii? (ex.: depunere declaratii, raspuns la adrese de la ANAF, pregatire documente pentru controale, discutii directe cu inspectorii)"
+    },
+    {
+      "id": "q5",
+      "question": "Ai avut momente in care ai imbunatatit tu ceva in modul de lucru? (ex.: ai optimizat un fisier Excel, ai propus o procedura noua, ai redus timp de operare/erori, ai ajutat la implementarea unui soft nou sau unei versiuni noi de Saga)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Gestionarea evidenței contabile curente, de la înregistrarea documentelor primare până la întocmirea declarațiilor fiscale lunare.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Înregistrarea lunară în SAGA a unui volum de aproximativ 900–1000 facturi de furnizori, 350–400 facturi emise către clienți, 600 NIR-uri și 700–800 bonuri de consum.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b3",
+      "text": "Întocmirea și verificarea declarațiilor fiscale D112, D300, D394 și D390, aceasta din urmă doar în cazul existenței operațiunilor intracomunitare.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Verificarea jurnalelor de TVA și efectuarea activităților de închidere lunară, inclusiv verificări de solduri pe furnizori, stocuri și casa-bancă, punctaje și note de corecție.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b5",
+      "text": "Utilizarea SAGA și Microsoft Excel pentru prelucrarea și verificarea datelor contabile, inclusiv funcții precum VLOOKUP, Pivot și SUMIF.",
+      "category": "tools"
+    },
+    {
+      "id": "b6",
+      "text": "Gestionarea relației cu ANAF în contextul controalelor și al solicitărilor de informații/documente.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "b7",
+      "text": "Colaborarea cu echipa financiar-contabilă formată din 4 persoane și sprijinirea activităților de HR prin implicare în pontaje.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 595,
+      "cachedTokens": 0,
+      "completionTokens": 502,
+      "reasoningTokens": 0,
+      "costUSD": 0.00576375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1151,
+      "cachedTokens": 0,
+      "completionTokens": 384,
+      "reasoningTokens": 0,
+      "costUSD": 0.0086375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.014401249999999999,
+    "promptTokens": 1746,
+    "cachedTokens": 0,
+    "completionTokens": 886,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 18.6,
+    "inventionFlags": 5
+  },
+  "durations": {
+    "call1_s": 9.9,
+    "call2_s": 4.8
+  }
+}

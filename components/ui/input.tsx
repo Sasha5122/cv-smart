@@ -37,7 +37,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             className={cn(
-              "w-full rounded-[8px] border border-[var(--input-border)] bg-[var(--card)] py-[13px] text-[15.5px] text-[var(--ink)]",
+              "w-full rounded-[8px] border border-[var(--input-border)] bg-[var(--card)] text-[15.5px] text-[var(--ink)]",
               "placeholder:text-[var(--faint)]",
               "transition-all duration-150 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]",
               "focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(37,99,235,0.18)] focus:bg-white",
@@ -47,6 +47,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               className
             )}
             style={{
+              // padding integral inline — nu depinde de clase Tailwind arbitrare
+              paddingTop: 13,
+              paddingBottom: 13,
               paddingLeft: icon ? 44 : 16,
               paddingRight: iconRight ? 44 : 16,
               ...style,

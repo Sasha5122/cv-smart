@@ -1,0 +1,106 @@
+{
+  "config": "C8_51_54",
+  "case": "caz1_contabil_fara_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Ce tip de firme ai in portofoliu acum si cam ce cifre de afaceri au? (ex.: comert, productie, servicii, constructii; micro / platitoare de TVA / platitoare de impozit specific, etc.)"
+    },
+    {
+      "id": "q2",
+      "question": "Pe langa operarea documentelor si declaratiile lunare, te ocupi si de balanta de verificare, inchideri anuale, bilant / situatii financiare sau aici intervine alt coleg / expert contabil?"
+    },
+    {
+      "id": "q3",
+      "question": "Ce fel de operatiuni mai complexe ai inregistrat? (ex.: leasinguri, amortizari, provizioane, deconturi de cheltuieli, plati in valuta, diferente de curs, import/export, servicii intracomunitare)"
+    },
+    {
+      "id": "q4",
+      "question": "Cum te implici in relatia cu ANAF sau cu auditorii? (ex.: pregatesti documente pentru controale, raspunzi la solicitari scrise, participi la inspectii, lamuresti solduri / diferente)"
+    },
+    {
+      "id": "q5",
+      "question": "Ce rezultate concrete ai avut in jobul actual de care esti tu multumit? (ex.: ai redus erorile, ai imbunatatit un raport, ai optimizat o procedura, ai preluat singur un volum mare de lucru, ai scurtat timpul de inchidere de luna)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Gestionarea completă a evidenței contabile curente, de la înregistrarea facturilor până la întocmirea și depunerea declarațiilor fiscale, în cadrul unei echipe financiar-contabile de 4 persoane.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Operarea lunară în SAGA a unui volum ridicat de documente: aproximativ 900–1000 facturi de furnizori, 350–400 facturi emise către clienți, 600 NIR-uri și 700–800 bonuri de consum.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "b3",
+      "text": "Întocmirea și depunerea end-to-end, în mod independent, a declarațiilor lunare D112, D300, D394 și D390 (când există operațiuni intracomunitare), experiență desfășurată de aproximativ 3 ani.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Verificarea jurnalelor de TVA și realizarea activităților de închidere de lună, inclusiv verificări de solduri pe furnizori, stocuri și casă-bancă, punctaje și note de corecție.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b5",
+      "text": "Soluționarea unei diferențe de aproximativ 38.000 lei pe contul de furnizori, prin verificări lună de lună, efectuarea corecțiilor necesare și confirmarea punctajelor cu furnizorii.",
+      "category": "realizare"
+    },
+    {
+      "id": "b6",
+      "text": "Gestionarea reconcilierilor contabile mai dificile, atribuite de contabilul-șef ca urmare a rezultatelor obținute în clarificarea diferențelor de sold.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "b7",
+      "text": "Utilizarea SAGA și Excel (VLOOKUP, Pivot, SUMIF) pentru operarea documentelor contabile, verificarea jurnalelor de TVA și fișelor de cont, precum și pregătirea documentelor pentru controale ANAF și întocmirea pontajelor pentru HR.",
+      "category": "tools"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 595,
+      "cachedTokens": 0,
+      "completionTokens": 491,
+      "reasoningTokens": 0,
+      "costUSD": 0.00565375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1243,
+      "cachedTokens": 0,
+      "completionTokens": 482,
+      "reasoningTokens": 0,
+      "costUSD": 0.0103375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.01599125,
+    "promptTokens": 1838,
+    "cachedTokens": 0,
+    "completionTokens": 973,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 25,
+    "inventionFlags": 4
+  },
+  "durations": {
+    "call1_s": 21,
+    "call2_s": 5.9
+  }
+}

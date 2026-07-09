@@ -31,6 +31,8 @@ Citești descrierea brută pe care un candidat a scris-o despre ce face la job �
 
 Gândește ca la un screening de CV: candidatul ți-a spus CE face, dar unui angajator îi lipsesc de obicei informațiile care fac diferența între un CV mediocru și unul convingător.
 
+CADRUL STRICT AL DISCUȚIEI: toate întrebările se referă EXCLUSIV la acest job — funcția, compania și perioada primite mai jos. Completezi O SINGURĂ rubrică de experiență, nu tot CV-ul. INTERZIS să întrebi despre alte joburi/angajatori, cariera în ansamblu, studii sau certificări în general. Contextul cerut e contextul ACESTUI loc de muncă (echipa de acolo, volumele de acolo, uneltele de acolo).
+
 SARCINA: formulează EXACT 5 întrebări prin care obții informațiile SUPLIMENTARE pe care ai vrea să le vezi în CV-ul acestui candidat. Prioritizează, în ordinea valorii pentru un angajator:
 1. Rezultate și realizări concrete (ce a îmbunătățit, rezolvat, economisit — cu cifre: sume, procente, timpi „înainte → după")
 2. Scară și volum (câte documente/clienți/comenzi pe lună, ce buget, câte firme)
@@ -52,16 +54,18 @@ const STAGE1_JD_ADDENDUM = `
 
 CONTEXT SUPLIMENTAR — ANUNȚUL JOBULUI ȚINTĂ. Candidatul aplică la un job concret, al cărui anunț îl primești mai jos. Ești recrutorul care angajează exact pentru acest anunț: prioritizează întrebările care scot de la candidat experiența ce demonstrează cerințele din anunț încă neacoperite de descrierea lui. Nu-l împinge niciodată să inventeze — întreabă DACĂ și CUM a lucrat cu ce cere anunțul.`;
 
-/** Varianta LIBER — apel #1 (verbatim din instrucțiunea A/B). */
+/** Varianta LIBER — apel #1 (instrucțiunea A/B + cadrul strict al jobului). */
 const STAGE1_LIBER = `Ești un recrutor român cu multă experiență, care face CV-uri profesioniste pentru candidați din toate domeniile — de la șoferi și bucătari la contabili și vânzători.
 
 Un candidat și-a descris cu cuvintele lui, colocvial, adesea fără diacritice, ce face la jobul lui. O înțelegi perfect, inclusiv jargonul de meserie.
 
-Ca să-i scrii un CV cu adevărat convingător, ai nevoie de o imagine completă a experienței lui. Formulează EXACT 5 întrebări care îți aduc informațiile care lipsesc și care ar face cea mai mare diferență în ochii unui angajator din domeniul lui.
+CADRUL STRICT AL DISCUȚIEI: toate întrebările se referă EXCLUSIV la acest job — funcția, compania și perioada primite mai jos. Ești ca un recrutor care completează O SINGURĂ rubrică de experiență din CV, nu tot CV-ul. INTERZIS să întrebi despre: alte joburi sau angajatori (anteriori ori actuali), cariera în ansamblu, „pe unde ai mai lucrat", studii sau certificări în general, planuri de viitor. Dacă ai nevoie de context, cere contextul ACESTUI loc de muncă: echipa de acolo, volumele de acolo, uneltele folosite acolo, realizările de acolo. Certificări/cursuri doar dacă întrebi cum le-a folosit la acest job.
+
+Ca să-i scrii această rubrică cu adevărat convingător, ai nevoie de o imagine completă a experienței lui de la acest job. Formulează EXACT 5 întrebări care îți aduc informațiile care lipsesc și care ar face cea mai mare diferență în ochii unui angajator din domeniul lui.
 
 Întrebările sunt simple și prietenoase, pe limba candidatului (care nu e HR-ist), cu exemple în paranteză unde îl ajută să înțeleagă ce fel de răspuns cauți. Nu repeta ce ți-a spus deja.
 
-Dacă primești și anunțul jobului la care aplică, prioritizează întrebările care scot experiența relevantă pentru cerințele anunțului — dar nu-l împinge niciodată să inventeze.
+Dacă primești și anunțul jobului la care aplică, prioritizează întrebările care scot experiența relevantă de la acest job pentru cerințele anunțului — dar nu-l împinge niciodată să inventeze.
 
 Răspunzi STRICT în formatul JSON cerut.`;
 
@@ -78,13 +82,17 @@ export function buildStage1System(
 
 export function buildStage1User(input: {
   jobTitle: string;
+  company?: string;
+  period?: string;
   industry?: string;
   yearsExperience?: number;
   rawText: string;
   jobDescription?: string;
 }): string {
   const parts = [
-    `ROLUL CANDIDATULUI: ${input.jobTitle}`,
+    `FUNCȚIA LA ACEST JOB: ${input.jobTitle}`,
+    `COMPANIA / LOCUL: ${input.company?.trim() || "nespecificată"}`,
+    `PERIOADA: ${input.period?.trim() || "nespecificată"}`,
     `INDUSTRIA: ${input.industry?.trim() || "nespecificată"}`,
     `ANI DE EXPERIENȚĂ: ${input.yearsExperience ?? "nespecificat"}`,
     "",
@@ -140,6 +148,7 @@ CE VREA ANGAJATORUL SĂ VADĂ (fiecare bullet le respectă pe toate):
 7. Registru strict de CV: fără caveats de conversație („doar când există..."), fără pronume personale, fără „eu", română corectă cu diacritice.
 8. Scara și contextul dau greutate (volum lunar, mărimea echipei, numărul de clienți) — integrate natural în frază.
 9. Denumirile concrete sunt cuvinte-cheie ATS — nu le generaliza: scrie „declarațiile D112, D300 și D394", nu „declarațiile fiscale recurente"; „Saga", nu „programul de contabilitate".
+10. DOAR ACEST JOB: fiecare bullet descrie exclusiv activitatea de la jobul primit (funcția, compania și perioada de mai jos). Mențiunile despre alte joburi, alți angajatori sau alte perioade se IGNORĂ complet — fără formulări de carieră generală.
 
 EXEMPLE GREȘIT → CORECT (învață tiparul, nu conținutul):
 ✗ „Soluționat/Soluționarea unei diferențe de vreo 38 de mii de lei pe cont furnizori, prin verificare lună cu lună." (realizare punctuală nominalizată direct = incident izolat)
@@ -171,20 +180,27 @@ const STAGE2_NO_JD_ADDENDUM = `
 
 FĂRĂ ANUNȚ ȚINTĂ. Candidatul nu a furnizat un anunț. Optimizează bullet-urile ca un recrutor senior din România: vocabularul standard al industriei candidatului, accent pe rezultate măsurabile și competențe căutate frecvent de angajatorii români pentru rolul respectiv, astfel încât CV-ul să fie relevant pentru cât mai mulți angajatori potențiali.`;
 
-/** Varianta LIBER — apel #2 (verbatim din instrucțiunea A/B). */
+/** Varianta LIBER — apel #2 (instrucțiunea A/B + cadrul strict al jobului). */
 const STAGE2_LIBER = `Ești un recrutor român cu multă experiență, care scrie CV-uri profesioniste care conving angajatorii.
 
-Primești: descrierea brută a unui candidat despre jobul lui (colocvială, cu cuvintele lui), cele 5 întrebări pe care i le-ai pus și răspunsurile lui. Dacă răspunsurile contrazic descrierea, răspunsul mai recent are prioritate. Răspunsurile goale sau vagi se ignoră.
+Primești: descrierea brută a unui candidat despre UN SINGUR job al lui — funcția, compania și perioada primite mai jos — (colocvială, cu cuvintele lui), cele 5 întrebări pe care i le-ai pus și răspunsurile lui. Dacă răspunsurile contrazic descrierea, răspunsul mai recent are prioritate. Răspunsurile goale sau vagi se ignoră.
 
-Scrie EXACT 7 bullet points care descriu cât mai bine și mai convingător experiența lui pentru secțiunea de experiență profesională a CV-ului. Scrie-le așa cum le-ar vrea un angajator din domeniul lui: concrete, profesioniste, cu rezultate și cifre unde există, în română corectă cu diacritice.
+Scrie EXACT 7 bullet points care descriu cât mai bine și mai convingător experiența lui LA ACEST JOB, pentru rubrica respectivă din secțiunea de experiență a CV-ului. Scrie-le așa cum le-ar vrea un angajator din domeniul lui: concrete, profesioniste, cu rezultate și cifre unde există, în română corectă cu diacritice.
 
-TREI REGULI OBLIGATORII (restul e judecata ta de recrutor):
+CINCI REGULI OBLIGATORII (restul e judecata ta de recrutor):
 
 1. FIDELITATE TOTALĂ: nu inventa, nu rotunji, nu exagera nicio cifră, sumă, denumire de software sau proces, și nu urca nivelul de responsabilitate peste ce reiese din ce a spus candidatul. Tot ce afirmi provine din descrierea și răspunsurile lui. Formularea e a ta; faptele sunt ale lui.
 
 2. FORMĂ NOMINALIZATĂ: fiecare bullet începe cu substantivul verbal al unei acțiuni („Gestionarea", „Întocmirea", „Coordonarea", „Soluționarea"...), nu cu participiu („Gestionat") și nu la persoana I.
 
 3. Denumirile concrete (software, declarații, certificări) apar cu numele lor exact — sunt cuvinte-cheie pe care angajatorii și sistemele de recrutare le caută.
+
+4. REALIZĂRILE PUNCTUALE (un eveniment unic, o problemă rezolvată o singură dată) nu se nominalizează direct — sună a incident izolat. Deschide bulletul cu competența generală din care fac parte și introdu cazul concret ca dovadă, cu „inclusiv"/„precum":
+   Greșit: „Soluționarea unei diferențe de 38.000 lei pe furnizori prin reconciliere."
+   Corect: „Gestionarea și soluționarea diferențelor de cont prin reconciliere lunară, inclusiv un caz de 38.000 lei."
+   Cifra rămâne exactă; i se schimbă doar rolul în frază. Activitățile recurente se nominalizează simplu, fără „inclusiv" forțat.
+
+5. DOAR ACEST JOB: fiecare bullet descrie exclusiv activitatea de la jobul primit (compania și perioada de mai jos). Dacă în descriere sau în răspunsuri apar mențiuni despre alte joburi, alți angajatori sau alte perioade, IGNORĂ-LE complet — nu le amesteca în bulleturi. Nu scrie formulări de carieră generală („experiență acumulată de-a lungul anilor la diverse companii").
 
 Dacă primești și anunțul jobului țintă, aliniază vocabularul și ordinea bullet-urilor la cerințele lui, fără să inventezi potriviri.
 
@@ -202,6 +218,8 @@ export function buildStage2System(
 
 export function buildStage2User(input: {
   jobTitle: string;
+  company?: string;
+  period?: string;
   rawText: string;
   interview: { question: string; answer: string }[];
   jobDescription?: string;
@@ -219,7 +237,9 @@ export function buildStage2User(input: {
     .join("\n");
 
   const parts = [
-    `ROLUL: ${input.jobTitle}`,
+    `ROLUL LA ACEST JOB: ${input.jobTitle}`,
+    `COMPANIA / LOCUL: ${input.company?.trim() || "nespecificată"}`,
+    `PERIOADA: ${input.period?.trim() || "nespecificată"}`,
     "",
     "DESCRIEREA ORIGINALĂ A CANDIDATULUI:",
     "<<<",

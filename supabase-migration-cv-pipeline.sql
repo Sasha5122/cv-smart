@@ -12,6 +12,8 @@ create table if not exists cv_pipeline_sessions (
   user_id uuid,
   wizard_session_id uuid references sessions(id) on delete set null,
   job_title text not null,
+  company text,
+  period text,
   industry text,
   years_experience int,
   raw_text text not null,

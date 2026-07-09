@@ -1,0 +1,106 @@
+{
+  "config": "C5_51_full",
+  "case": "caz1_contabil_fara_anunt",
+  "questions": [
+    {
+      "id": "1",
+      "question": "Ce tip de firme ai in portofoliu si cam ce cifre de afaceri au? (ex.: comert, productie, servicii, import-export; micro/IMM, platitoare/neplatitoare de TVA etc.)"
+    },
+    {
+      "id": "2",
+      "question": "Ce parti din bilant si contul de profit si pierdere ai pregatit concret pana acum? (ex.: balanta de verificare, note explicative, situatii pentru banca, raportari semestriale/anuale)"
+    },
+    {
+      "id": "3",
+      "question": "Ai lucrat si pe alte zone de contabilitate in afara de furnizori-clienti si declaratii? (ex.: imobilizari, amortizari, leasinguri, deconturi, provizioane, decontari cu asociatii/actionarii, credite bancare)"
+    },
+    {
+      "id": "4",
+      "question": "La partea de ANAF/controale, ce ai facut mai exact? (ex.: ai pregatit dosare de control, ai raspuns la adrese, ai facut reconcilieri la TVA/impozit pe profit, ai mers fizic la ANAF)"
+    },
+    {
+      "id": "5",
+      "question": "Cum te imparti in echipa de 4 oameni? (ex.: tu pe ce esti „responsabil principal”, cui raportezi, daca ai inlocuit colegi in concediu pe alte arii de contabilitate)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "1",
+      "text": "Înregistrarea în Saga a unui volum lunar de aproximativ 900–1000 facturi de furnizori, 350–400 facturi emise către clienți, circa 600 NIR-uri și 700–800 bonuri de consum, inclusiv întocmirea fișelor de cont aferente",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "2",
+      "text": "Întocmirea completă și depunerea lunară a declarațiilor fiscale D112, D300, D394, precum și a declarației D390 în caz de operațiuni intracomunitare, cu verificarea și corelarea anterioară a jurnalelor de TVA",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "3",
+      "text": "Efectuarea operațiunilor de închidere de lună, prin verificarea soldurilor la furnizori, stocuri, casă-bancă, realizarea punctajelor și întocmirea notelor de corecție acolo unde este cazul",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "4",
+      "text": "Identificarea și soluționarea unei diferențe de aproximativ 38.000 lei pe conturile de furnizori, prin verificarea lunară a înregistrărilor, efectuarea de corecții și confirmarea punctajelor cu furnizorii, ceea ce a dus la preluarea de reconcilieri mai dificile din partea contabilului-șef",
+      "category": "problema_rezolvata"
+    },
+    {
+      "id": "5",
+      "text": "Utilizarea avansată a programului Saga pentru întreg fluxul contabil (introducerea facturilor, NIR-urilor, bonurilor de consum, generarea jurnalelor de TVA și a fișelor de cont) și a Microsoft Excel (VLOOKUP, tabel pivot, SUMIF) pentru verificări și analize",
+      "category": "tools"
+    },
+    {
+      "id": "6",
+      "text": "Pregătirea documentației necesare în cazul controalelor ANAF și menținerea legăturii cu inspectorii fiscali, inclusiv răspuns la solicitări și transmiterea documentelor cerute",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "7",
+      "text": "Colaborarea în echipa financiar-contabilă de 4 persoane, cu asumarea responsabilității pe zona de declarații fiscale și reconcilieri dificile și sprijinirea departamentului de HR prin întocmirea pontajelor lunare",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 595,
+      "cachedTokens": 0,
+      "completionTokens": 481,
+      "reasoningTokens": 0,
+      "costUSD": 0.00555375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1232,
+      "cachedTokens": 0,
+      "completionTokens": 548,
+      "reasoningTokens": 0,
+      "costUSD": 0.00702,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.01257375,
+    "promptTokens": 1827,
+    "cachedTokens": 0,
+    "completionTokens": 1029,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 29.9,
+    "inventionFlags": 6
+  },
+  "durations": {
+    "call1_s": 9.6,
+    "call2_s": 8.6
+  }
+}

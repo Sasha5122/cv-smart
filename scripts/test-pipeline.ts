@@ -104,7 +104,7 @@ async function runOne(tc: TestCase, variant: Variant, withJD: boolean) {
       rawText: tc.raw,
       jobDescription: jd,
     },
-    variant
+    { variant }
   );
   const q_s = ((Date.now() - t1) / 1000).toFixed(1);
 
@@ -116,7 +116,7 @@ async function runOne(tc: TestCase, variant: Variant, withJD: boolean) {
   const t2 = Date.now();
   const result = await runBulletsFromContext(
     { jobTitle: tc.jobTitle, rawText: tc.raw, interview, jobDescription: jd },
-    variant
+    { variant }
   );
   const b_s = ((Date.now() - t2) / 1000).toFixed(1);
 

@@ -1,0 +1,106 @@
+{
+  "config": "C6_mini_51",
+  "case": "caz3_raspunsuri_sarace",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Cu ce fel de firme ai lucrat mai exact și ce tip de activitate au avut? (ex: comerț, producție, servicii, import/export, TVA la încasare, stocuri multe, mai multe puncte de lucru)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce alte responsabilități ai avut în afară de ce ai spus deja, mai ales pe partea de contabilitate și raportări? (ex: balanță lunară, declarații anuale, situații pentru management, înregistrări mijloace fixe, salarii/REVISAL, inventariere)"
+    },
+    {
+      "id": "q3",
+      "question": "Ai lucrat vreodată și pe partea de închidere de an sau audit? (ex: inventar, provizioane, amortizări, reconcilierea conturilor, dosare pentru auditor/cenzor)"
+    },
+    {
+      "id": "q4",
+      "question": "Ce rezultate concrete sau îmbunătățiri ai adus în munca ta? (ex: ai redus erori, ai scurtat timpul de lucru, ai pus ordine în documente, ai automatizat ceva în Excel)"
+    },
+    {
+      "id": "q5",
+      "question": "Cu ce programe, platforme sau proceduri ai mai lucrat în plus față de SAGA și Excel? (ex: SPV, e-Factura, e-Transport, Revisal, WinMentor, Ciel, SoftOne, portal ANAF)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "1",
+      "text": "Înregistrarea lunară în SAGA a unui volum de aproximativ 900–1.000 de facturi de furnizori și 350–400 de facturi emise către clienți, cu respectarea condițiilor de deductibilitate și încadrare corectă pe conturi contabile.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "2",
+      "text": "Operarea a circa 600 de NIR-uri și 700–800 de bonuri de consum lunar, cu verificarea încadrării pe gestiuni, a prețurilor și a corelațiilor cu stocurile.",
+      "category": "volum_cifre"
+    },
+    {
+      "id": "3",
+      "text": "Întocmirea și depunerea declarațiilor lunare D112, D300, D394 și D390 (pentru operațiuni intracomunitare), precum și verificarea corelațiilor dintre acestea și jurnalele de TVA.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "4",
+      "text": "Verificarea lunară a jurnalelor de TVA pentru achiziții și livrări, cu urmărirea încadrării corecte a operațiunilor și a soldurilor de TVA.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "5",
+      "text": "Efectuarea lucrărilor de închidere lunară: verificarea soldurilor pe furnizori, stocuri și conturi de casă-bancă, realizarea punctajelor și întocmirea notelor de corecție acolo unde este cazul.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "6",
+      "text": "Utilizarea avansată a Microsoft Excel (funcții VLOOKUP, tabele pivot, SUMIF) pentru centralizarea, analizarea și verificarea datelor contabile.",
+      "category": "tools"
+    },
+    {
+      "id": "7",
+      "text": "Menținerea relației cu ANAF în cazul controalelor sau solicitărilor de informații și sprijinirea departamentului HR prin preluarea și verificarea pontajelor, în cadrul unei echipe financiar-contabile de 4 persoane.",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 595,
+      "cachedTokens": 0,
+      "completionTokens": 459,
+      "reasoningTokens": 0,
+      "costUSD": 0.00251175,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1125,
+      "cachedTokens": 0,
+      "completionTokens": 465,
+      "reasoningTokens": 0,
+      "costUSD": 0.00605625,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.008568,
+    "promptTokens": 1720,
+    "cachedTokens": 0,
+    "completionTokens": 924,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 24.4,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 4.1,
+    "call2_s": 6.5
+  }
+}

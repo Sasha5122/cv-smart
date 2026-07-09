@@ -6,7 +6,7 @@
  *
  * Funcții pure — fără persistență; rutele API se ocupă de salvare.
  */
-import { callStructured } from "@/lib/openai";
+import { CallConfig, CallUsage, callStructured } from "@/lib/openai";
 import {
   buildStage1System,
   buildStage1User,
@@ -29,10 +29,18 @@ import {
 // Apel #1 — Întrebările recrutorului
 // ---------------------------------------------------------------------------
 
+export interface StageOptions {
+  variant?: PromptVariant;
+  /** model + reasoning_effort pentru acest apel (default: OPENAI_MODEL) */
+  config?: CallConfig;
+  onUsage?: (u: CallUsage) => void;
+}
+
 export async function runRecruiterQuestions(
   input: AnalyzeInput,
-  variant: PromptVariant = getDefaultPromptVariant()
+  opts: StageOptions = {}
 ): Promise<PipelineQuestion[]> {
+  const variant = opts.variant ?? getDefaultPromptVariant();
   const result = await callStructured<QuestionsResult>({
     stage: `apel1-intrebari-recrutor[${variant}]`,
     systemPrompt: buildStage1System(
@@ -43,6 +51,9 @@ export async function runRecruiterQuestions(
     userContent: buildStage1User(input),
     schemaName: "recruiter_questions",
     jsonSchema: QUESTIONS_SCHEMA,
+    model: opts.config?.model,
+    reasoningEffort: opts.config?.reasoning_effort,
+    onUsage: opts.onUsage,
   });
 
   // Garantăm exact 5 întrebări (schema strict nu poate impune count).
@@ -195,6 +206,8 @@ export interface BulletStageResult {
 
 export interface BulletContextInput {
   jobTitle: string;
+  company?: string;
+  period?: string;
   rawText: string;
   interview: { question: string; answer: string }[];
   jobDescription?: string;
@@ -202,8 +215,9 @@ export interface BulletContextInput {
 
 export async function runBulletsFromContext(
   input: BulletContextInput,
-  variant: PromptVariant = getDefaultPromptVariant()
+  opts: StageOptions = {}
 ): Promise<BulletStageResult> {
+  const variant = opts.variant ?? getDefaultPromptVariant();
   const hasJD = Boolean(input.jobDescription?.trim());
   // ancora de adevăr pentru validarea cifrelor
   const contextText = [
@@ -216,12 +230,17 @@ export async function runBulletsFromContext(
     systemPrompt: buildStage2System(hasJD, variant),
     userContent: buildStage2User({
       jobTitle: input.jobTitle,
+      company: input.company,
+      period: input.period,
       rawText: input.rawText,
       interview: input.interview,
       jobDescription: input.jobDescription,
     }),
     schemaName: "cv_bullets",
     jsonSchema: BULLETS_SCHEMA,
+    model: opts.config?.model,
+    reasoningEffort: opts.config?.reasoning_effort,
+    onUsage: opts.onUsage,
   });
 
   let bullets = first.bullets.slice(0, 7);
@@ -237,9 +256,14 @@ export async function runBulletsFromContext(
     );
     const regen = await callStructured<BulletsResult>({
       stage: `apel2-bullets-regen[${variant}]`,
+      model: opts.config?.model,
+      reasoningEffort: opts.config?.reasoning_effort,
+      onUsage: opts.onUsage,
       systemPrompt: buildStage2System(hasJD, variant),
       userContent: buildStage2User({
         jobTitle: input.jobTitle,
+        company: input.company,
+        period: input.period,
         rawText: input.rawText,
         interview: input.interview,
         jobDescription: input.jobDescription,

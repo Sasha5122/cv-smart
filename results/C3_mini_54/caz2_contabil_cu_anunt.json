@@ -1,0 +1,106 @@
+{
+  "config": "C3_mini_54",
+  "case": "caz2_contabil_cu_anunt",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Pe lângă ce faci lunar, ai lucrat vreodată și cu contabilitate completă pentru firmele astea? (de exemplu: înregistrări în registrul jurnal, bilanț/cont de profit și pierdere, inventar, imobilizări, note contabile mai complexe)"
+    },
+    {
+      "id": "q2",
+      "question": "Ce declarații fiscale ai depus tu concret și de cât timp te ocupi de ele? (de exemplu: D112, D300, D394, alte declarații pentru TVA/salarii)"
+    },
+    {
+      "id": "q3",
+      "question": "Ai făcut și partea de salarii cap-coadă? (de exemplu: întocmire state, contracte/încetări, Revisal, concedii, sporuri, rețineri, tichete)"
+    },
+    {
+      "id": "q4",
+      "question": "În urma închiderii de lună, ce documente sau rapoarte ai pregătit tu mai departe? (de exemplu: balanță de verificare, fișe de cont, extrase, raportări interne, justificări pentru client sau pentru ANAF)"
+    },
+    {
+      "id": "q5",
+      "question": "Ai avut și responsabilitatea de a verifica sau coordona munca altcuiva, ori de a prelua portofolii mai mari de clienți? (de exemplu: revizie pe lucrări făcute de juniori, împărțirea sarcinilor, gestionarea mai multor clienți simultan)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Gestionarea contabilității primare pentru un portofoliu de 12 SRL-uri mici din retail și construcții, cu înregistrarea documentelor contabile și procesarea a aproximativ 300 de facturi pe lună în Saga.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Întocmirea și depunerea lunară a declarațiilor fiscale D112, D300 și D394 prin SPV pentru 12 firme, cu respectarea cerințelor de raportare fiscală.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b3",
+      "text": "Realizarea pontajelor și salariilor pentru angajații clienților, în corelare cu documentele necesare procesării lunare.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b4",
+      "text": "Efectuarea închiderilor lunare prin întocmirea balanțelor și verificarea conturilor, contribuind la reducerea duratei de închidere de lună de la 10 zile la 6 zile.",
+      "category": "realizare"
+    },
+    {
+      "id": "b5",
+      "text": "Utilizarea zilnică a programelor Saga și Excel în activitatea contabilă și folosirea SmartBill pentru facturare la doi clienți.",
+      "category": "tools"
+    },
+    {
+      "id": "b6",
+      "text": "Menținerea comunicării directe cu clienții prin e-mail și telefon pentru solicitări de documente și clarificarea situațiilor apărute în relația cu ANAF.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "b7",
+      "text": "Verificarea lucrărilor unei colege junior și instruirea acesteia pentru depunerea independentă a declarațiilor, precum și soluționarea unui caz fiscal prin refacerea și redepunerea declarațiilor unui client, cu anularea unei amenzi de 8000 lei.",
+      "category": "problema_rezolvata"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-mini",
+      "promptTokens": 675,
+      "cachedTokens": 0,
+      "completionTokens": 492,
+      "reasoningTokens": 0,
+      "costUSD": 0.00272025,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1346,
+      "cachedTokens": 0,
+      "completionTokens": 419,
+      "reasoningTokens": 0,
+      "costUSD": 0.00965,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.012370250000000001,
+    "promptTokens": 2021,
+    "cachedTokens": 0,
+    "completionTokens": 911,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 23,
+    "inventionFlags": 6
+  },
+  "durations": {
+    "call1_s": 4.1,
+    "call2_s": 4.6
+  }
+}

@@ -91,7 +91,7 @@ export function Step13Hobbies({ sessionId, hobbies, onUpdate, onNext, onBack }: 
           onChange={(e) => setNewHobby(e.target.value)}
           placeholder="Adaugă hobby manual"
           onKeyDown={(e) => e.key === "Enter" && addHobby()}
-          className="flex-1 rounded-[10px] border border-slate-400 bg-[var(--card)] px-3 py-2.5 text-lg focus:outline-none focus:border-indigo-400"
+          style={{ padding: "12px 16px" }} className="flex-1 rounded-[10px] border border-[var(--input-border)] bg-[var(--card)] text-lg focus:outline-none focus:border-[var(--primary)]"
         />
         <Button variant="outline" onClick={addHobby} icon={<Plus className="w-4 h-4" />}>Adaugă</Button>
       </div>

@@ -1,0 +1,117 @@
+{
+  "config": "C7_nano_54",
+  "case": "caz2_contabil_cu_anunt",
+  "questions": [
+    {
+      "id": "1",
+      "question": "Cand zici “contabilitate primara” si “inchidere de luna”, poti sa imi spui concret ce inseamna pentru tine la nivel de balanta: faci si reconciliere intre conturi/banca-casarie, verifici solduri, sau doar balanta de verificare? (ex: “verific conturile 461/401/512, fac balanta de verificare, verific solduri, urmaresc diferentele pana se inchide”)"
+    },
+    {
+      "id": "2",
+      "question": "La declaratii: ce ai depus exact la ANAF in fiecare luna si in ce situatii? (ex: D112 pentru salarii si retineri, D300 pentru TVA, D394 pentru livrari/achizitii — pe care le faci tu si cu ce date le alimentezi din program)"
+    },
+    {
+      "id": "3",
+      "question": "Cum lucrezi cu salariile si pontajele: ai facut calcule efective pentru state de plata (CAS/CASS, impozit, concedii/ajutoare), sau preiei date de la client si doar introduci in program? (ex: “calculez eu contributiile/retinerile si verific statele”)"
+    },
+    {
+      "id": "4",
+      "question": "Cum arata portofoliul tau concret: cate firme ai (aprox), ce marimi/industrie, si cat de des intri in discutii cu ei? (ex: “am 5-8 firme, 2 cu TVA lunar, 3 cu depuneri trimestriale, majoritatea cu angajati”)"
+    },
+    {
+      "id": "5",
+      "question": "Daca apare o problema la ANAF sau la declaratii, cum procedezi pas cu pas ca sa o inchizi? (ex: “imi dau seama ce nu se potriveste, verific in Saga jurnal/conturi, refac D394/D300/D112, trimit mail clientului cu actele, apoi re-depun si documentez”)"
+    }
+  ],
+  "bullets": [
+    {
+      "id": "b1",
+      "text": "Gestionarea contabilității primare pentru un portofoliu de 12 SRL-uri mici din retail și construcții, în cadrul unei firme de contabilitate cu 6 angajați.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b2",
+      "text": "Înregistrarea a aproximativ 300 de facturi pe lună și utilizarea zilnică a programelor Saga și Excel, inclusiv lucrul în SmartBill pentru facturare.",
+      "category": "tools"
+    },
+    {
+      "id": "b3",
+      "text": "Întocmirea și depunerea lunară prin SPV a declarațiilor D112, D300 și D394 pentru 12 firme, cu respectarea cerințelor fiscale și a termenelor de raportare.",
+      "category": "tools"
+    },
+    {
+      "id": "b4",
+      "text": "Realizarea pontajelor și a salariilor pentru angajații clienților, ca parte a activității curente de administrare contabilă și fiscală.",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "b5",
+      "text": "Efectuarea închiderilor de lună, inclusiv întocmirea balanțelor și verificarea conturilor, cu reducerea duratei de închidere de la 10 zile la 6 zile.",
+      "category": "realizare"
+    },
+    {
+      "id": "b6",
+      "text": "Menținerea relației directe cu clienții prin e-mail și telefon pentru solicitări de documente și clarificarea situațiilor apărute în relația cu ANAF.",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "b7",
+      "text": "Coordonarea unei colege junior, prin verificarea lucrărilor acesteia și instruirea ei pentru depunerea independentă a declarațiilor; soluționarea unei spețe ANAF prin refacerea și redepunerea declarațiilor unui client, cu anularea unei amenzi de 8000 lei.",
+      "category": "problema_rezolvata"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.4-nano",
+      "promptTokens": 675,
+      "cachedTokens": 0,
+      "completionTokens": 625,
+      "reasoningTokens": 0,
+      "costUSD": 0.00091625,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1447,
+      "cachedTokens": 0,
+      "completionTokens": 425,
+      "reasoningTokens": 0,
+      "costUSD": 0.0099925,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets-regen[liber]",
+      "model": "gpt-5.4",
+      "promptTokens": 1920,
+      "cachedTokens": 1280,
+      "completionTokens": 65,
+      "reasoningTokens": 0,
+      "costUSD": 0.002895,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.01380375,
+    "promptTokens": 4042,
+    "cachedTokens": 1280,
+    "completionTokens": 1115,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 1,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 23.4,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 4.3,
+    "call2_s": 5.8
+  }
+}

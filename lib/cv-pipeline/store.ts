@@ -22,6 +22,8 @@ export interface PipelineState {
   id: string;
   wizard_session_id: string | null;
   job_title: string;
+  company: string | null;
+  period: string | null;
   industry: string | null;
   years_experience: number | null;
   raw_text: string;
@@ -112,6 +114,8 @@ export async function createPipelineSession(
       .insert({
         wizard_session_id: state.wizard_session_id,
         job_title: state.job_title,
+        company: state.company,
+        period: state.period,
         industry: state.industry,
         years_experience: state.years_experience,
         raw_text: state.raw_text,

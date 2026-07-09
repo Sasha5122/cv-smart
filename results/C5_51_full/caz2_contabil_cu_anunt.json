@@ -1,0 +1,106 @@
+{
+  "config": "C5_51_full",
+  "case": "caz2_contabil_cu_anunt",
+  "questions": [
+    {
+      "id": "1",
+      "question": "Cam cate firme ai in portofoliu acum si ce tipuri de activitati au? (de ex.: comert, servicii, constructii, PFA, ONG etc.)"
+    },
+    {
+      "id": "2",
+      "question": "Te ocupi si de partea de contabilitate completa pana la bilant/balanta anuala? (de ex.: inchideri de an, pregatire dosar pentru bilant, colaborare cu expertul contabil)"
+    },
+    {
+      "id": "3",
+      "question": "Cu ce declaratii lucrezi concret in mod curent? (de ex.: D112, D300, D394, D100, D101 etc.) si le pregatesti tu cap-coada sau doar le verifici/depuni?"
+    },
+    {
+      "id": "4",
+      "question": "Ai avut situatii in care ai discutat/negociat direct cu ANAF pentru clienti? (de ex.: controale, clarificari, esalonari, raspuns la notificari) Daca da, ce ai facut concret?"
+    },
+    {
+      "id": "5",
+      "question": "Ai ajutat sau coordonat colegi mai juniori pana acum? (de ex.: le-ai verificat inregistrarile, i-ai invatat proceduri, le-ai corectat declaratii) Daca da, povesteste-mi putin cum."
+    }
+  ],
+  "bullets": [
+    {
+      "id": "1",
+      "text": "Gestionarea contabilității primare pentru un portofoliu de 12 SRL-uri mici din retail și construcții, incluzând înregistrarea lunară a aproximativ 300 de facturi în Saga și pregătirea documentelor contabile aferente",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "2",
+      "text": "Întocmirea și depunerea lunară a declarațiilor fiscale D112, D300 și D394 pentru toți clienții alocați, cu utilizarea Spațiului Privat Virtual (SPV) pentru transmiterea electronică către ANAF",
+      "category": "responsabilitate_core"
+    },
+    {
+      "id": "3",
+      "text": "Efectuarea închiderilor lunare de contabilitate, inclusiv întocmirea balanțelor și verificarea soldurilor și conturilor, cu optimizarea procesului de închidere de la 10 zile la 6 zile",
+      "category": "realizare"
+    },
+    {
+      "id": "4",
+      "text": "Utilizarea avansată a programului Saga și a Microsoft Excel în activitatea zilnică de contabilitate și raportare, precum și utilizarea SmartBill pentru facturarea a doi clienți",
+      "category": "tools"
+    },
+    {
+      "id": "5",
+      "text": "Asigurarea comunicării directe cu clienții, prin e-mail și telefon, pentru transmiterea documentelor, clarificarea situațiilor contabile și sprijin în relația cu ANAF",
+      "category": "colaborare_leadership"
+    },
+    {
+      "id": "6",
+      "text": "Gestionarea relației operative cu ANAF pentru clienți, inclusiv refacerea și redepunerea declarațiilor care au dus la anularea unei amenzi de 8.000 lei",
+      "category": "problema_rezolvata"
+    },
+    {
+      "id": "7",
+      "text": "Coordonarea și îndrumarea unei colege junioare, prin verificarea înregistrărilor și a declarațiilor întocmite și formarea acesteia pentru depunerea autonomă a declarațiilor fiscale",
+      "category": "colaborare_leadership"
+    }
+  ],
+  "usage": [
+    {
+      "stage": "apel1-intrebari-recrutor[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 675,
+      "cachedTokens": 0,
+      "completionTokens": 472,
+      "reasoningTokens": 0,
+      "costUSD": 0.00556375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    },
+    {
+      "stage": "apel2-bullets[liber]",
+      "model": "gpt-5.1",
+      "promptTokens": 1307,
+      "cachedTokens": 0,
+      "completionTokens": 446,
+      "reasoningTokens": 0,
+      "costUSD": 0.00609375,
+      "jsonRetries": 0,
+      "effortRejected": false
+    }
+  ],
+  "metrics": {
+    "costUSD": 0.011657500000000001,
+    "promptTokens": 1982,
+    "cachedTokens": 0,
+    "completionTokens": 918,
+    "reasoningTokens": 0,
+    "jsonRetries": 0,
+    "effortRejected": false,
+    "firstPassInvalid": 0,
+    "dropped": 0,
+    "nominalizedOK": 7,
+    "bulletsTotal": 7,
+    "avgWords": 24.3,
+    "inventionFlags": 7
+  },
+  "durations": {
+    "call1_s": 9.7,
+    "call2_s": 7.7
+  }
+}

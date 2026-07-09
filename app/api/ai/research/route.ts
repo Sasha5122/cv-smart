@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
 
     // Generate new profile
     const profile = await extractJSON<IdealProfile>({
+      model: FAST_MODEL,
       system: `Ești un expert HR român. Generează profilul ideal pentru rolul dat.
 JSON strict: {"role": "...", "industry": "...", "seniority": "...", "responsibilities": [...], "hardSkills": [...], "softSkills": [...], "atsKeywords": [...]}
 

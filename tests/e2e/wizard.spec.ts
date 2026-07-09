@@ -95,9 +95,12 @@ test.describe("Wizard — navigare și shell editorial", () => {
     await expect(
       page.getByRole("heading", { name: "Ce job vrei să obții?" })
     ).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("Cuprins")).toBeVisible();
     await expect(page.getByText(/Pasul 1 din 10/i)).toBeVisible();
-    await expect(page.getByText("Preview CV")).toBeVisible();
+    if ((page.viewportSize()?.width ?? 1440) >= 900) {
+      // sidebar-ul și preview-ul sunt ascunse pe mobil (by design)
+      await expect(page.getByText("Pașii tăi")).toBeVisible();
+      await expect(page.getByText("Preview CV")).toBeVisible();
+    }
   });
 
   test("skip-ul pasului 1 duce la fotografie", async ({ page }) => {
