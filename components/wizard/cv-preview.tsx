@@ -12,8 +12,29 @@ interface CVPreviewProps {
  * bullet-uri cu em-dash amber. Aceeași estetică cu produsul final.
  */
 export function CVPreview({ cvData }: CVPreviewProps) {
-  const { personal, experience, education, skills, languages, hobbies } = cvData;
+  const { personal, experience, education, skills, languages, hobbies, license, qualifications } = cvData;
   const hasName = personal?.firstName || personal?.lastName;
+
+  // Adresa completă în antet, exact cum a introdus-o utilizatorul.
+  const isAbroad = Boolean(personal?.country && personal.country !== "România");
+  // România: „Str. Mihai Eminescu 12, ap. 4" + „Cluj-Napoca, Cluj"
+  const roStreet = [
+    [personal?.street, personal?.streetNumber].filter(Boolean).join(" "),
+    personal?.apartment ? `ap. ${personal.apartment}` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const roLocality = [personal?.city, personal?.county].filter(Boolean).join(", ");
+  // Străinătate: adresa liberă din modal + țara
+  const contactItems = (
+    isAbroad
+      ? [personal?.email, personal?.phone, personal?.street, personal?.country]
+      : [personal?.email, personal?.phone, roStreet, roLocality]
+  ).filter((item): item is string => Boolean(item && item.trim()));
+
+  const hasLicenseInfo =
+    (license?.hasLicense && license.categories.length > 0) ||
+    Boolean(qualifications?.trim());
 
   return (
     <div
@@ -90,14 +111,12 @@ export function CVPreview({ cvData }: CVPreviewProps) {
                 fontSize: 10.5,
               }}
             >
-              {[personal?.email, personal?.phone, personal?.city]
-                .filter(Boolean)
-                .map((item, i, arr) => (
-                  <span key={i}>
-                    {item}
-                    {i < arr.length - 1 && <span style={{ color: "var(--faint)", marginLeft: 10 }}>·</span>}
-                  </span>
-                ))}
+              {contactItems.map((item, i, arr) => (
+                <span key={i}>
+                  {item}
+                  {i < arr.length - 1 && <span style={{ color: "var(--faint)", marginLeft: 10 }}>·</span>}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -205,6 +224,16 @@ export function CVPreview({ cvData }: CVPreviewProps) {
                     {edu.institution}
                     {edu.location ? ` · ${edu.location}` : ""}
                   </p>
+                  {(edu.grade || edu.thesis) && (
+                    <p style={{ color: "var(--muted-foreground)", fontSize: 10.5, margin: "2px 0 0" }}>
+                      {[
+                        edu.grade ? `Medie: ${edu.grade}` : "",
+                        edu.thesis ? `Lucrare: „${edu.thesis}"` : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -247,6 +276,25 @@ export function CVPreview({ cvData }: CVPreviewProps) {
                   <span style={{ color: "var(--faint)", fontStyle: "italic" }}>({l.level})</span>
                 </span>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Permis & Calificări */}
+        {hasLicenseInfo && (
+          <div>
+            <SectionHeader title="Permis & Calificări" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 6 }}>
+              {license?.hasLicense && license.categories.length > 0 && (
+                <p style={{ color: "#334155", fontSize: 11.5, margin: 0 }}>
+                  Permis de conducere: categoria {license.categories.join(", ")}
+                </p>
+              )}
+              {qualifications?.trim() && (
+                <p style={{ color: "#334155", fontSize: 11.5, margin: 0, lineHeight: 1.55 }}>
+                  {qualifications.trim()}
+                </p>
+              )}
             </div>
           </div>
         )}

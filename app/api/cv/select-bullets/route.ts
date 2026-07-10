@@ -6,7 +6,7 @@ import {
 import type { GeneratedBullet } from "@/lib/types/cv-pipeline";
 
 /**
- * Salvează selecția userului (5-6 bullet-uri) ȘI respingerile.
+ * Salvează selecția userului (minim 3, fără limită superioară) ȘI respingerile.
  * Marchează sesiunea ca 'completed'.
  */
 export async function POST(req: Request) {
@@ -37,11 +37,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5-6 selecții; când există doar 5 bullet-uri valide, minim 4 e acceptabil
-    const min = Math.min(5, Math.max(4, bullets.length - 1));
-    if (selectedIds.length < min || selectedIds.length > 6) {
+    // minim 3 selecții (sau câte există, dacă-s mai puține); userul poate bifa toate
+    const min = Math.min(3, bullets.length);
+    if (selectedIds.length < min) {
       return NextResponse.json(
-        { error: `Alege între ${min} și 6 descrieri.` },
+        { error: `Alege minim ${min} descrieri.` },
         { status: 400 }
       );
     }

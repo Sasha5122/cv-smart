@@ -3,7 +3,9 @@ import { useState } from "react";
 import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, Mail, Phone, MapPin, ArrowRight, Link2 } from "lucide-react";
+import { Select } from "@/components/ui/select";
+import { AbroadModal, type AbroadData } from "../abroad-modal";
+import { User, Mail, Phone, MapPin, ArrowRight, Link2, Globe, Pencil } from "lucide-react";
 import type { CVData } from "@/lib/types/cv";
 
 const COUNTIES = [
@@ -47,10 +49,33 @@ interface Errors {
 
 export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
   const [errors, setErrors] = useState<Errors>({});
+  const [abroadOpen, setAbroadOpen] = useState(false);
+
+  // datele din străinătate sunt completate (alternativa la datele din România)
+  const isAbroad = Boolean(value?.country && value.country !== "România");
 
   const set = (field: keyof CVData["personal"], val: string) => {
     onChange({ [field]: val });
     setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const applyAbroad = (data: AbroadData) => {
+    onChange({
+      country: data.country,
+      phone: data.phone,
+      street: data.address,
+      streetNumber: "",
+      apartment: "",
+      city: "",
+      county: "",
+    });
+    setErrors({});
+    setAbroadOpen(false);
+  };
+
+  const resetToRomania = () => {
+    onChange({ country: "România", phone: "", street: "" });
+    setErrors({});
   };
 
   const handleNext = () => {
@@ -59,9 +84,12 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
     if (!value?.lastName?.trim()) e.lastName = "Introdu numele de familie";
     if (!value?.email?.trim()) e.email = "Introdu adresa de email";
     else if (!isValidEmail(value.email)) e.email = "Email invalid";
-    if (!value?.phone?.trim()) e.phone = "Introdu numărul de telefon";
-    else if (!isValidPhone(value.phone)) e.phone = "Format: 07XX XXX XXX";
-    if (!value?.city?.trim()) e.city = "Introdu orașul";
+    // cu datele din străinătate completate, cele din România nu mai sunt necesare
+    if (!isAbroad) {
+      if (!value?.phone?.trim()) e.phone = "Introdu numărul de telefon";
+      else if (!isValidPhone(value.phone)) e.phone = "Format: 07XX XXX XXX";
+      if (!value?.city?.trim()) e.city = "Introdu orașul";
+    }
 
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setErrors({});
@@ -76,7 +104,7 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {/* Nume + Prenume */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
           <Input
             label="Prenume *"
             placeholder="ex: Alexandru"
@@ -125,77 +153,132 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
           icon={<Mail className="w-4 h-4" />}
         />
 
-        {/* Telefon */}
-        <Input
-          label="Telefon *"
-          placeholder="0721 234 567"
-          value={value?.phone ?? ""}
-          onChange={(e) => set("phone", formatPhone(e.target.value))}
-          error={errors.phone}
-          type="tel"
-          inputMode="numeric"
-          icon={<Phone className="w-4 h-4" />}
-          hint="Format: 07XX XXX XXX"
-        />
+        {isAbroad ? (
+          /* Rezumatul datelor din străinătate — înlocuiește câmpurile din România */
+          <div
+            style={{
+              border: "1px solid var(--input-border)",
+              borderRadius: 10,
+              padding: "16px 18px",
+              backgroundColor: "var(--wash)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <Globe size={15} style={{ color: "var(--primary)" }} />
+              <span style={{ fontSize: 14.5, fontWeight: 700, color: "var(--primary-strong)" }}>
+                Date de contact din {value?.country}
+              </span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 14.5, color: "var(--ink)" }}>
+              <span><Phone size={13} style={{ display: "inline", marginRight: 8, color: "var(--faint)" }} />{value?.phone}</span>
+              {value?.street && (
+                <span><MapPin size={13} style={{ display: "inline", marginRight: 8, color: "var(--faint)" }} />{value.street}</span>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <button
+                onClick={() => setAbroadOpen(true)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  fontSize: 13.5, fontWeight: 600, color: "var(--primary)",
+                  background: "none", border: "none", cursor: "pointer", padding: "4px 0",
+                }}
+              >
+                <Pencil size={13} /> Modifică
+              </button>
+              <button
+                onClick={resetToRomania}
+                style={{
+                  fontSize: 13.5, fontWeight: 500, color: "var(--muted-foreground)",
+                  background: "none", border: "none", cursor: "pointer", padding: "4px 0",
+                  textDecoration: "underline", textUnderlineOffset: 3,
+                }}
+              >
+                Locuiesc în România
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Telefon */}
+            <Input
+              label="Telefon *"
+              placeholder="0721 234 567"
+              value={value?.phone ?? ""}
+              onChange={(e) => set("phone", formatPhone(e.target.value))}
+              error={errors.phone}
+              type="tel"
+              inputMode="numeric"
+              icon={<Phone className="w-4 h-4" />}
+              hint="Format: 07XX XXX XXX"
+            />
 
-        {/* Locație */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Input
-            label="Oraș *"
-            placeholder="ex: Cluj-Napoca"
-            value={value?.city ?? ""}
-            onChange={(e) => set("city", e.target.value)}
-            error={errors.city}
-            icon={<MapPin className="w-4 h-4" />}
-          />
-          <div>
-            <label style={{ fontSize: 18, fontWeight: 500, color: "var(--foreground)", display: "block", marginBottom: 6 }}>
-              Județ
-            </label>
-            <select
-              value={value?.county ?? ""}
-              onChange={(e) => set("county", e.target.value)}
+            {/* Locație */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+              <Input
+                label="Oraș *"
+                placeholder="ex: Cluj-Napoca"
+                value={value?.city ?? ""}
+                onChange={(e) => set("city", e.target.value)}
+                error={errors.city}
+                icon={<MapPin className="w-4 h-4" />}
+              />
+              <Select
+                label="Județ"
+                value={value?.county ?? ""}
+                onChange={(v) => set("county", v)}
+                options={COUNTIES}
+                placeholder="alege județul..."
+                searchable
+              />
+            </div>
+
+            {/* Adresă — stradă + număr + apartament */}
+            <Input
+              label="Stradă (opțional)"
+              placeholder="ex: Str. Mihai Eminescu"
+              value={value?.street ?? ""}
+              onChange={(e) => set("street", e.target.value)}
+              icon={<MapPin className="w-4 h-4" />}
+            />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+              <Input
+                label="Număr (opțional)"
+                placeholder="ex: 12"
+                value={value?.streetNumber ?? ""}
+                onChange={(e) => set("streetNumber", e.target.value)}
+              />
+              <Input
+                label="Apartament (opțional)"
+                placeholder="ex: 4A"
+                value={value?.apartment ?? ""}
+                onChange={(e) => set("apartment", e.target.value)}
+              />
+            </div>
+
+            {/* Alternativa pentru diaspora */}
+            <button
+              onClick={() => setAbroadOpen(true)}
               style={{
-                width: "100%",
-                borderRadius: 10,
-                border: "1px solid var(--faint)",
-                backgroundColor: "var(--card)",
-                padding: "12px 20px",
-                fontSize: 18,
-                color: "#111827",
-                outline: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                alignSelf: "flex-start",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "var(--primary)",
+                backgroundColor: "var(--wash)",
+                border: "1px solid #C7D2FE",
+                borderRadius: 8,
+                padding: "10px 16px",
+                cursor: "pointer",
               }}
             >
-              <option value="">Județ</option>
-              {COUNTIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Adresă — stradă + număr + apartament */}
-        <Input
-          label="Stradă (opțional)"
-          placeholder="ex: Str. Mihai Eminescu"
-          value={value?.street ?? ""}
-          onChange={(e) => set("street", e.target.value)}
-          icon={<MapPin className="w-4 h-4" />}
-        />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Input
-            label="Număr (opțional)"
-            placeholder="ex: 12"
-            value={value?.streetNumber ?? ""}
-            onChange={(e) => set("streetNumber", e.target.value)}
-          />
-          <Input
-            label="Apartament (opțional)"
-            placeholder="ex: 4A"
-            value={value?.apartment ?? ""}
-            onChange={(e) => set("apartment", e.target.value)}
-          />
-        </div>
+              <Globe size={15} />
+              Locuiești în afara României?
+            </button>
+          </>
+        )}
 
         {/* LinkedIn - optional */}
         <Input
@@ -207,12 +290,23 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
         />
       </div>
 
-      <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+      <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
         <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
         <Button onClick={handleNext} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
           Continuă
         </Button>
       </div>
+
+      <AbroadModal
+        open={abroadOpen}
+        initial={
+          isAbroad
+            ? { country: value?.country, phone: value?.phone, address: value?.street }
+            : undefined
+        }
+        onConfirm={applyAbroad}
+        onClose={() => setAbroadOpen(false)}
+      />
     </StepCard>
   );
 }

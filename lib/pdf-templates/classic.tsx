@@ -4,26 +4,31 @@ import { registerFonts } from "./fonts";
 
 registerFonts();
 
+/* ────────────────────────────────────────────────────────────────
+   Template „Classic" — aceeași estetică cu preview-ul live din
+   wizard: nume mare + riglă de cerneală, secțiuni cu titlu uppercase
+   și hairline, bullet-uri cu em-dash, accente albastre.
+   ──────────────────────────────────────────────────────────────── */
+
 const COLORS = {
-  navy: "#1e3a8a",
-  text: "#1e293b",
-  secondary: "#475569",
-  white: "#FFFFFF",
-  light: "#f8fafc",
+  ink: "#0f172a",
+  text: "#334155",
+  muted: "#64748b",
+  faint: "#94a3b8",
+  primary: "#2563eb",
+  hairline: "#e2e8f0",
 };
 
 const styles = StyleSheet.create({
   page: {
-    backgroundColor: COLORS.white,
+    backgroundColor: "#ffffff",
     fontFamily: "Lato",
     fontSize: 10,
     color: COLORS.text,
-  },
-  header: {
-    backgroundColor: COLORS.navy,
-    padding: 24,
-    paddingTop: 28,
-    paddingBottom: 24,
+    paddingTop: 42,
+    paddingBottom: 48,
+    paddingHorizontal: 48,
+    lineHeight: 1.5,
   },
   headerRow: {
     flexDirection: "row",
@@ -31,229 +36,358 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   photo: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: COLORS.white,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    borderWidth: 1,
+    borderColor: COLORS.hairline,
   },
   name: {
-    fontFamily: "Playfair Display",
-    fontWeight: 700,
-    fontSize: 26,
-    color: COLORS.white,
-  },
-  titleText: {
     fontFamily: "Lato",
-    fontSize: 13,
-    color: COLORS.white,
-    opacity: 0.85,
-    marginTop: 3,
-  },
-  body: {
-    padding: 20,
+    fontWeight: 900,
+    fontSize: 25,
+    color: COLORS.ink,
+    letterSpacing: -0.4,
+    // fără lineHeight moștenit (1.5) — evită suprapunerea peste rândul de contact
+    lineHeight: 1.15,
+    marginBottom: 4,
   },
   contactRow: {
-    fontSize: 9.5,
-    color: COLORS.secondary,
-    marginBottom: 16,
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    marginTop: 4,
+    fontSize: 9,
+    color: COLORS.muted,
   },
-  sectionHeading: {
-    fontFamily: "Playfair Display",
-    fontWeight: 700,
-    fontSize: 12,
-    color: COLORS.navy,
-    textTransform: "uppercase",
-    letterSpacing: 1.5,
+  inkRule: {
+    height: 2.5,
+    backgroundColor: COLORS.ink,
     marginTop: 14,
-    marginBottom: 3,
+    marginBottom: 4,
   },
-  divider: {
-    borderBottomWidth: 0.75,
-    borderBottomColor: COLORS.navy,
-    marginBottom: 8,
+  section: {
+    marginTop: 14,
   },
-  jobTitle: {
-    fontSize: 11,
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 7,
+  },
+  sectionTitle: {
+    fontSize: 8.5,
     fontWeight: 700,
-    color: COLORS.text,
+    color: COLORS.muted,
+    textTransform: "uppercase",
+    letterSpacing: 1.6,
   },
-  company: {
-    fontFamily: "Lato",
+  sectionLine: {
+    flex: 1,
+    height: 0.75,
+    backgroundColor: COLORS.hairline,
+  },
+  entryHeadRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  entryTitle: {
+    fontSize: 11.5,
+    fontWeight: 700,
+    color: COLORS.ink,
+  },
+  entryPeriod: {
+    fontSize: 9,
+    color: COLORS.faint,
+  },
+  entrySub: {
     fontSize: 10,
-    color: COLORS.navy,
+    color: COLORS.primary,
+    marginTop: 1,
+    marginBottom: 4,
+  },
+  entryMeta: {
+    fontSize: 9,
+    color: COLORS.muted,
+    fontStyle: "italic",
     marginTop: 1,
   },
-  periodLocation: {
-    fontSize: 9,
-    color: COLORS.secondary,
-    marginBottom: 3,
+  bulletRow: {
+    flexDirection: "row",
+    gap: 7,
+    marginBottom: 2.5,
   },
-  bullet: {
-    fontSize: 9.5,
+  bulletDash: {
+    color: COLORS.primary,
+    fontWeight: 700,
+    fontSize: 10,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 9.8,
     color: COLORS.text,
-    lineHeight: 1.4,
-    marginLeft: 8,
-    marginBottom: 1.5,
+    lineHeight: 1.45,
   },
-  summaryText: {
+  skillsWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 5,
+  },
+  skillChip: {
+    fontSize: 8.8,
+    color: COLORS.ink,
+    borderWidth: 0.75,
+    borderColor: "#cbd5e1",
+    borderRadius: 3,
+    paddingVertical: 2.5,
+    paddingHorizontal: 7,
+  },
+  langsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+  },
+  bodyText: {
     fontSize: 10,
     color: COLORS.text,
     lineHeight: 1.5,
-    marginBottom: 4,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 22,
+    left: 48,
+    right: 48,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 7.5,
+    color: COLORS.faint,
   },
 });
 
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <View style={styles.sectionHeaderRow}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionLine} />
+    </View>
+  );
+}
+
 export function ClassicTemplate({ data }: { data: CVData }) {
   const fullName = `${data.personal?.firstName ?? ""} ${data.personal?.lastName ?? ""}`.trim();
-  const contactItems = [
-    data.personal?.email,
-    data.personal?.phone,
-    [data.personal?.city, data.personal?.county].filter(Boolean).join(", "),
-  ].filter(Boolean);
+  // aceeași logică de adresă ca în preview-ul live (paritate preview ↔ PDF)
+  const isAbroad = Boolean(
+    data.personal?.country && data.personal.country !== "România"
+  );
+  const roStreet = [
+    [data.personal?.street, data.personal?.streetNumber].filter(Boolean).join(" "),
+    data.personal?.apartment ? `ap. ${data.personal.apartment}` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const contactItems = (
+    isAbroad
+      ? [
+          data.personal?.email,
+          data.personal?.phone,
+          data.personal?.street,
+          data.personal?.country,
+        ]
+      : [
+          data.personal?.email,
+          data.personal?.phone,
+          roStreet,
+          [data.personal?.city, data.personal?.county].filter(Boolean).join(", "),
+        ]
+  ).filter((x): x is string => Boolean(x && x.trim()));
+
+  const hasLicenseInfo =
+    (data.license?.hasLicense && data.license.categories.length > 0) ||
+    Boolean(data.qualifications?.trim());
 
   return (
-    <Document>
+    <Document
+      title={`CV ${fullName}`.trim()}
+      author={fullName || "CV Smart"}
+      creator="CV Smart"
+    >
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            {data.personal?.photoUrl && (
-              <Image src={data.personal.photoUrl} style={styles.photo} />
+        {/* Antet */}
+        <View style={styles.headerRow}>
+          {data.personal?.photoUrl && (
+            /* eslint-disable-next-line jsx-a11y/alt-text */
+            <Image src={data.personal.photoUrl} style={styles.photo} />
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={styles.name}>{fullName || "Prenume Nume"}</Text>
+            {data.targetTitle ? (
+              <Text style={{ fontSize: 10.5, color: COLORS.primary, fontWeight: 700, marginTop: 2 }}>
+                {data.targetTitle}
+              </Text>
+            ) : null}
+            {contactItems.length > 0 && (
+              <View style={styles.contactRow}>
+                {contactItems.map((item, i) => (
+                  <Text key={i}>
+                    {item}
+                    {i < contactItems.length - 1 ? "   ·   " : ""}
+                  </Text>
+                ))}
+              </View>
             )}
-            <View>
-              <Text style={styles.name}>{fullName || "Prenume Nume"}</Text>
-              {data.targetTitle && (
-                <Text style={styles.titleText}>{data.targetTitle}</Text>
-              )}
-            </View>
           </View>
         </View>
+        <View style={styles.inkRule} />
 
-        <View style={styles.body}>
-          {/* Contact */}
-          {contactItems.length > 0 && (
-            <View style={styles.contactRow}>
-              {contactItems.map((item, i) => (
-                <Text key={i}>{item}{i < contactItems.length - 1 ? "  ·  " : ""}</Text>
-              ))}
-            </View>
-          )}
+        {/* Rezumat */}
+        {data.summary ? (
+          <View style={styles.section}>
+            <SectionHeader title="Rezumat" />
+            <Text style={styles.bodyText}>{data.summary}</Text>
+          </View>
+        ) : null}
 
-          {/* Summary */}
-          {data.summary && (
-            <>
-              <Text style={styles.sectionHeading}>Rezumat Profesional</Text>
-              <View style={styles.divider} />
-              <Text style={styles.summaryText}>{data.summary}</Text>
-            </>
-          )}
-
-          {/* Experience */}
-          {data.experience.length > 0 && (
-            <>
-              <Text style={styles.sectionHeading}>Experiență Profesională</Text>
-              <View style={styles.divider} />
-              {data.experience.map((exp, i) => (
-                <View key={i} style={{ marginBottom: 10 }}>
-                  <Text style={styles.jobTitle}>{exp.title}</Text>
-                  <Text style={styles.company}>{exp.company}{exp.location ? ` — ${exp.location}` : ""}</Text>
-                  <Text style={styles.periodLocation}>{exp.period}</Text>
-                  {exp.responsibilities.map((r, j) => (
-                    <Text key={j} style={styles.bullet}>• {r}</Text>
-                  ))}
-                  {exp.achievements.map((a, j) => (
-                    <Text key={j} style={styles.bullet}>✓ {a}</Text>
-                  ))}
+        {/* Experiență */}
+        {data.experience.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader title="Experiență profesională" />
+            {data.experience.map((exp, i) => (
+              <View key={i} wrap={false} style={{ marginBottom: i < data.experience.length - 1 ? 10 : 0 }}>
+                <View style={styles.entryHeadRow}>
+                  <Text style={styles.entryTitle}>{exp.title}</Text>
+                  <Text style={styles.entryPeriod}>{exp.period}</Text>
                 </View>
-              ))}
-            </>
-          )}
+                <Text style={styles.entrySub}>
+                  {exp.company}
+                  {exp.location ? ` · ${exp.location}` : ""}
+                </Text>
+                {exp.responsibilities.map((r, j) => (
+                  <View key={j} style={styles.bulletRow}>
+                    <Text style={styles.bulletDash}>—</Text>
+                    <Text style={styles.bulletText}>{r}</Text>
+                  </View>
+                ))}
+                {exp.achievements.map((a, j) => (
+                  <View key={`a${j}`} style={styles.bulletRow}>
+                    <Text style={styles.bulletDash}>—</Text>
+                    <Text style={styles.bulletText}>{a}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
 
-          {/* Education */}
-          {data.education.length > 0 && (
-            <>
-              <Text style={styles.sectionHeading}>Educație</Text>
-              <View style={styles.divider} />
-              {data.education.map((edu, i) => (
-                <View key={i} style={{ marginBottom: 8 }}>
-                  <Text style={styles.jobTitle}>{edu.level} — {edu.field}</Text>
-                  <Text style={styles.company}>{edu.institution}</Text>
-                  <Text style={styles.periodLocation}>{edu.years}</Text>
-                  {edu.thesis && (
-                    <Text style={{ fontSize: 9, color: COLORS.secondary, fontStyle: "italic" }}>
-                      Lucrare: {edu.thesis}
-                    </Text>
-                  )}
+        {/* Educație */}
+        {data.education.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader title="Educație" />
+            {data.education.map((edu, i) => (
+              <View key={i} wrap={false} style={{ marginBottom: i < data.education.length - 1 ? 7 : 0 }}>
+                <View style={styles.entryHeadRow}>
+                  <Text style={styles.entryTitle}>
+                    {edu.level}
+                    {edu.field ? ` — ${edu.field}` : ""}
+                  </Text>
+                  <Text style={styles.entryPeriod}>{edu.years}</Text>
                 </View>
-              ))}
-            </>
-          )}
+                <Text style={{ fontSize: 10, color: COLORS.text, marginTop: 1 }}>
+                  {edu.institution}
+                  {edu.location ? ` · ${edu.location}` : ""}
+                </Text>
+                {(edu.grade || edu.thesis) && (
+                  <Text style={styles.entryMeta}>
+                    {[
+                      edu.grade ? `Medie: ${edu.grade}` : "",
+                      edu.thesis ? `Lucrare: „${edu.thesis}"` : "",
+                    ]
+                      .filter(Boolean)
+                      .join("  ·  ")}
+                  </Text>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
 
-          {/* Courses */}
-          {data.courses.length > 0 && (
-            <>
-              <Text style={styles.sectionHeading}>Cursuri & Certificări</Text>
-              <View style={styles.divider} />
-              {data.courses.map((c, i) => (
-                <Text key={i} style={styles.bullet}>
-                  • {c.name}{c.provider ? ` — ${c.provider}` : ""}{c.year ? ` (${c.year})` : ""}
+        {/* Cursuri */}
+        {data.courses.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader title="Cursuri & certificări" />
+            {data.courses.map((c, i) => (
+              <View key={i} style={styles.bulletRow}>
+                <Text style={styles.bulletDash}>—</Text>
+                <Text style={styles.bulletText}>
+                  {c.name}
+                  {c.provider ? ` · ${c.provider}` : ""}
+                  {c.year ? ` (${c.year})` : ""}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Competențe */}
+        {data.skills.length > 0 && (
+          <View style={styles.section} wrap={false}>
+            <SectionHeader title="Competențe" />
+            <View style={styles.skillsWrap}>
+              {data.skills.map((s, i) => (
+                <Text key={i} style={styles.skillChip}>
+                  {s.name}
                 </Text>
               ))}
-            </>
-          )}
+            </View>
+          </View>
+        )}
 
-          {/* Skills */}
-          {data.skills.length > 0 && (
-            <>
-              <Text style={styles.sectionHeading}>Competențe</Text>
-              <View style={styles.divider} />
-              <Text style={{ fontSize: 9.5, color: COLORS.text, lineHeight: 1.6 }}>
-                {data.skills.map((s) => s.name).join("  ·  ")}
-              </Text>
-            </>
-          )}
-
-          {/* Languages */}
-          {data.languages.length > 0 && (
-            <>
-              <Text style={styles.sectionHeading}>Limbi Străine</Text>
-              <View style={styles.divider} />
+        {/* Limbi străine */}
+        {data.languages.length > 0 && (
+          <View style={styles.section} wrap={false}>
+            <SectionHeader title="Limbi străine" />
+            <View style={styles.langsRow}>
               {data.languages.map((l, i) => (
-                <Text key={i} style={styles.bullet}>• {l.name}: {l.level}</Text>
+                <Text key={i} style={styles.bodyText}>
+                  {l.name} <Text style={{ color: COLORS.muted, fontStyle: "italic" }}>({l.level})</Text>
+                </Text>
               ))}
-            </>
-          )}
+            </View>
+          </View>
+        )}
 
-          {/* License */}
-          {data.license?.hasLicense && data.license.categories.length > 0 && (
-            <>
-              <Text style={styles.sectionHeading}>Permis de Conducere</Text>
-              <View style={styles.divider} />
-              <Text style={styles.bullet}>Categorii: {data.license.categories.join(", ")}</Text>
-            </>
-          )}
+        {/* Permis & Calificări */}
+        {hasLicenseInfo && (
+          <View style={styles.section} wrap={false}>
+            <SectionHeader title="Permis & Calificări" />
+            {data.license?.hasLicense && data.license.categories.length > 0 && (
+              <Text style={styles.bodyText}>
+                Permis de conducere: categoria {data.license.categories.join(", ")}
+              </Text>
+            )}
+            {data.qualifications?.trim() ? (
+              <Text style={[styles.bodyText, { marginTop: 2 }]}>
+                {data.qualifications.trim()}
+              </Text>
+            ) : null}
+          </View>
+        )}
 
-          {/* Qualifications */}
-          {data.qualifications && (
-            <>
-              <Text style={styles.sectionHeading}>Calificări Profesionale</Text>
-              <View style={styles.divider} />
-              <Text style={styles.summaryText}>{data.qualifications}</Text>
-            </>
-          )}
+        {/* Hobby-uri */}
+        {data.hobbies.length > 0 && (
+          <View style={styles.section} wrap={false}>
+            <SectionHeader title="Hobby-uri" />
+            <Text style={styles.bodyText}>{data.hobbies.join(", ")}</Text>
+          </View>
+        )}
 
-          {/* Hobbies */}
-          {data.hobbies.length > 0 && (
-            <>
-              <Text style={styles.sectionHeading}>Hobby-uri & Interese</Text>
-              <View style={styles.divider} />
-              <Text style={styles.summaryText}>{data.hobbies.join(", ")}</Text>
-            </>
-          )}
+        {/* Footer cu paginare */}
+        <View style={styles.footer} fixed>
+          <Text>{fullName}</Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+            }
+          />
         </View>
       </Page>
     </Document>

@@ -35,6 +35,8 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
   const sidebarIdx = SIDEBAR_STEPS.findIndex((s) => s.steps.includes(currentStep));
   const currentItem = SIDEBAR_STEPS[sidebarIdx];
   const progressPct = Math.round(((sidebarIdx + 1) / SIDEBAR_STEPS.length) * 100);
+  // pe Finalizare, preview-ul lateral dispare — pasul afișează el însuși CV-ul mare
+  const isFinalStep = currentStep === 14;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -305,22 +307,24 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
           </div>
         </div>
 
-        {/* Conținut + Preview */}
+        {/* Conținut + Preview — coloanele se setează în <style> (responsive) */}
         <div
-          className="wizard-grid"
+          className={isFinalStep ? "wizard-grid wizard-grid-final" : "wizard-grid"}
           style={{
             flex: 1,
             display: "grid",
-            gridTemplateColumns: "minmax(0,1fr) 410px",
-            gap: 48,
+            gap: 40,
             padding: "44px 44px 120px",
             alignItems: "start",
           }}
         >
           {/* Formular */}
-          <div style={{ maxWidth: 640, minWidth: 0 }}>{children}</div>
+          <div style={{ maxWidth: isFinalStep ? 880 : 640, minWidth: 0, margin: isFinalStep ? "0 auto" : undefined, width: "100%" }}>
+            {children}
+          </div>
 
-          {/* Preview CV */}
+          {/* Preview CV — ascuns pe pasul final (acolo preview-ul e conținutul) */}
+          {!isFinalStep && (
           <div className="wizard-preview" style={{ position: "sticky", top: 28 }}>
             <div
               style={{
@@ -363,27 +367,43 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
                 padding: 14,
               }}
             >
+              {/* foaia: proporții A4 (210:297) + scroll intern — TOT
+                  conținutul (limbi, hobby-uri) rămâne accesibil */}
               <div
                 style={{
                   border: "1px solid var(--hairline)",
                   borderRadius: 10,
-                  overflow: "hidden",
                   boxShadow: "var(--shadow-lift)",
                   backgroundColor: "#fff",
+                  aspectRatio: "210 / 297",
+                  maxHeight: "calc(100vh - 170px)",
+                  overflowY: "auto",
                 }}
               >
                 <CVPreview cvData={cvData} />
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
 
       <style>{`
+        /* preview lat, proporții realiste de CV; se îngustează pe ecrane mici */
+        .wizard-grid { grid-template-columns: minmax(0,1fr) 560px; }
+        .wizard-grid-final { grid-template-columns: minmax(0,1fr); }
+        @media (max-width: 1360px) {
+          .wizard-grid { grid-template-columns: minmax(0,1fr) 460px; }
+          .wizard-grid-final { grid-template-columns: minmax(0,1fr); }
+        }
+        @media (max-width: 1120px) {
+          .wizard-grid { grid-template-columns: minmax(0,1fr) 380px; }
+          .wizard-grid-final { grid-template-columns: minmax(0,1fr); }
+        }
         @media (max-width: 900px) {
           .wizard-sidebar { display: none !important; }
           .wizard-preview { display: none !important; }
-          .wizard-grid { grid-template-columns: 1fr !important; padding: 24px 18px 90px !important; }
+          .wizard-grid, .wizard-grid-final { grid-template-columns: 1fr !important; padding: 24px 18px 90px !important; }
           .wizard-mobile-header { display: flex !important; }
         }
       `}</style>

@@ -41,13 +41,15 @@ const SECTIONS = [
 interface Props {
   sessionId: string;
   cvData: CVData;
+  /** anunțul de la Pasul 1 — abilitățile se aliniază la cerințele lui */
+  jobDescription?: string;
   skills: Skill[];
   onUpdate: (skills: Skill[]) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-export function Step10Skills({ cvData, onUpdate, onNext, onBack }: Props) {
+export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNext, onBack }: Props) {
   const [phase, setPhase] = useState<"loading" | "selection">("loading");
   const [pool, setPool] = useState<SkillPool>({ hardSkills: [], softwareTools: [], softSkills: [] });
   const [selectedHard, setSelectedHard] = useState<Set<string>>(new Set());
@@ -64,7 +66,12 @@ export function Step10Skills({ cvData, onUpdate, onNext, onBack }: Props) {
     fetch("/api/ai/generate-skills", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cvData),
+      // anunțul + sessionId (pentru cuvintele-cheie ATS din research)
+      body: JSON.stringify({
+        cvData,
+        jobDescription: jobDescription?.trim() || undefined,
+        sessionId,
+      }),
     })
       .then((res) => res.json())
       .then((data: SkillPool) => { setPool(data); setPhase("selection"); })
@@ -188,7 +195,7 @@ export function Step10Skills({ cvData, onUpdate, onNext, onBack }: Props) {
         {/* Manual add */}
         <div style={{ border: "1px dashed var(--input-border)", borderRadius: 10, padding: "14px 16px" }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 10 }}>
-            Adaugă abilitate manuală
+            Adaugă manual
           </p>
           <div style={{ display: "flex", gap: 8 }}>
             <input

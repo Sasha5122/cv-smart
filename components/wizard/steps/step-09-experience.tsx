@@ -4,9 +4,11 @@ import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 import { ArrowRight, ArrowLeft, Plus, Trash2, RefreshCcw } from "lucide-react";
 import type { Experience } from "@/lib/types/cv";
 import type { GeneratedBullet, PipelineQuestion } from "@/lib/types/cv-pipeline";
+import { correctText } from "@/lib/correct-text";
 import { toast } from "sonner";
 
 /* ────────────────────────────────────────────────────────────────
@@ -33,34 +35,45 @@ type Phase =
   | "select"
   | "manual";
 
-const INDUSTRIES = [
-  "Retail / Comerț",
-  "HoReCa",
-  "Construcții",
-  "Transport & Logistică",
-  "Producție",
-  "IT & Software",
-  "Financiar & Contabilitate",
-  "Sănătate",
-  "Educație",
-  "Vânzări & Marketing",
-  "Administrativ / Birou",
-  "Servicii",
-  "Alta",
-];
-
 const EMPTY_FORM = {
   title: "",
   company: "",
-  period: "",
+  startYear: "",
+  startMonth: "",
+  endYear: "Prezent",
+  endMonth: "",
   location: "",
-  industry: "",
-  years: "",
   rawText: "",
 };
 
-const MIN_RAW = 200;
-const MAX_RAW = 5000;
+const MONTHS = [
+  "ianuarie", "februarie", "martie", "aprilie", "mai", "iunie",
+  "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie",
+];
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: CURRENT_YEAR - 1974 }, (_, i) =>
+  String(CURRENT_YEAR - i)
+);
+
+/** Compune textul perioadei din dropdown-uri (luna e opțională). */
+function buildPeriod(f: typeof EMPTY_FORM): string {
+  const start = f.startYear
+    ? f.startMonth
+      ? `${f.startMonth} ${f.startYear}`
+      : f.startYear
+    : "";
+  const end =
+    f.endYear === "Prezent"
+      ? "prezent"
+      : f.endYear
+        ? f.endMonth
+          ? `${f.endMonth} ${f.endYear}`
+          : f.endYear
+        : "";
+  if (start && end) return `${start} – ${end}`;
+  if (start) return `${start} – prezent`;
+  return "";
+}
 
 /** mesaje progresive pentru fazele de loading */
 const ANALYZE_MESSAGES = [
@@ -122,6 +135,132 @@ function LoadingPanel({ messages }: { messages: string[] }) {
   );
 }
 
+/** Perioada jobului din dropdown-uri: an obligatoriu pentru sens, luna
+ *  opțională; la „Până când" prima opțiune e „Prezent". */
+function PeriodPicker({
+  form,
+  set,
+}: {
+  form: typeof EMPTY_FORM;
+  set: (field: keyof typeof EMPTY_FORM, val: string) => void;
+}) {
+  const monthOptions = [
+    { value: "", label: "luna (opțional)" },
+    ...MONTHS.map((m) => ({ value: m, label: m })),
+  ];
+  const isPresent = form.endYear === "Prezent";
+
+  return (
+    // auto-fit + minmax: pe ecrane înguste coloanele se stivuiesc în loc să
+    // iasă din pagină (overflow orizontal pe mobil)
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        gap: 14,
+        marginBottom: 18,
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>
+          De când
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 8 }}>
+          <Select
+            value={form.startYear}
+            onChange={(v) => set("startYear", v)}
+            options={YEARS}
+            placeholder="anul"
+          />
+          <Select
+            value={form.startMonth}
+            onChange={(v) => set("startMonth", v)}
+            options={monthOptions}
+            placeholder="luna (opțional)"
+          />
+        </div>
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>
+          Până când
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 8 }}>
+          <Select
+            value={form.endYear}
+            onChange={(v) => {
+              set("endYear", v);
+              if (v === "Prezent") set("endMonth", "");
+            }}
+            options={["Prezent", ...YEARS]}
+            placeholder="anul"
+          />
+          <Select
+            value={form.endMonth}
+            onChange={(v) => set("endMonth", v)}
+            options={monthOptions}
+            placeholder="luna (opțional)"
+            disabled={isPresent}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Text editabil direct în chenar — arată ca text simplu, dar userul poate
+ *  șterge/scrie; crește pe verticală odată cu conținutul. */
+function InlineEditableText({
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  ariaLabel: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      aria-label={ariaLabel}
+      onChange={(e) => onChange(e.target.value)}
+      rows={1}
+      spellCheck={false}
+      style={{
+        width: "100%",
+        border: "1px solid transparent",
+        borderRadius: 6,
+        background: "transparent",
+        resize: "none",
+        overflow: "hidden",
+        font: "inherit",
+        fontSize: 13.5,
+        lineHeight: 1.55,
+        color: "var(--foreground)",
+        padding: "2px 6px",
+        margin: "-2px -6px",
+        transition: "border-color 0.15s, background-color 0.15s",
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = "var(--input-border)";
+        e.currentTarget.style.backgroundColor = "var(--card)";
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = "transparent";
+        e.currentTarget.style.backgroundColor = "transparent";
+      }}
+    />
+  );
+}
+
 export function Step09Experience({
   sessionId,
   jobDescription,
@@ -148,14 +287,29 @@ export function Step09Experience({
   const set = (field: keyof typeof EMPTY_FORM, val: string) =>
     setForm((prev) => ({ ...prev, [field]: val }));
 
-  const rawLen = form.rawText.trim().length;
+  // corectare AI ieftină (gramatică + diacritice) la părăsirea câmpului
+  const correctField = async (field: "title" | "location") => {
+    const current = form[field].trim();
+    if (current.length < 2) return;
+    const corrected = await correctText(
+      current,
+      field === "title" ? "job-title" : "city"
+    );
+    if (corrected !== current) {
+      setForm((prev) =>
+        // aplicăm doar dacă userul nu a modificat textul între timp
+        prev[field].trim() === current ? { ...prev, [field]: corrected } : prev
+      );
+    }
+  };
+
   const canAnalyze =
-    form.title.trim().length > 1 && rawLen >= MIN_RAW && rawLen <= MAX_RAW;
+    form.title.trim().length > 1 && form.rawText.trim().length > 0;
   const answeredCount = answers.filter((a) => a.trim().length > 0).length;
 
-  const minSelect = bullets.length >= 6 ? 5 : Math.max(4, bullets.length - 1);
-  const canFinishSelect =
-    selectedIds.size >= minSelect && selectedIds.size <= 6;
+  // minim 3 bifate, fără limită superioară — userul poate alege toate
+  const minSelect = Math.min(3, bullets.length);
+  const canFinishSelect = selectedIds.size >= minSelect;
 
   /* ── API calls ─────────────────────────────────────────────── */
 
@@ -169,9 +323,7 @@ export function Step09Experience({
         body: JSON.stringify({
           jobTitle: form.title.trim(),
           company: form.company.trim() || undefined,
-          period: form.period.trim() || undefined,
-          industry: form.industry || undefined,
-          yearsExperience: form.years ? Number(form.years) : undefined,
+          period: buildPeriod(form) || undefined,
           rawText: form.rawText.trim(),
           jobDescription: jobDescription?.trim() || undefined,
           wizardSessionId: sessionId,
@@ -243,7 +395,7 @@ export function Step09Experience({
     const entry: Experience = {
       title: form.title.trim(),
       company: form.company.trim() || "—",
-      period: form.period.trim() || "",
+      period: buildPeriod(form),
       location: form.location.trim() || undefined,
       responsibilities,
       achievements: [],
@@ -267,9 +419,26 @@ export function Step09Experience({
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
-      else if (next.size < 6) next.add(id);
+      else next.add(id);
       return next;
     });
+  }
+
+  /** Editare inline a unei descrieri dintr-un job salvat — fără buton de
+   *  save: ultima versiune merge automat în live view și în PDF. */
+  function editResponsibility(expIdx: number, respIdx: number, text: string) {
+    onUpdate(
+      experience.map((exp, i) =>
+        i === expIdx
+          ? {
+              ...exp,
+              responsibilities: exp.responsibilities.map((r, j) =>
+                j === respIdx ? text : r
+              ),
+            }
+          : exp
+      )
+    );
   }
 
   /* ── render pe faze ────────────────────────────────────────── */
@@ -339,10 +508,20 @@ export function Step09Experience({
                   {exp.responsibilities.map((r, j) => (
                     <li key={j} style={{ display: "flex", gap: 8, fontSize: 13.5, color: "var(--foreground)", lineHeight: 1.55 }}>
                       <span style={{ color: "var(--amber)", fontWeight: 600, flexShrink: 0 }}>—</span>
-                      {r}
+                      {/* editabil direct — ultima versiune intră automat în CV și în preview */}
+                      <InlineEditableText
+                        value={r}
+                        onChange={(text) => editResponsibility(i, j, text)}
+                        ariaLabel={`Editează descrierea ${j + 1} de la ${exp.title}`}
+                      />
                     </li>
                   ))}
                 </ul>
+              )}
+              {exp.responsibilities.length > 0 && (
+                <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "10px 0 0" }}>
+                  Poți edita descrierile direct — se salvează automat în CV.
+                </p>
               )}
             </div>
           ))}
@@ -366,11 +545,13 @@ export function Step09Experience({
             }}
           >
             <Plus size={16} />
-            Adaugă încă un job
+            {experience.length === 0
+              ? "Adaugă experiența de la cel mai recent job"
+              : "Adaugă experiența de la jobul precedent"}
           </button>
         </div>
 
-        <div className="flex gap-3 mt-10">
+        <div className="flex gap-3" style={{ marginTop: 32 }}>
           <Button variant="outline" onClick={onBack} className="flex-1">
             ← Înapoi
           </Button>
@@ -425,12 +606,13 @@ export function Step09Experience({
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 18 }}>
           <Input
             label="Funcția / titlul jobului *"
             placeholder="ex: Contabil"
             value={form.title}
             onChange={(e) => set("title", e.target.value)}
+            onBlur={() => correctField("title")}
           />
           <Input
             label="Compania"
@@ -438,55 +620,17 @@ export function Step09Experience({
             value={form.company}
             onChange={(e) => set("company", e.target.value)}
           />
-          <Input
-            label="Perioada"
-            placeholder="ex: 2021 – prezent"
-            value={form.period}
-            onChange={(e) => set("period", e.target.value)}
-          />
+        </div>
+
+        <PeriodPicker form={form} set={set} />
+
+        <div style={{ marginBottom: 18 }}>
           <Input
             label="Localitatea"
             placeholder="ex: Cluj-Napoca"
             value={form.location}
             onChange={(e) => set("location", e.target.value)}
-          />
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14, marginBottom: 18 }}>
-          <div className="flex flex-col gap-1.5">
-            <label style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
-              Industria
-            </label>
-            <select
-              value={form.industry}
-              onChange={(e) => set("industry", e.target.value)}
-              style={{
-                width: "100%",
-                borderRadius: 8,
-                border: "1px solid var(--input-border)",
-                backgroundColor: "var(--card)",
-                padding: "13px 16px",
-                fontSize: 15,
-                color: form.industry ? "var(--ink)" : "var(--faint)",
-                fontFamily: "inherit",
-              }}
-            >
-              <option value="">alege…</option>
-              {INDUSTRIES.map((ind) => (
-                <option key={ind} value={ind}>
-                  {ind}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Input
-            label="Ani în acest rol"
-            placeholder="ex: 5"
-            type="number"
-            min={0}
-            max={50}
-            value={form.years}
-            onChange={(e) => set("years", e.target.value)}
+            onBlur={() => correctField("location")}
           />
         </div>
 
@@ -496,28 +640,10 @@ export function Step09Experience({
           onChange={(e) => set("rawText", e.target.value)}
           placeholder="Descrie cu cuvintele tale ce faci la job, ca și cum i-ai povesti unui prieten. Nu-ți face griji de formulare."
           rows={7}
+          hint="Cu cât povestești mai mult, cu atât descrierile generate vor fi mai bune."
         />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: 6,
-            fontSize: 12.5,
-            color: rawLen >= MIN_RAW ? "var(--color-success,#3d7a4e)" : "var(--faint)",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          <span>
-            {rawLen < MIN_RAW
-              ? `încă ${MIN_RAW - rawLen} caractere ca AI-ul să aibă cu ce lucra`
-              : "✓ suficient de detaliat"}
-          </span>
-          <span>
-            {rawLen}/{MAX_RAW}
-          </span>
-        </div>
 
-        <div className="flex gap-3 mt-10">
+        <div className="flex gap-3" style={{ marginTop: 32 }}>
           <Button
             variant="outline"
             onClick={() => (experience.length > 0 ? setPhase("summary") : onBack())}
@@ -632,7 +758,7 @@ export function Step09Experience({
           ))}
         </div>
 
-        <div className="flex gap-3 mt-10">
+        <div className="flex gap-3" style={{ marginTop: 32 }}>
           <Button variant="outline" onClick={() => setPhase("input")} className="flex-1">
             ← Înapoi
           </Button>
@@ -658,7 +784,7 @@ export function Step09Experience({
       <StepCard
         kicker="Experiență · Pas 3 din 3"
         title="Alege ce te reprezintă."
-        subtitle={`Toate sunt ancorate strict în ce ne-ai spus — nimic inventat. Alege ${minSelect}–6 pentru CV.`}
+        subtitle={`Toate sunt ancorate strict în ce ne-ai spus — nimic inventat. Alege minim ${minSelect}; poți bifa toate dacă ți se potrivesc.`}
       >
         {ErrorCard}
 
@@ -681,7 +807,7 @@ export function Step09Experience({
               fontVariantNumeric: "tabular-nums",
             }}
           >
-            Ai ales {selectedIds.size} din {minSelect}–6
+            Ai ales {selectedIds.size} (minim {minSelect})
           </span>
         </div>
 
@@ -741,7 +867,7 @@ export function Step09Experience({
           })}
         </div>
 
-        <div className="flex gap-3 mt-10">
+        <div className="flex gap-3" style={{ marginTop: 32 }}>
           <Button
             variant="outline"
             onClick={() => runGenerate(true)}
@@ -758,7 +884,7 @@ export function Step09Experience({
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
             {canFinishSelect
-              ? "Finalizează jobul"
+              ? "Finalizează"
               : `Alege minim ${minSelect} descrieri`}
           </Button>
         </div>
@@ -774,12 +900,13 @@ export function Step09Experience({
       subtitle="Câte o responsabilitate pe rând. Le poți rafina mai târziu, la draftul final."
     >
       {ErrorCard}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 18 }}>
         <Input
           label="Funcția *"
           placeholder="ex: Contabil"
           value={form.title}
           onChange={(e) => set("title", e.target.value)}
+          onBlur={() => correctField("title")}
         />
         <Input
           label="Compania"
@@ -787,17 +914,15 @@ export function Step09Experience({
           value={form.company}
           onChange={(e) => set("company", e.target.value)}
         />
-        <Input
-          label="Perioada"
-          placeholder="ex: 2021 – prezent"
-          value={form.period}
-          onChange={(e) => set("period", e.target.value)}
-        />
+      </div>
+      <PeriodPicker form={form} set={set} />
+      <div style={{ marginBottom: 18 }}>
         <Input
           label="Localitatea"
           placeholder="ex: Cluj-Napoca"
           value={form.location}
           onChange={(e) => set("location", e.target.value)}
+          onBlur={() => correctField("location")}
         />
       </div>
       <Textarea
@@ -807,7 +932,7 @@ export function Step09Experience({
         placeholder={"Gestionat facturile lunare\nCoordonat echipa de 3 colegi\n…"}
         rows={6}
       />
-      <div className="flex gap-3 mt-10">
+      <div className="flex gap-3" style={{ marginTop: 32 }}>
         <Button variant="outline" onClick={() => setPhase("input")} className="flex-1" icon={<ArrowLeft className="w-4 h-4" />}>
           Înapoi la AI
         </Button>

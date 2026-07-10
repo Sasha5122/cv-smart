@@ -47,17 +47,17 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    if (rawText.length < 200) {
+    // singura validare cerută: userul să fi scris măcar ceva
+    if (rawText.length === 0) {
       return NextResponse.json(
-        {
-          error: `Descrierea e prea scurtă (${rawText.length}/200 caractere minim). Povestește mai mult despre ce faci la job.`,
-        },
+        { error: "Scrie măcar câteva cuvinte despre ce faci la job." },
         { status: 400 }
       );
     }
-    if (rawText.length > 5000) {
+    // plasă de siguranță tehnică (nu limită de produs): paste-bomb protection
+    if (rawText.length > 20000) {
       return NextResponse.json(
-        { error: "Descrierea e prea lungă (max 5000 caractere)." },
+        { error: "Descrierea e neobișnuit de lungă — păstrează esențialul." },
         { status: 400 }
       );
     }

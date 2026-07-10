@@ -1,4 +1,16 @@
 import { Font } from "@react-pdf/renderer";
+import path from "path";
+
+/**
+ * Fonturile PDF sunt fișiere LOCALE (lib/pdf-templates/fonts/*.ttf) —
+ * fonturile complete Lato de la foundry, cu toate diacriticele românești
+ * (ă â î ș ț), verificate cu scripts/check-fonts.mjs.
+ *
+ * NU folosi URL-uri Google Fonts aici: subseturile gstatic sunt versionate
+ * și expiră (404 la generare → bug istoric), iar unele nu conțin ș/ț.
+ */
+
+const FONTS_DIR = path.join(process.cwd(), "lib", "pdf-templates", "fonts");
 
 let registered = false;
 
@@ -7,45 +19,15 @@ export function registerFonts() {
   registered = true;
 
   Font.register({
-    family: "Inter",
-    fonts: [
-      {
-        src: "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.ttf",
-        fontWeight: 400,
-      },
-      {
-        src: "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMa25L7SUc.ttf",
-        fontWeight: 700,
-      },
-    ],
-  });
-
-  Font.register({
     family: "Lato",
     fonts: [
-      {
-        src: "https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjx4wXg.ttf",
-        fontWeight: 400,
-      },
-      {
-        src: "https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjxAwXjeu.ttf",
-        fontWeight: 400,
-        fontStyle: "italic",
-      },
-      {
-        src: "https://fonts.gstatic.com/s/lato/v24/S6u9w4BMUTPHh6UVSwiPGQ3q5d0N7w.ttf",
-        fontWeight: 700,
-      },
+      { src: path.join(FONTS_DIR, "Lato-Regular.ttf"), fontWeight: 400 },
+      { src: path.join(FONTS_DIR, "Lato-Italic.ttf"), fontWeight: 400, fontStyle: "italic" },
+      { src: path.join(FONTS_DIR, "Lato-Bold.ttf"), fontWeight: 700 },
+      { src: path.join(FONTS_DIR, "Lato-Black.ttf"), fontWeight: 900 },
     ],
   });
 
-  Font.register({
-    family: "Playfair Display",
-    fonts: [
-      {
-        src: "https://fonts.gstatic.com/s/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQ.ttf",
-        fontWeight: 700,
-      },
-    ],
-  });
+  // fără despărțire automată în silabe — cuvintele rămân întregi
+  Font.registerHyphenationCallback((word) => [word]);
 }

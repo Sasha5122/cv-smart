@@ -12,13 +12,6 @@ interface Props {
   onBack: () => void;
 }
 
-const EXAMPLES = [
-  "Sales Manager la Mega Image",
-  "Programator Full-Stack (React + Node.js)",
-  "Asistent manager în HoReCa",
-  "Șofer profesionist categoria CE",
-];
-
 export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }: Props) {
   return (
     <StepCard
@@ -29,50 +22,10 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Fă copy-paste la descrierea jobului de pe eJobs, BestJobs, LinkedIn... sau scrie rolul vizat (ex: Vânzător la Lidl)"
+        placeholder="Fă copy-paste la descrierea jobului de pe eJobs, BestJobs, LinkedIn... sau scrie jobul dorit (ex: Vânzător la Lidl)"
         rows={7}
         hint="Cu cât descrierea e mai completă, cu atât CV-ul va fi mai bine adaptat pentru acel job"
       />
-
-      {/* Exemple rapide — bloc separat clar de butoanele de navigare */}
-      {!value && (
-        <div style={{ marginTop: 22 }}>
-          <p className="folio" style={{ fontSize: 11, marginBottom: 12 }}>
-            Exemple rapide
-          </p>
-          <div className="flex flex-wrap" style={{ gap: 10 }}>
-            {EXAMPLES.map((ex) => (
-              <button
-                key={ex}
-                onClick={() => onChange(ex)}
-                style={{
-                  fontSize: 13.5,
-                  fontWeight: 600,
-                  color: "var(--foreground)",
-                  backgroundColor: "var(--card)",
-                  border: "1.5px solid var(--border)",
-                  borderRadius: 8,
-                  padding: "9px 15px",
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "var(--primary)";
-                  e.currentTarget.style.backgroundColor = "var(--wash)";
-                  e.currentTarget.style.color = "var(--primary-strong)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "var(--border)";
-                  e.currentTarget.style.backgroundColor = "var(--card)";
-                  e.currentTarget.style.color = "var(--foreground)";
-                }}
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {value && (
         <div
@@ -92,7 +45,7 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
         </div>
       )}
 
-      <div className="flex flex-col mt-10" style={{ gap: 14 }}>
+      <div className="flex flex-col" style={{ gap: 14, marginTop: 32 }}>
         <div className="flex gap-3">
           <Button variant="outline" onClick={onBack} className="flex-1">
             ← Înapoi
