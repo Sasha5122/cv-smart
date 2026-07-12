@@ -35,6 +35,12 @@ async function mockCorrectText(page: Page) {
 
 async function mockPipeline(page: Page) {
   await mockCorrectText(page);
+  // rezumatul auto-generat la pasul final — determinist în teste
+  await page.route("**/api/ai/summary", (route) =>
+    route.fulfill({
+      json: { summary: "Profesionist cu experiență practică, obișnuit cu volume mari de lucru." },
+    })
+  );
   await page.route("**/api/cv/analyze", (route) =>
     route.fulfill({
       json: { sessionId: "test-pipeline-id", questions: QUESTIONS },
@@ -139,6 +145,48 @@ test.describe("Wizard — navigare și shell editorial", () => {
     await expect(
       page.locator(".wizard-preview").getByText("Elena Stanciu")
     ).toBeVisible();
+  });
+});
+
+test.describe("Persistență — refresh-ul nu pierde progresul", () => {
+  test("după F5, utilizatorul revine exact unde a rămas, cu datele intacte", async ({ page }) => {
+    await mockCorrectText(page);
+    await page.route("**/api/ai/research", (route) => route.fulfill({ json: { ok: true } }));
+    await page.goto("/creare-cv");
+    await expect(
+      page.getByRole("heading", { name: "Ce job vrei să obții?" })
+    ).toBeVisible({ timeout: 15000 });
+    // progres real: anunț + trecut de foto + date de contact parțiale
+    await page
+      .getByPlaceholder(/copy-paste la descrierea/i)
+      .fill("Angajăm vânzător cu experiență la casa de marcat.");
+    await page.getByRole("button", { name: "Continuă", exact: true }).click();
+    await page.getByText("Nu am fotografie potrivită").click();
+    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible();
+    await page.getByLabel(/prenume/i).fill("Elena");
+    await page.getByLabel(/nume de familie/i).fill("Stanciu");
+    // așteaptă persistarea debounced (400ms)
+    await page.waitForTimeout(800);
+
+    await page.reload();
+
+    // restaurat: toast-ul apare imediat la hidratare (îl prindem primul,
+    // înainte să-i expire durata), apoi pasul și datele
+    await expect(page.getByText(/Ți-am restaurat progresul/)).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible();
+    await expect(page.getByLabel(/prenume/i)).toHaveValue("Elena");
+    await expect(page.getByLabel(/nume de familie/i)).toHaveValue("Stanciu");
+  });
+
+  test("pasul 1 nu mai are buton Înapoi (fostul buton-capcană)", async ({ page }) => {
+    await page.goto("/creare-cv");
+    await expect(
+      page.getByRole("heading", { name: "Ce job vrei să obții?" })
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("button", { name: /Înapoi/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Continuă", exact: true })).toBeVisible();
   });
 });
 
@@ -482,19 +530,35 @@ test.describe("Preview CV — conținut complet + pasul final", () => {
     await page.getByRole("button", { name: /Salvează jobul/ }).click();
     await page.getByRole("button", { name: /Continuă/ }).click();
 
-    // Educație — cu medie și lucrare de licență
+    // Educație — cu medie și lucrare de licență; perioada din DROPDOWN-uri
     await expect(page.getByRole("heading", { name: /Educație/ })).toBeVisible({ timeout: 8000 });
     await page.getByRole("button", { name: /Adaugă educație/ }).click();
     await page.locator("select").selectOption({ index: 1 });
     await page.getByPlaceholder(/Universitatea Babeș-Bolyai/).fill("Universitatea Babeș-Bolyai");
-    await page.getByPlaceholder("ex: 2018 – 2022").fill("2018 – 2022");
+    // „De când": anul din dropdown; „Până când" are „Prezent" prima opțiune (default)
+    await page.getByRole("button", { name: "anul", exact: true }).click();
+    await page.getByRole("listbox").getByRole("option", { name: "2018", exact: true }).click();
+    const endYearBtn = page.getByRole("button", { name: "Prezent", exact: true });
+    await expect(endYearBtn).toBeVisible();
+    await endYearBtn.click();
+    await expect(
+      page.getByRole("listbox").getByRole("option").first()
+    ).toHaveText(/Prezent/);
+    await page.getByRole("listbox").getByRole("option", { name: "2022", exact: true }).click();
     await page.getByPlaceholder(/Titlul lucrării de licență/).fill("Optimizarea proceselor logistice");
     await page.getByPlaceholder("ex: 9.50").fill("9.50");
     await page.getByTestId("btn-save-education").click();
 
     const preview = page.locator(".wizard-preview");
+    await expect(preview.getByText("2018 – 2022")).toBeVisible();
     await expect(preview.getByText("Medie: 9.50", { exact: false })).toBeVisible();
     await expect(preview.getByText(/Lucrare: „Optimizarea proceselor logistice"/)).toBeVisible();
+
+    // Cursuri & certificări — apar în preview în secțiune proprie
+    await page.getByPlaceholder(/Operator stivuitor ISCIR/).fill("Curs operare casă de marcat");
+    await page.getByPlaceholder("anul").fill("2023");
+    await page.getByRole("button", { name: /Adaugă cursul/ }).click();
+    await expect(preview.getByText(/Curs operare casă de marcat/)).toBeVisible();
 
     await page.getByRole("button", { name: "Continuă", exact: false }).click();
     // Abilități → Limbi
@@ -556,7 +620,27 @@ test.describe("Preview CV — conținut complet + pasul final", () => {
     // preview-ul lateral e ascuns pe pasul final (nu dublăm CV-ul)
     await expect(page.locator(".wizard-preview")).toHaveCount(0);
 
-    // descărcarea generează PDF-ul REAL, cu numele utilizatorului + data
+    // ── selectorul de design: 5 variante, comutare instant, zero AI ──
+    const sheet = page.getByTestId("final-cv-sheet");
+    for (const id of ["classic", "modern", "elegant", "compact", "minimal"]) {
+      await expect(page.getByTestId(`template-${id}`)).toBeVisible();
+    }
+    // default: classic
+    await expect(page.getByTestId("template-classic")).toHaveAttribute("aria-checked", "true");
+    await expect(sheet.locator("[data-template='classic']")).toBeVisible();
+    // comutare pe Modern → layout cu sidebar navy
+    await page.getByTestId("template-modern").click();
+    await expect(page.getByTestId("template-modern")).toHaveAttribute("aria-checked", "true");
+    await expect(sheet.locator("[data-template='modern']")).toBeVisible();
+    await expect(sheet.getByText("Contact", { exact: true })).toBeVisible();
+    // comutare pe Minimalist
+    await page.getByTestId("template-minimal").click();
+    await expect(sheet.locator("[data-template='minimal']")).toBeVisible();
+    // înapoi pe Elegant pentru descărcare
+    await page.getByTestId("template-elegant").click();
+    await expect(sheet.locator("[data-template='elegant']")).toBeVisible();
+
+    // descărcarea generează PDF-ul REAL în designul ales, cu numele + data
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: /Descarcă PDF/ }).click();
     const download = await downloadPromise;

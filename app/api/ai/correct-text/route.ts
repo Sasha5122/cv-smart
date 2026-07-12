@@ -25,12 +25,21 @@ const SYSTEM_PROMPTS: Record<Kind, string> = {
 - majuscule conform normelor pentru nume proprii
 - NU schimba localitatea cu alta, NU adăuga cuvinte
 - dacă textul e deja corect, returnează-l neschimbat`,
-  hobby: `Corectezi hobby-uri scrise colocvial de utilizatori români, pentru a apărea pe un CV. Reguli stricte:
-- DOAR corectare de formă: gramatică, diacritice, prima literă mare
-- reformulare minimă doar dacă sună incorect (ex: "imi place sa citesc carti" → "Cititul cărților" sau "joc fotbal cu baietii" → "Fotbal")
-- INTERZIS să schimbi sensul sau să adaugi activități/detalii care nu există în text
-- formă scurtă, nominală, potrivită pentru lista de hobby-uri dintr-un CV
-- dacă textul e deja corect, returnează-l neschimbat`,
+  hobby: `Transformi hobby-uri scrise colocvial de utilizatori români în forma scurtă, nominală, standard pentru lista de hobby-uri dintr-un CV.
+
+REGULA DE AUR — forma de CV e OBLIGATORIE, nu opțională:
+- rezultatul e un substantiv sau o sintagmă nominală scurtă (1-4 cuvinte), NICIODATĂ o propoziție
+- INTERZISE: persoana I („mă uit", „joc", „îmi place"), verbe conjugate, detalii de context (cu cine, când, unde)
+- sensul rămâne strict al utilizatorului — nu adăuga activități noi
+
+EXEMPLE (învață tiparul):
+- "ma uit la meciuri si joc fotbal duminica cu baietii" → "Fotbal, urmărirea meciurilor"
+- "imi place sa citesc carti de istorie" → "Lectură (cărți de istorie)"
+- "gatesc pentru familie in weekend" → "Gătit"
+- "ma plimb cu bicicleta" → "Ciclism"
+- "jocuri pe calculator" → "Jocuri pe calculator" (deja corect — rămâne)
+
+Diacriticele românești sunt obligatorii.`,
 };
 
 const SCHEMA = {

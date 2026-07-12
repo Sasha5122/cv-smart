@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { WizardLayout } from "./wizard-layout";
 import { useWizard } from "@/hooks/use-wizard";
 import type { WizardStep } from "@/lib/types/cv";
@@ -20,23 +20,86 @@ interface WizardClientProps {
   sessionId: string;
 }
 
+const STORAGE_KEY = "cv-smart-progress";
+
 export function WizardClient({ sessionId }: WizardClientProps) {
   const wizard = useWizard(sessionId);
-  const router = useRouter();
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const lastResearchedJD = useRef<string>("");
+  const hydratedRef = useRef(false);
 
-  // Auto-save to DB debounced
+  // Restaurare după refresh: progresul stă în localStorage — un F5 accidental
+  // nu mai pierde nimic. Rulează O DATĂ, înaintea efectului de persistare.
+  useEffect(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const snap = JSON.parse(raw);
+      const hasProgress =
+        snap &&
+        snap.cvData &&
+        (Number(snap.currentStep) > 1 || String(snap.jobDescription ?? "").trim());
+      if (!hasProgress) return;
+      wizard.hydrate({
+        sessionId: typeof snap.sessionId === "string" ? snap.sessionId : undefined,
+        currentStep: Math.min(14, Math.max(1, Number(snap.currentStep))) as WizardStep,
+        cvData: snap.cvData,
+        jobDescription: String(snap.jobDescription ?? ""),
+      });
+      // amânat puțin: în dev, StrictMode remontează <Toaster> imediat după
+      // primul mount și ar înghiți un toast declanșat sincron aici
+      setTimeout(() => {
+        toast.success("Ți-am restaurat progresul — continui de unde ai rămas.", {
+          duration: 6000,
+          action: {
+            label: "Începe de la zero",
+            onClick: () => {
+              localStorage.removeItem(STORAGE_KEY);
+              window.location.reload();
+            },
+          },
+        });
+      }, 400);
+    } catch {
+      // snapshot corupt — pornim curat
+      localStorage.removeItem(STORAGE_KEY);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persistare locală (refresh-proof), debounced
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            sessionId: wizard.sessionId,
+            currentStep: wizard.currentStep,
+            cvData: wizard.cvData,
+            jobDescription: wizard.jobDescription,
+          })
+        );
+      } catch {
+        // storage plin/blocat — nu blocăm aplicația
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [wizard.sessionId, wizard.currentStep, wizard.cvData, wizard.jobDescription]);
+
+  // Auto-save to DB debounced (folosește sesiunea activă, inclusiv cea restaurată)
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      fetch(`/api/session/${sessionId}`, {
+      fetch(`/api/session/${wizard.sessionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cv_data: wizard.cvData }),
       }).catch(() => {});
     }, 1000);
-  }, [wizard.cvData, sessionId]);
+  }, [wizard.cvData, wizard.sessionId]);
 
   const renderStep = () => {
     const { currentStep, cvData, next, back, updateCVData, updatePersonal, setStep, setJobDescription, jobDescription } = wizard;
@@ -57,13 +120,12 @@ export function WizardClient({ sessionId }: WizardClientProps) {
                 fetch("/api/ai/research", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ sessionId, jobDescription }),
+                  body: JSON.stringify({ sessionId: wizard.sessionId, jobDescription }),
                 }).catch(() => {});
               }
               next();
             }}
             onSkip={next}
-            onBack={() => router.push("/")}
           />
         );
       case 2:
@@ -93,7 +155,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       case 8:
         return (
           <Step09Experience
-            sessionId={sessionId}
+            sessionId={wizard.sessionId}
             jobDescription={jobDescription}
             experience={cvData.experience}
             onUpdate={(experience) => updateCVData({ experience })}
@@ -104,7 +166,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       case 9:
         return (
           <Step08Education
-            sessionId={sessionId}
+            sessionId={wizard.sessionId}
             education={cvData.education}
             courses={cvData.courses}
             onUpdate={(education, courses) => updateCVData({ education, courses })}
@@ -115,7 +177,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       case 10:
         return (
           <Step10Skills
-            sessionId={sessionId}
+            sessionId={wizard.sessionId}
             cvData={cvData}
             jobDescription={jobDescription}
             skills={cvData.skills}
@@ -147,7 +209,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       case 13:
         return (
           <Step13Hobbies
-            sessionId={sessionId}
+            sessionId={wizard.sessionId}
             hobbies={cvData.hobbies}
             onUpdate={(hobbies) => updateCVData({ hobbies })}
             onNext={next}
@@ -157,8 +219,10 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       case 14:
         return (
           <Step14Draft
-            sessionId={sessionId}
+            sessionId={wizard.sessionId}
             cvData={cvData}
+            jobDescription={jobDescription}
+            onUpdateSummary={(summary) => updateCVData({ summary })}
             onBack={back}
           />
         );

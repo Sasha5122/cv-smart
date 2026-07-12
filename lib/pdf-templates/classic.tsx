@@ -1,6 +1,7 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
+import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf } from "./shared";
 
 registerFonts();
 
@@ -174,42 +175,15 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 export function ClassicTemplate({ data }: { data: CVData }) {
-  const fullName = `${data.personal?.firstName ?? ""} ${data.personal?.lastName ?? ""}`.trim();
-  // aceeași logică de adresă ca în preview-ul live (paritate preview ↔ PDF)
-  const isAbroad = Boolean(
-    data.personal?.country && data.personal.country !== "România"
-  );
-  const roStreet = [
-    [data.personal?.street, data.personal?.streetNumber].filter(Boolean).join(" "),
-    data.personal?.apartment ? `ap. ${data.personal.apartment}` : "",
-  ]
-    .filter(Boolean)
-    .join(", ");
-  const contactItems = (
-    isAbroad
-      ? [
-          data.personal?.email,
-          data.personal?.phone,
-          data.personal?.street,
-          data.personal?.country,
-        ]
-      : [
-          data.personal?.email,
-          data.personal?.phone,
-          roStreet,
-          [data.personal?.city, data.personal?.county].filter(Boolean).join(", "),
-        ]
-  ).filter((x): x is string => Boolean(x && x.trim()));
-
-  const hasLicenseInfo =
-    (data.license?.hasLicense && data.license.categories.length > 0) ||
-    Boolean(data.qualifications?.trim());
+  const fullName = fullNameOf(data);
+  const contactItems = contactItemsOf(data);
+  const hasLicenseInfo = hasLicenseInfoOf(data);
 
   return (
     <Document
       title={`CV ${fullName}`.trim()}
-      author={fullName || "CV Smart"}
-      creator="CV Smart"
+      author={fullName || "CVexpress"}
+      creator="CVexpress"
     >
       <Page size="A4" style={styles.page}>
         {/* Antet */}
@@ -296,14 +270,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
                   {edu.location ? ` · ${edu.location}` : ""}
                 </Text>
                 {(edu.grade || edu.thesis) && (
-                  <Text style={styles.entryMeta}>
-                    {[
-                      edu.grade ? `Medie: ${edu.grade}` : "",
-                      edu.thesis ? `Lucrare: „${edu.thesis}"` : "",
-                    ]
-                      .filter(Boolean)
-                      .join("  ·  ")}
-                  </Text>
+                  <Text style={styles.entryMeta}>{eduMetaOf(edu)}</Text>
                 )}
               </View>
             ))}

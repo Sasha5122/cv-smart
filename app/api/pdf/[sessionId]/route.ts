@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession, updateSessionStatus } from "@/lib/db/queries";
 import { renderCVPDF } from "@/lib/pdf-templates/render";
 import { buildCvFilename } from "@/lib/pdf-filename";
-import type { CVData } from "@/lib/types/cv";
+import type { CVData, TemplateId } from "@/lib/types/cv";
 
 export const maxDuration = 30;
 
@@ -33,8 +33,10 @@ export async function POST(
     if (!cvData?.personal) {
       return NextResponse.json({ error: "Date CV lipsă." }, { status: 400 });
     }
+    // designul ales de utilizator la pasul final (default: classic)
+    const templateId = (body.templateId as TemplateId) ?? "classic";
 
-    const pdfBuffer = await renderCVPDF(cvData, "classic");
+    const pdfBuffer = await renderCVPDF(cvData, templateId);
 
     // best-effort: marcăm sesiunea descărcată, dar nu blocăm PDF-ul dacă pică
     updateSessionStatus(sessionId, "downloaded").catch(() => {});

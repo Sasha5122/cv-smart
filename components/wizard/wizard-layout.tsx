@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { CVPreview } from "./cv-preview";
+import { LogoMark } from "@/components/ui/logo";
 import type { WizardStep, CVData } from "@/lib/types/cv";
 
 // Maparea intrărilor din sidebar la pașii interni
@@ -68,30 +69,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
             textDecoration: "none",
           }}
         >
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: "linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 2px 8px rgba(37,99,235,0.45)",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "var(--font-display), sans-serif",
-                color: "#fff",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: "0.02em",
-              }}
-            >
-              CV
-            </span>
-          </div>
+          <LogoMark size={34} />
           <span
             style={{
               fontFamily: "var(--font-display), sans-serif",
@@ -101,7 +79,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
               letterSpacing: "-0.01em",
             }}
           >
-            CV Smart
+            CVexpress
           </span>
         </Link>
 
@@ -229,23 +207,9 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
           }}
         >
           <Link href="/creare-cv" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
-            <div
-              style={{
-                width: 27,
-                height: 27,
-                borderRadius: 7,
-                background: "linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <span style={{ fontFamily: "var(--font-display), sans-serif", color: "#fff", fontSize: 10, fontWeight: 700 }}>
-                CV
-              </span>
-            </div>
+            <LogoMark size={28} />
             <span style={{ fontFamily: "var(--font-display), sans-serif", color: "var(--sidebar-fg)", fontWeight: 700, fontSize: 16 }}>
-              CV Smart
+              CVexpress
             </span>
           </Link>
           <span style={{ fontSize: 12, fontWeight: 700, color: "var(--sidebar-muted)", fontVariantNumeric: "tabular-nums" }}>

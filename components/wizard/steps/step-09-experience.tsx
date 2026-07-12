@@ -4,7 +4,7 @@ import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
+import { PeriodPicker, buildPeriod } from "../period-picker";
 import { ArrowRight, ArrowLeft, Plus, Trash2, RefreshCcw } from "lucide-react";
 import type { Experience } from "@/lib/types/cv";
 import type { GeneratedBullet, PipelineQuestion } from "@/lib/types/cv-pipeline";
@@ -46,35 +46,6 @@ const EMPTY_FORM = {
   rawText: "",
 };
 
-const MONTHS = [
-  "ianuarie", "februarie", "martie", "aprilie", "mai", "iunie",
-  "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie",
-];
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: CURRENT_YEAR - 1974 }, (_, i) =>
-  String(CURRENT_YEAR - i)
-);
-
-/** Compune textul perioadei din dropdown-uri (luna e opțională). */
-function buildPeriod(f: typeof EMPTY_FORM): string {
-  const start = f.startYear
-    ? f.startMonth
-      ? `${f.startMonth} ${f.startYear}`
-      : f.startYear
-    : "";
-  const end =
-    f.endYear === "Prezent"
-      ? "prezent"
-      : f.endYear
-        ? f.endMonth
-          ? `${f.endMonth} ${f.endYear}`
-          : f.endYear
-        : "";
-  if (start && end) return `${start} – ${end}`;
-  if (start) return `${start} – prezent`;
-  return "";
-}
-
 /** mesaje progresive pentru fazele de loading */
 const ANALYZE_MESSAGES = [
   "Citim ce ne-ai povestit…",
@@ -89,7 +60,7 @@ const GENERATE_MESSAGES = [
   "Ordonăm de la cel mai puternic…",
 ];
 
-function LoadingPanel({ messages }: { messages: string[] }) {
+function LoadingPanel({ messages, hint = "durează câteva zeci de secunde" }: { messages: string[]; hint?: string }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const t = setInterval(
@@ -128,84 +99,11 @@ function LoadingPanel({ messages }: { messages: string[] }) {
       >
         {messages[idx]}
       </p>
-      <p style={{ fontSize: 13, color: "var(--faint)", marginTop: 10 }}>
-        durează câteva secunde
-      </p>
+      <p style={{ fontSize: 13, color: "var(--faint)", marginTop: 10 }}>{hint}</p>
     </div>
   );
 }
 
-/** Perioada jobului din dropdown-uri: an obligatoriu pentru sens, luna
- *  opțională; la „Până când" prima opțiune e „Prezent". */
-function PeriodPicker({
-  form,
-  set,
-}: {
-  form: typeof EMPTY_FORM;
-  set: (field: keyof typeof EMPTY_FORM, val: string) => void;
-}) {
-  const monthOptions = [
-    { value: "", label: "luna (opțional)" },
-    ...MONTHS.map((m) => ({ value: m, label: m })),
-  ];
-  const isPresent = form.endYear === "Prezent";
-
-  return (
-    // auto-fit + minmax: pe ecrane înguste coloanele se stivuiesc în loc să
-    // iasă din pagină (overflow orizontal pe mobil)
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-        gap: 14,
-        marginBottom: 18,
-      }}
-    >
-      <div style={{ minWidth: 0 }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>
-          De când
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 8 }}>
-          <Select
-            value={form.startYear}
-            onChange={(v) => set("startYear", v)}
-            options={YEARS}
-            placeholder="anul"
-          />
-          <Select
-            value={form.startMonth}
-            onChange={(v) => set("startMonth", v)}
-            options={monthOptions}
-            placeholder="luna (opțional)"
-          />
-        </div>
-      </div>
-      <div style={{ minWidth: 0 }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>
-          Până când
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 8 }}>
-          <Select
-            value={form.endYear}
-            onChange={(v) => {
-              set("endYear", v);
-              if (v === "Prezent") set("endMonth", "");
-            }}
-            options={["Prezent", ...YEARS]}
-            placeholder="anul"
-          />
-          <Select
-            value={form.endMonth}
-            onChange={(v) => set("endMonth", v)}
-            options={monthOptions}
-            placeholder="luna (opțional)"
-            disabled={isPresent}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /** Text editabil direct în chenar — arată ca text simplu, dar userul poate
  *  șterge/scrie; crește pe verticală odată cu conținutul. */
@@ -622,7 +520,7 @@ export function Step09Experience({
           />
         </div>
 
-        <PeriodPicker form={form} set={set} />
+        <PeriodPicker value={form} onChange={set} />
 
         <div style={{ marginBottom: 18 }}>
           <Input
@@ -688,7 +586,7 @@ export function Step09Experience({
     if (phase === "generating")
       return (
         <StepCard kicker="Experiență · Pas 2 din 3" title="Scriem descrierile">
-          <LoadingPanel messages={GENERATE_MESSAGES} />
+          <LoadingPanel messages={GENERATE_MESSAGES} hint="poate dura până la un minut — scriem cu grijă" />
         </StepCard>
       );
 
@@ -915,7 +813,7 @@ export function Step09Experience({
           onChange={(e) => set("company", e.target.value)}
         />
       </div>
-      <PeriodPicker form={form} set={set} />
+      <PeriodPicker value={form} onChange={set} />
       <div style={{ marginBottom: 18 }}>
         <Input
           label="Localitatea"

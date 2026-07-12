@@ -80,18 +80,22 @@ const cvData = {
   targetTitle: "",
 };
 
-const res = await fetch("http://localhost:3000/api/pdf/test-session-pdf", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ cvData }),
-});
-console.log("status:", res.status, res.headers.get("content-type"));
-console.log("content-disposition:", res.headers.get("content-disposition"));
-if (!res.ok) {
-  console.log(await res.text());
-  process.exit(1);
+// generează toate designurile (sau doar cel dat ca argument)
+const templates = process.argv[2]
+  ? [process.argv[2]]
+  : ["classic", "modern", "elegant", "compact", "minimal"];
+
+for (const templateId of templates) {
+  const res = await fetch("http://localhost:3000/api/pdf/test-session-pdf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cvData, templateId }),
+  });
+  if (!res.ok) {
+    console.log(`❌ ${templateId}: ${res.status}`, await res.text());
+    process.exit(1);
+  }
+  const buf = Buffer.from(await res.arrayBuffer());
+  writeFileSync(`.screens/sample-cv-${templateId}.pdf`, buf);
+  console.log(`✅ ${templateId}: ${buf.length} bytes → .screens/sample-cv-${templateId}.pdf`);
 }
-const buf = Buffer.from(await res.arrayBuffer());
-console.log("PDF:", buf.length, "bytes, header:", buf.subarray(0, 5).toString());
-writeFileSync(".screens/sample-cv.pdf", buf);
-console.log("✅ salvat în .screens/sample-cv.pdf");

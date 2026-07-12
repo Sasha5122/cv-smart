@@ -28,6 +28,16 @@ export function registerFonts() {
     ],
   });
 
+  // serif pentru template-ul „Elegant"
+  Font.register({
+    family: "PT Serif",
+    fonts: [
+      { src: path.join(FONTS_DIR, "PTSerif-Regular.ttf"), fontWeight: 400 },
+      { src: path.join(FONTS_DIR, "PTSerif-Italic.ttf"), fontWeight: 400, fontStyle: "italic" },
+      { src: path.join(FONTS_DIR, "PTSerif-Bold.ttf"), fontWeight: 700 },
+    ],
+  });
+
   // fără despărțire automată în silabe — cuvintele rămân întregi
   Font.registerHyphenationCallback((word) => [word]);
 }

@@ -17,10 +17,19 @@ interface WizardState {
 
 // ─── Actions ───────────────────────────────────────────────────────────────
 
+/** Instantaneul salvat în localStorage — supraviețuiește refresh-ului. */
+export interface WizardSnapshot {
+  sessionId?: string;
+  currentStep: WizardStep;
+  cvData: CVData;
+  jobDescription: string;
+}
+
 type WizardAction =
   | { type: "NEXT_STEP" }
   | { type: "PREV_STEP" }
   | { type: "SET_STEP"; step: WizardStep }
+  | { type: "HYDRATE"; snapshot: WizardSnapshot }
   | { type: "UPDATE_CV_DATA"; data: Partial<CVData> }
   | { type: "UPDATE_PERSONAL"; data: Partial<CVData["personal"]> }
   | { type: "SET_JOB_DESCRIPTION"; text: string }
@@ -44,6 +53,15 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
       };
     case "SET_STEP":
       return { ...state, currentStep: action.step };
+    case "HYDRATE":
+      // restaurarea progresului după refresh (din localStorage)
+      return {
+        ...state,
+        sessionId: action.snapshot.sessionId ?? state.sessionId,
+        currentStep: action.snapshot.currentStep,
+        cvData: action.snapshot.cvData,
+        jobDescription: action.snapshot.jobDescription,
+      };
     case "UPDATE_CV_DATA":
       return { ...state, cvData: { ...state.cvData, ...action.data } };
     case "UPDATE_PERSONAL":
@@ -90,6 +108,10 @@ export function useWizard(sessionId: string) {
 
   const next = useCallback(() => dispatch({ type: "NEXT_STEP" }), []);
   const back = useCallback(() => dispatch({ type: "PREV_STEP" }), []);
+  const hydrate = useCallback(
+    (snapshot: WizardSnapshot) => dispatch({ type: "HYDRATE", snapshot }),
+    []
+  );
   const setStep = useCallback(
     (step: WizardStep) => dispatch({ type: "SET_STEP", step }),
     []
@@ -131,6 +153,7 @@ export function useWizard(sessionId: string) {
     ...state,
     next,
     back,
+    hydrate,
     setStep,
     updateCVData,
     updatePersonal,

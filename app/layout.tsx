@@ -24,14 +24,14 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "CV Smart — Crează CV profesional cu AI în 5 minute",
+  title: "CVexpress — Creează CV profesional cu AI în 5 minute",
   description:
     "Generează un CV profesional optimizat pentru piața din România cu ajutorul inteligenței artificiale. ATS-friendly, personalizat pentru jobul tău.",
   keywords: ["creare cv", "cv online", "cv profesional", "cv AI", "generator cv", "cv Romania"],
-  authors: [{ name: "CV Smart" }],
+  authors: [{ name: "CVexpress" }],
   openGraph: {
-    title: "CV Smart — CV profesional cu AI",
-    description: "Crează CV-ul perfect în 5 minute cu AI românesc",
+    title: "CVexpress — CV profesional cu AI",
+    description: "Creează CV-ul perfect în 5 minute cu AI românesc",
     type: "website",
     locale: "ro_RO",
   },
@@ -46,7 +46,7 @@ export default function RootLayout({
     <html lang="ro" data-scroll-behavior="smooth" className={`${sora.variable} ${instrumentSans.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
         {children}
-        <Toaster position="top-right" richColors />
+        <Toaster position="top-right" richColors duration={3000} />
       </body>
     </html>
   );

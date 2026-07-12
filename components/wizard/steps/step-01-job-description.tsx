@@ -9,10 +9,9 @@ interface Props {
   onChange: (text: string) => void;
   onNext: () => void;
   onSkip: () => void;
-  onBack: () => void;
 }
 
-export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }: Props) {
+export function Step01JobDescription({ value, onChange, onNext, onSkip }: Props) {
   return (
     <StepCard
       title="Ce job vrei să obții?"
@@ -46,19 +45,16 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
       )}
 
       <div className="flex flex-col" style={{ gap: 14, marginTop: 32 }}>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={onBack} className="flex-1">
-            ← Înapoi
-          </Button>
-          <Button
-            onClick={onNext}
-            size="lg"
-            className="flex-[2]"
-            iconRight={<ArrowRight className="w-4 h-4" />}
-          >
-            Continuă
-          </Button>
-        </div>
+        {/* fără „Înapoi" pe primul pas — nu are unde să ducă (era un buton-capcană
+            care reseta sesiunea și ștergea anunțul) */}
+        <Button
+          onClick={onNext}
+          size="lg"
+          className="w-full"
+          iconRight={<ArrowRight className="w-4 h-4" />}
+        >
+          Continuă
+        </Button>
         <button
           onClick={onSkip}
           style={{

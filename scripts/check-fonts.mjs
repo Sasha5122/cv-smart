@@ -10,7 +10,7 @@ const mod = await import(
 const fontkit = mod.default ?? mod;
 
 const DIACRITICE = "ăâîșțĂÂÎȘȚ";
-const files = ["Lato-Regular.ttf", "Lato-Bold.ttf", "Lato-Italic.ttf", "Lato-Black.ttf"];
+const files = ["Lato-Regular.ttf", "Lato-Bold.ttf", "Lato-Italic.ttf", "Lato-Black.ttf", "PTSerif-Regular.ttf", "PTSerif-Bold.ttf"];
 
 let ok = true;
 for (const f of files) {

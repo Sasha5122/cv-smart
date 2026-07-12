@@ -142,7 +142,7 @@ export interface IdealProfile {
 
 // ─── Template ──────────────────────────────────────────────────────────────
 
-export type TemplateId = "classic" | "modern" | "elegant" | "compact";
+export type TemplateId = "classic" | "modern" | "elegant" | "compact" | "minimal";
 
 // ─── Wizard Step ───────────────────────────────────────────────────────────
 
