@@ -25,7 +25,7 @@ export function StepCard({ children, className, title, subtitle, kicker }: StepC
                 textTransform: "uppercase",
                 color: "var(--primary)",
                 backgroundColor: "var(--wash)",
-                border: "1px solid #bfdbfe",
+                border: "1px solid #f8c2a7",
                 borderRadius: 6,
                 padding: "4px 10px",
                 marginBottom: 16,
@@ -64,7 +64,7 @@ export function StepCard({ children, className, title, subtitle, kicker }: StepC
               width: 52,
               height: 4,
               borderRadius: 99,
-              background: "linear-gradient(90deg, var(--primary) 0%, #3b82f6 100%)",
+              background: "linear-gradient(90deg, var(--primary) 0%, #ff7447 100%)",
               marginTop: 20,
             }}
           />

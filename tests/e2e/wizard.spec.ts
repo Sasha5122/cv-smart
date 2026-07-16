@@ -62,14 +62,27 @@ async function mockPipeline(page: Page) {
 const RAW_TEXT =
   "ma ocup de contabilitate primara si declaratii pentru firme mici. bag facturi in program, fac pontaje si salarii, depun declaratii la anaf lunar, tin legatura cu clientii, fac balante la inchidere de luna si verific conturile. lucrez in saga si excel zilnic.";
 
-/** Navighează de la început până la pasul Experiență (ecranul de input). */
+/** Navighează de la început până la pasul Experiență (ecranul de input).
+ *  Ordinea nouă: 1 Contact → 2 Fotografie → 3 Job vizat → 4 Experiență. */
 async function gotoExperience(page: Page, withJD = true) {
   await mockCorrectText(page);
   await page.goto("/creare-cv");
-  // Pas 1 — Job vizat
+  // Pas 1 — Contact
+  await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({
+    timeout: 15000,
+  });
+  await page.getByLabel(/prenume/i).fill("Elena");
+  await page.getByLabel(/nume de familie/i).fill("Stanciu");
+  await page.getByLabel(/email/i).fill("elena.stanciu@gmail.com");
+  await page.getByLabel(/telefon/i).fill("0722314558");
+  await page.getByLabel(/oraș/i).first().fill("București");
+  await page.getByRole("button", { name: /Continuă/ }).click();
+  // Pas 2 — Fotografie (skip)
+  await page.getByText("Nu am fotografie potrivită").click();
+  // Pas 3 — Job vizat
   await expect(
     page.getByRole("heading", { name: "Ce job vrei să obții?" })
-  ).toBeVisible({ timeout: 15000 });
+  ).toBeVisible({ timeout: 8000 });
   if (withJD) {
     await page
       .getByPlaceholder(/copy-paste la descrierea/i)
@@ -78,41 +91,131 @@ async function gotoExperience(page: Page, withJD = true) {
   } else {
     await page.getByText(/Nu am un anunț/).click();
   }
-  // Pas 2 — Fotografie (skip)
-  await page.getByText("Nu am fotografie potrivită").click();
-  // Pas 3 — Contact
-  await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({
-    timeout: 8000,
-  });
-  await page.getByLabel(/prenume/i).fill("Elena");
-  await page.getByLabel(/nume de familie/i).fill("Stanciu");
-  await page.getByLabel(/email/i).fill("elena.stanciu@gmail.com");
-  await page.getByLabel(/telefon/i).fill("0722314558");
-  await page.getByLabel(/oraș/i).first().fill("București");
-  await page.getByRole("button", { name: /Continuă/ }).click();
-  // Experiență — input
+  // Pas 4 — Experiență (input)
   await expect(page.getByRole("heading", { name: /Povestește-ne ce faci/ })).toBeVisible({
     timeout: 10000,
   });
 }
 
-test.describe("Wizard — navigare și shell editorial", () => {
-  test("ruta / redirecționează direct la wizard", async ({ page }) => {
+test.describe("Landing — pagina de start", () => {
+  test("landing-ul se încarcă cu hero, showcase-ul mare și linkurile legale", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveURL(/\/creare-cv/);
     await expect(
-      page.getByRole("heading", { name: "Ce job vrei să obții?" })
+      page.getByRole("heading", { name: /Garantăm un CV profesionist/ })
     ).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.getByText(/Dezvoltat și optimizat special pentru piața din România/)
+    ).toBeVisible();
+    await expect(page.getByTestId("hero-cta")).toBeVisible();
+    await expect(page.getByTestId("hero-cta")).toContainText("Începe acum");
+    // descrierea produsului + prețul, vizibile pe homepage (cerință Paddle)
+    await expect(
+      page.getByText(/serviciu online de creare a CV-urilor profesioniste/)
+    ).toBeVisible();
+    await expect(page.getByText(/Preț: 49 RON per CV/)).toBeVisible();
+    // showcase: pornește AUTOMAT — prima glisare începe la ~2s de la
+    // încărcare, deci al doilea CV devine activ fără nicio interacțiune
+    await expect(page.getByTestId("cv-showcase")).toBeVisible();
+    await expect(page.getByTestId("showcase-layer-1")).toHaveAttribute("aria-hidden", "false", {
+      timeout: 10000,
+    });
+    // dots: comutarea manuală aduce primul CV înapoi deasupra
+    await page.getByTestId("showcase-dot-0").click();
+    await expect(page.getByTestId("showcase-layer-0")).toHaveAttribute("aria-hidden", "false", {
+      timeout: 5000,
+    });
+    // footer: linkurile legale există
+    await expect(
+      page.locator("footer").getByRole("link", { name: "Termeni și condiții" })
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Politica de confidențialitate" })).toBeVisible();
   });
 
-  test("pasul 1 se încarcă fără exemple rapide, cu titlu și preview", async ({ page }) => {
-    await page.goto("/creare-cv");
+  test("linkurile «Termeni și condiții» și «Preț» din header funcționează", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "mobile", "pe mobil linkurile sunt doar în footer");
+    await page.goto("/");
+    await expect(page.locator("header").getByRole("link", { name: "Preț" })).toBeVisible();
+    await page.locator("header").getByRole("link", { name: "Termeni și condiții" }).click();
+    await expect(page).toHaveURL(/\/termeni/);
+    await expect(page.getByRole("heading", { name: "Termeni și condiții" })).toBeVisible();
+    // conținutul legal e real, nu placeholder — inclusiv Paddle ca Merchant of Record
+    await expect(page.getByText(/Merchant of Record/).first()).toBeVisible();
+    await expect(page.getByText(/dreptul de retragere/i).first()).toBeVisible();
+    // logo-ul duce înapoi la pagina principală
+    await page.locator("header").getByRole("link", { name: /CVexpres/ }).click();
+    await expect(page.getByTestId("hero-cta")).toBeVisible();
+  });
+
+  test("pagina /pret afișează 49 RON cu plată unică", async ({ page }) => {
+    await page.goto("/pret");
+    await expect(page.getByText("49 RON", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Plată unică — fără abonament/)).toBeVisible();
+    await expect(page.getByRole("link", { name: "Începe" }).last()).toBeVisible();
+  });
+
+  test("pagina /refund există, cu garanția și emailul de rambursare", async ({ page }) => {
+    await page.goto("/refund");
+    await expect(page.getByRole("heading", { name: "Politica de rambursare" })).toBeVisible();
+    await expect(page.getByText(/rambursăm integral prețul plătit/)).toBeVisible();
+    await expect(page.getByText(/Cum ceri o rambursare/)).toBeVisible();
+    await expect(page.getByRole("link", { name: "Termeni și condiții" }).first()).toBeVisible();
+  });
+
+  test("pagina de contact trimite mesajul către admin", async ({ page }) => {
+    // răspuns determinist — nu depindem de baza de date în test
+    await page.route("**/api/contact", (route) =>
+      route.fulfill({ json: { ok: true } })
+    );
+    await page.goto("/contact");
+    await page.getByTestId("contact-name").fill("Test Utilizator");
+    await page.getByTestId("contact-email").fill("test@exemplu.ro");
+    await page.getByTestId("contact-message").fill("Salut! Acesta este un mesaj de test.");
+    await page.getByTestId("contact-submit").click();
+    await expect(page.getByTestId("contact-success")).toBeVisible();
+    // datele operatorului sunt vizibile ca text (cerință Paddle)
+    await expect(page.getByText(/Operator: /)).toBeVisible();
+    await expect(page.getByText(/Telefon: /)).toBeVisible();
+  });
+
+  test("adminul cere parolă; parola corectă deschide panoul", async ({ page }) => {
+    // datele vin mock-uite — testăm autentificarea și randarea panoului
+    await page.goto("/admin");
+    await expect(page.getByTestId("admin-login")).toBeVisible();
+
+    // parolă greșită → eroare
+    await page.getByTestId("admin-password").fill("gresita");
+    await page.getByTestId("admin-login-submit").click();
+    await expect(page.getByTestId("admin-login-error")).toBeVisible();
+
+    // parolă corectă → panoul cu cele 3 secțiuni
+    await page.getByTestId("admin-password").fill("***REMOVED-ADMIN-PASSWORD***");
+    await page.getByTestId("admin-login-submit").click();
+    await expect(page.getByTestId("admin-cvs")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("admin-sessions")).toBeVisible();
+    await expect(page.getByTestId("admin-messages")).toBeVisible();
+  });
+
+  test("«Începe acum» sare direct la pasul 1 al wizard-ului", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("hero-cta").click();
+    await expect(page).toHaveURL(/\/creare-cv/);
     await expect(
-      page.getByRole("heading", { name: "Ce job vrei să obții?" })
+      page.getByRole("heading", { name: "Date de contact" })
     ).toBeVisible({ timeout: 15000 });
     await expect(page.getByText(/Pasul 1 din 10/i)).toBeVisible();
-    // secțiunea „Exemple rapide" a fost eliminată
-    await expect(page.getByText("Exemple rapide")).toHaveCount(0);
+  });
+});
+
+test.describe("Wizard — navigare și shell editorial", () => {
+
+  test("pasul 1 (Contact) se încarcă cu titlu și preview, fără buton Înapoi", async ({ page }) => {
+    await page.goto("/creare-cv");
+    await expect(
+      page.getByRole("heading", { name: "Date de contact" })
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/Pasul 1 din 10/i)).toBeVisible();
+    // primul pas nu are buton Înapoi
+    await expect(page.getByRole("button", { name: /Înapoi/ })).toHaveCount(0);
     if ((page.viewportSize()?.width ?? 1440) >= 900) {
       // sidebar-ul și preview-ul sunt ascunse pe mobil (by design)
       await expect(page.getByText("Pașii tăi")).toBeVisible();
@@ -120,13 +223,25 @@ test.describe("Wizard — navigare și shell editorial", () => {
     }
   });
 
-  test("skip-ul pasului 1 duce la fotografie", async ({ page }) => {
+  test("Job vizat e pasul 3; skip-ul anunțului duce la Experiență", async ({ page }) => {
+    await mockCorrectText(page);
     await page.goto("/creare-cv");
-    await expect(
-      page.getByRole("heading", { name: "Ce job vrei să obții?" })
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({
+      timeout: 15000,
+    });
+    await page.getByLabel(/prenume/i).fill("Elena");
+    await page.getByLabel(/nume de familie/i).fill("Stanciu");
+    await page.getByLabel(/email/i).fill("e@s.ro");
+    await page.getByLabel(/telefon/i).fill("0722314558");
+    await page.getByLabel(/oraș/i).first().fill("Cluj");
+    await page.getByRole("button", { name: /Continuă/ }).click();
+    await page.getByText("Nu am fotografie potrivită").click();
+    await expect(page.getByText(/Pasul 3 din 10/i)).toBeVisible();
+    // fără exemple rapide (eliminate)
+    await expect(page.getByText("Exemple rapide")).toHaveCount(0);
     await page.getByText(/Nu am un anunț/).click();
-    await expect(page.getByText(/Pasul 2 din 10/i)).toBeVisible();
+    await expect(page.getByText(/Pasul 4 din 10/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Povestește-ne ce faci/ })).toBeVisible();
   });
 
   test("chip-ul de ancorare apare când există anunț", async ({ page }) => {
@@ -153,16 +268,10 @@ test.describe("Persistență — refresh-ul nu pierde progresul", () => {
     await mockCorrectText(page);
     await page.route("**/api/ai/research", (route) => route.fulfill({ json: { ok: true } }));
     await page.goto("/creare-cv");
-    await expect(
-      page.getByRole("heading", { name: "Ce job vrei să obții?" })
-    ).toBeVisible({ timeout: 15000 });
-    // progres real: anunț + trecut de foto + date de contact parțiale
-    await page
-      .getByPlaceholder(/copy-paste la descrierea/i)
-      .fill("Angajăm vânzător cu experiență la casa de marcat.");
-    await page.getByRole("button", { name: "Continuă", exact: true }).click();
-    await page.getByText("Nu am fotografie potrivită").click();
-    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({
+      timeout: 15000,
+    });
+    // progres real chiar pe pasul 1 (Contact) — trebuie să supraviețuiască
     await page.getByLabel(/prenume/i).fill("Elena");
     await page.getByLabel(/nume de familie/i).fill("Stanciu");
     // așteaptă persistarea debounced (400ms)
@@ -179,29 +288,16 @@ test.describe("Persistență — refresh-ul nu pierde progresul", () => {
     await expect(page.getByLabel(/prenume/i)).toHaveValue("Elena");
     await expect(page.getByLabel(/nume de familie/i)).toHaveValue("Stanciu");
   });
-
-  test("pasul 1 nu mai are buton Înapoi (fostul buton-capcană)", async ({ page }) => {
-    await page.goto("/creare-cv");
-    await expect(
-      page.getByRole("heading", { name: "Ce job vrei să obții?" })
-    ).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole("button", { name: /Înapoi/ })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Continuă", exact: true })).toBeVisible();
-  });
 });
 
 test.describe("Contact — județ dropdown + modal străinătate", () => {
   async function gotoContact(page: Page) {
     await mockCorrectText(page);
     await page.route("**/api/ai/research", (route) => route.fulfill({ json: { ok: true } }));
+    // Contactul E pasul 1 acum — direct la țintă
     await page.goto("/creare-cv");
-    await expect(
-      page.getByRole("heading", { name: "Ce job vrei să obții?" })
-    ).toBeVisible({ timeout: 15000 });
-    await page.getByText(/Nu am un anunț/).click();
-    await page.getByText("Nu am fotografie potrivită").click();
     await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({
-      timeout: 8000,
+      timeout: 15000,
     });
   }
 
@@ -261,9 +357,9 @@ test.describe("Contact — județ dropdown + modal străinătate", () => {
       await expect(preview.getByText("Germania")).toBeVisible();
     }
 
-    // poate continua FĂRĂ datele din România
+    // poate continua FĂRĂ datele din România → pasul 2 (Fotografie)
     await page.getByRole("button", { name: /Continuă/ }).click();
-    await expect(page.getByRole("heading", { name: /Povestește-ne ce faci/ })).toBeVisible({
+    await expect(page.getByRole("heading", { name: /Adaugă o fotografie/ })).toBeVisible({
       timeout: 10000,
     });
   });
@@ -487,7 +583,7 @@ test.describe("Pașii finali — limbi, permis, hobby-uri", () => {
     await catB.click();
     await expect(catB).toHaveAttribute("aria-pressed", "true");
     // fundal albastru plin + text alb → litera vizibilă
-    await expect(catB).toHaveCSS("background-color", "rgb(37, 99, 235)");
+    await expect(catB).toHaveCSS("background-color", "rgb(244, 90, 39)");
     await expect(catB).toHaveCSS("color", "rgb(255, 255, 255)");
     await expect(catB).toHaveText("B");
   });
@@ -640,9 +736,23 @@ test.describe("Preview CV — conținut complet + pasul final", () => {
     await page.getByTestId("template-elegant").click();
     await expect(sheet.locator("[data-template='elegant']")).toBeVisible();
 
+    // preview-ul e paginat ca PDF-ul — foi separate, fără scrollbar intern
+    await expect(sheet).toHaveAttribute("data-preview-page", "1");
+    const hasNoInnerScroll = await sheet.evaluate(
+      (el) => el.scrollHeight <= el.clientHeight + 1
+    );
+    expect(hasNoInnerScroll).toBe(true);
+
+    // fără acceptarea Termenilor, butonul de descărcare e blocat
+    const downloadBtn = page.getByRole("button", { name: /Descarcă PDF/ });
+    await expect(downloadBtn).toBeDisabled();
+    await expect(page.getByTestId("terms-consent")).toBeVisible();
+    await page.getByTestId("terms-checkbox").check();
+    await expect(downloadBtn).toBeEnabled();
+
     // descărcarea generează PDF-ul REAL în designul ales, cu numele + data
     const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("button", { name: /Descarcă PDF/ }).click();
+    await downloadBtn.click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(
       /^CV_Elena_Stanciu_\d{4}-\d{2}-\d{2}\.pdf$/

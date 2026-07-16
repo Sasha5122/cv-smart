@@ -147,38 +147,28 @@ export type TemplateId = "classic" | "modern" | "elegant" | "compact" | "minimal
 // ─── Wizard Step ───────────────────────────────────────────────────────────
 
 export type WizardStep =
-  | 0  // CV upload
-  | 1  // Job description
-  | 2  // Photo
-  | 3  // Last name
-  | 4  // First name
-  | 5  // Phone
-  | 6  // Email
-  | 7  // Address
-  | 8  // Education (conversational)
-  | 9  // Experience (conversational)
-  | 10 // Skills (conversational)
-  | 11 // Languages
-  | 12 // License
-  | 13 // Hobbies (conversational)
-  | 14; // Draft
+  | 1  // Contact
+  | 2  // Fotografie
+  | 3  // Job vizat
+  | 4  // Experiență
+  | 5  // Educație
+  | 6  // Abilități
+  | 7  // Limbi
+  | 8  // Permis
+  | 9  // Hobby-uri
+  | 10; // Finalizare
 
-export const TOTAL_STEPS = 15;
+export const TOTAL_STEPS = 10;
 
 export const STEP_LABELS: Record<WizardStep, string> = {
-  0: "CV existent",
-  1: "Job vizat",
+  1: "Contact",
   2: "Fotografie",
-  3: "Nume",
-  4: "Prenume",
-  5: "Telefon",
-  6: "Email",
-  7: "Adresă",
-  8: "Educație",
-  9: "Experiență",
-  10: "Abilități",
-  11: "Limbi",
-  12: "Permis",
-  13: "Hobby-uri",
-  14: "Draft CV",
+  3: "Unde aplici",
+  4: "Experiență",
+  5: "Educație",
+  6: "Abilități",
+  7: "Limbi",
+  8: "Permis",
+  9: "Hobby-uri",
+  10: "Finalizare",
 };

@@ -75,7 +75,7 @@ export function MinimalTemplate({ data }: { data: CVData }) {
   const hasLicenseInfo = hasLicenseInfoOf(data);
 
   return (
-    <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpress"} creator="CVexpress">
+    <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
       <Page size="A4" style={s.page}>
         <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
         {data.targetTitle ? (

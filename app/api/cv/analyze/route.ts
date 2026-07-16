@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runRecruiterQuestions } from "@/lib/cv-pipeline/stages";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
+import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 import {
   createPipelineSession,
   updatePipelineSession,
@@ -16,7 +17,7 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   try {
     // max 10 sesiuni de pipeline / oră / IP
-    const limit = checkRateLimit(clientIp(req), "cv-analyze", 10, 60 * 60 * 1000);
+    const limit = await checkRateLimit(clientIp(req), "cv-analyze", 10, 60 * 60 * 1000);
     if (!limit.allowed) {
       return NextResponse.json(
         {
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
+    const body = await readJsonLimited<Record<string, unknown>>(req, BODY_LIMITS.CV_DATA);
     const jobTitle = String(body.jobTitle ?? "").trim();
     const company = body.company ? String(body.company).trim() : undefined;
     const period = body.period ? String(body.period).trim() : undefined;

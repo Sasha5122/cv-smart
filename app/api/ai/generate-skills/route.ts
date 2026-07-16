@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractJSON } from "@/lib/ai/client";
 import { getSession } from "@/lib/db/queries";
+import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
+import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 import type { CVData } from "@/lib/types/cv";
 
 /** Sarcină simplă de listare — gpt-5.4 e suficient (5.5 era supradimensionat). */
 const SKILLS_MODEL = "gpt-5.4";
 
-const FALLBACK = {
-  hardSkills: ["Competențe analitice", "Gestionarea proiectelor", "Atenție la detalii", "Organizare și planificare"],
-  softwareTools: ["Microsoft Office", "Google Workspace", "Email profesional"],
-  softSkills: ["Comunicare eficientă", "Lucru în echipă", "Adaptabilitate"],
-};
+interface SkillsResult {
+  hardSkills: string[];
+  softwareTools: string[];
+  softSkills: string[];
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const limit = await checkRateLimit(clientIp(req), "generate-skills", 20, 60 * 60 * 1000);
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "Prea multe cereri." }, { status: 429 });
+    }
+    const body = await readJsonLimited<Record<string, unknown>>(req, BODY_LIMITS.CV_DATA);
     // formă nouă: { cvData, jobDescription?, sessionId? }; formă veche: cvData direct
-    const cvData: CVData = body.cvData ?? body;
+    const cvData = (body.cvData ?? body) as CVData;
     const jobDescription: string = String(body.jobDescription ?? "").trim();
     const sessionId: string = String(body.sessionId ?? "");
 
@@ -50,7 +56,7 @@ export async function POST(req: NextRequest) {
       ? `\nCUVINTE-CHEIE ATS identificate pentru rolul vizat: ${atsKeywords.join(", ")}\n`
       : "";
 
-    const result = await extractJSON<typeof FALLBACK>({
+    const result = await extractJSON<SkillsResult | null>({
       model: SKILLS_MODEL,
       system: `Ești un expert în resurse umane specializat în CV-uri profesionale pentru piața din România.
 
@@ -73,7 +79,9 @@ CATEGORII ȘI VOLUME:
 Răspunde EXCLUSIV cu JSON valid fără text adițional:
 {"hardSkills":["..."],"softwareTools":["..."],"softSkills":["..."]}`,
       userMessage: "Generează abilități profesionale complete bazate pe profilul furnizat.",
-      fallback: FALLBACK,
+      // fără dicționar de rezervă: dacă AI-ul pică, eșuăm vizibil —
+      // userul primește buton de reîncercare, nu abilități generice
+      fallback: null,
     });
 
     const valid =
@@ -81,8 +89,17 @@ Răspunde EXCLUSIV cu JSON valid fără text adițional:
       Array.isArray(result?.softwareTools) &&
       Array.isArray(result?.softSkills);
 
-    return NextResponse.json(valid ? result : FALLBACK);
+    if (!valid) {
+      return NextResponse.json(
+        { error: "Generarea abilităților a eșuat. Încearcă din nou." },
+        { status: 502 }
+      );
+    }
+    return NextResponse.json(result);
   } catch {
-    return NextResponse.json(FALLBACK);
+    return NextResponse.json(
+      { error: "Generarea abilităților a eșuat. Încearcă din nou." },
+      { status: 502 }
+    );
   }
 }

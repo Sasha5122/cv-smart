@@ -4,6 +4,7 @@ import {
   runBulletsFromContext,
 } from "@/lib/cv-pipeline/stages";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
+import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 import {
   getPipelineSession,
   updatePipelineSession,
@@ -23,7 +24,7 @@ export const maxDuration = 90;
  */
 export async function POST(req: Request) {
   try {
-    const limit = checkRateLimit(clientIp(req), "cv-ai", 60, 60 * 60 * 1000);
+    const limit = await checkRateLimit(clientIp(req), "cv-ai", 60, 60 * 60 * 1000);
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Prea multe cereri. Încearcă din nou în câteva minute." },
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
+    const body = await readJsonLimited<Record<string, unknown>>(req, BODY_LIMITS.CV_DATA);
     const sessionId = String(body.sessionId ?? "");
     const force = Boolean(body.force);
     const incomingAnswers = (body.answers ?? null) as QuestionAnswer[] | null;

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { StepCard } from "../step-card";
-import { CVPreview } from "../cv-preview";
+import { PaginatedCVPreview } from "../paginated-preview";
 import { Button } from "@/components/ui/button";
 import { Download, Check, Loader2 } from "lucide-react";
 import type { CVData, TemplateId } from "@/lib/types/cv";
@@ -115,6 +115,8 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
   const [isDownloading, setIsDownloading] = useState(false);
   const [template, setTemplate] = useState<TemplateId>("classic");
   const [isSummarizing, setIsSummarizing] = useState(false);
+  // fără acceptarea termenilor, descărcarea e blocată (cerință legală)
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const summaryRequested = useRef(false);
 
   // Rezumatul profesional se generează automat, o singură dată, din datele
@@ -141,6 +143,10 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
   }, []);
 
   const handleDownload = async () => {
+    if (!termsAccepted) {
+      toast.error("Pentru a descărca CV-ul, bifează mai întâi acordul cu Termenii și condițiile.");
+      return;
+    }
     setIsDownloading(true);
     try {
       // datele merg direct din browser — PDF-ul se generează și dacă
@@ -230,7 +236,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         </div>
       )}
 
-      {/* foaia mare, proporții A4, în designul ales */}
+      {/* foile A4 — paginate ca PDF-ul, fără scrollbar intern */}
       <div
         style={{
           backgroundColor: "var(--paper-deep)",
@@ -239,24 +245,61 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           padding: 18,
         }}
       >
-        <div
-          data-testid="final-cv-sheet"
-          style={{
-            border: "1px solid var(--hairline)",
-            borderRadius: 10,
-            boxShadow: "var(--shadow-lift)",
-            backgroundColor: "#fff",
-            maxWidth: 760,
-            margin: "0 auto",
-            aspectRatio: "210 / 297",
-            overflowY: "auto",
-          }}
-        >
-          <CVPreview cvData={cvData} template={template} />
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <PaginatedCVPreview cvData={cvData} template={template} sheetTestId="final-cv-sheet" />
         </div>
       </div>
 
-      <div className="flex gap-3" style={{ marginTop: 32 }}>
+      {/* consimțământ obligatoriu — fără bifă, descărcarea nu pornește */}
+      <label
+        data-testid="terms-consent"
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 10,
+          marginTop: 26,
+          padding: "14px 16px",
+          borderRadius: 12,
+          border: termsAccepted ? "1px solid var(--green)" : "1px solid var(--hairline-strong)",
+          backgroundColor: termsAccepted ? "rgba(22, 163, 74, 0.06)" : "var(--wash)",
+          cursor: "pointer",
+          transition: "border-color 0.15s, background-color 0.15s",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={termsAccepted}
+          onChange={(e) => setTermsAccepted(e.target.checked)}
+          data-testid="terms-checkbox"
+          style={{ width: 18, height: 18, marginTop: 1, accentColor: "var(--primary)", cursor: "pointer", flexShrink: 0 }}
+        />
+        <span style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--foreground)" }}>
+          Am luat la cunoștință și sunt de acord cu{" "}
+          <a
+            href="/termeni"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{ color: "var(--primary)", fontWeight: 600 }}
+          >
+            Termenii și condițiile
+          </a>{" "}
+          și cu{" "}
+          <a
+            href="/confidentialitate"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{ color: "var(--primary)", fontWeight: 600 }}
+          >
+            Politica de confidențialitate
+          </a>
+          . Solicit executarea imediată a serviciului și înțeleg că îmi pierd dreptul de
+          retragere odată cu descărcarea CV-ului.
+        </span>
+      </label>
+
+      <div className="flex gap-3" style={{ marginTop: 18 }}>
         <Button variant="outline" onClick={onBack} className="flex-1">
           ← Înapoi
         </Button>
@@ -265,6 +308,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           size="lg"
           className="flex-[2]"
           loading={isDownloading}
+          disabled={!termsAccepted}
           icon={<Download className="w-4 h-4" />}
         >
           Descarcă PDF

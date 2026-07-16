@@ -2,11 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { extractJSON, FAST_MODEL } from "@/lib/ai/client";
 import { getCachedProfile, upsertCachedProfile, updateIdealProfile } from "@/lib/db/queries";
 import { normalizeRole } from "@/lib/utils";
+import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
+import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 import type { IdealProfile } from "@/lib/types/cv";
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, jobDescription } = await req.json();
+    const limit = await checkRateLimit(clientIp(req), "ai-research", 20, 60 * 60 * 1000);
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "Prea multe cereri." }, { status: 429 });
+    }
+    const parsed = await readJsonLimited<{ sessionId?: string; jobDescription?: string }>(
+      req,
+      BODY_LIMITS.TEXT
+    );
+    const sessionId = String(parsed.sessionId ?? "");
+    const jobDescription = String(parsed.jobDescription ?? "");
 
     // Extract role from job description
     const intent = await extractJSON<{ role: string; industry: string; seniority: string }>({

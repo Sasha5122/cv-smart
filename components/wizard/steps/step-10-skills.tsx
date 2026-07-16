@@ -51,6 +51,7 @@ interface Props {
 
 export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNext, onBack }: Props) {
   const [phase, setPhase] = useState<"loading" | "selection">("loading");
+  const [loadError, setLoadError] = useState(false);
   const [pool, setPool] = useState<SkillPool>({ hardSkills: [], softwareTools: [], softSkills: [] });
   const [selectedHard, setSelectedHard] = useState<Set<string>>(new Set());
   const [selectedSoftware, setSelectedSoftware] = useState<Set<string>>(new Set());
@@ -62,7 +63,9 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
   const selectionSets = { hardSkills: selectedHard, softwareTools: selectedSoftware, softSkills: selectedSoft };
   const setters = { hardSkills: setSelectedHard, softwareTools: setSelectedSoftware, softSkills: setSelectedSoft };
 
-  useEffect(() => {
+  const loadSkills = () => {
+    setPhase("loading");
+    setLoadError(false);
     fetch("/api/ai/generate-skills", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,9 +76,23 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
         sessionId,
       }),
     })
-      .then((res) => res.json())
-      .then((data: SkillPool) => { setPool(data); setPhase("selection"); })
-      .catch(() => { setPhase("selection"); });
+      .then(async (res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data: SkillPool) => {
+        setPool(data);
+        setPhase("selection");
+      })
+      .catch(() => {
+        // fără dicționare generice: arătăm eroarea și butonul de reîncercare
+        setLoadError(true);
+        setPhase("selection");
+      });
+  };
+
+  useEffect(() => {
+    loadSkills();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleSkill = (key: "hardSkills" | "softwareTools" | "softSkills", skill: string) => {
@@ -145,6 +162,30 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
       subtitle="Selectează abilitățile tale relevante pentru CV."
       icon={<Star className="w-5 h-5" />}
     >
+      {loadError && (
+        <div
+          data-testid="skills-error"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 10,
+            padding: "12px 16px",
+            marginBottom: 16,
+            borderRadius: 10,
+            border: "1px solid #fca5a5",
+            backgroundColor: "#fef2f2",
+            fontSize: 13.5,
+          }}
+        >
+          <span>Generarea AI a abilităților a eșuat. Poți reîncerca sau adaugă-le manual mai jos.</span>
+          <Button size="sm" variant="outline" onClick={loadSkills} data-testid="skills-retry">
+            Încearcă din nou
+          </Button>
+        </div>
+      )}
+
       <div data-testid="skills-selection" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {SECTIONS.map((section) => {
           const items = pool[section.key];
@@ -235,7 +276,7 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
                   key={i}
                   style={{
                     display: "inline-flex", alignItems: "center", gap: 6,
-                    padding: "4px 10px", background: "var(--wash)", border: "1px solid #C7D2FE",
+                    padding: "4px 10px", background: "var(--wash)", border: "1px solid #f3c4ac",
                     borderRadius: 20, fontSize: 13, color: "var(--primary-strong)",
                   }}
                 >

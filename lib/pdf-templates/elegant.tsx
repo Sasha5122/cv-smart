@@ -1,7 +1,7 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
-import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf } from "./shared";
+import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf, photoSrcOf } from "./shared";
 
 registerFonts();
 
@@ -117,15 +117,16 @@ export function ElegantTemplate({ data }: { data: CVData }) {
   const fullName = fullNameOf(data);
   const contactItems = contactItemsOf(data);
   const hasLicenseInfo = hasLicenseInfoOf(data);
+  const photo = photoSrcOf(data);
 
   return (
-    <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpress"} creator="CVexpress">
+    <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
       <Page size="A4" style={s.page}>
         {/* Antet centrat */}
-        {data.personal?.photoUrl && (
+        {photo && (
           /* eslint-disable-next-line jsx-a11y/alt-text */
           <Image
-            src={data.personal.photoUrl}
+            src={photo}
             style={{
               width: 66,
               height: 66,

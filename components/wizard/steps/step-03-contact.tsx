@@ -36,7 +36,8 @@ interface Props {
   value: CVData["personal"];
   onChange: (data: Partial<CVData["personal"]>) => void;
   onNext: () => void;
-  onBack: () => void;
+  /** absent pe primul pas — nu există unde să te întorci */
+  onBack?: () => void;
 }
 
 interface Errors {
@@ -126,8 +127,8 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
         {(value?.firstName || value?.lastName) && (
           <div
             style={{
-              backgroundColor: "#EEEDF8",
-              border: "1px solid #C7D2FE",
+              backgroundColor: "#fbeade",
+              border: "1px solid #f3c4ac",
               borderRadius: 10,
               padding: "10px 16px",
               display: "flex",
@@ -268,7 +269,7 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
                 fontWeight: 600,
                 color: "var(--primary)",
                 backgroundColor: "var(--wash)",
-                border: "1px solid #C7D2FE",
+                border: "1px solid #f3c4ac",
                 borderRadius: 8,
                 padding: "10px 16px",
                 cursor: "pointer",
@@ -291,7 +292,9 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
-        <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+        {onBack && (
+          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+        )}
         <Button onClick={handleNext} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
           Continuă
         </Button>

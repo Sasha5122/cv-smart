@@ -163,7 +163,7 @@ export function Select({
           className={cn(
             "w-full text-left rounded-[8px] border border-[var(--input-border)] bg-[var(--card)] text-[15.5px]",
             "transition-all duration-150 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]",
-            "focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(37,99,235,0.18)]",
+            "focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(244,90,39,0.18)]",
             "disabled:bg-[var(--muted)] disabled:text-[var(--faint)]",
             selected ? "text-[var(--ink)]" : "text-[var(--faint)]",
             error &&

@@ -121,7 +121,7 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
                     fontWeight: 600,
                     color: "var(--primary-strong)",
                     backgroundColor: "var(--wash)",
-                    border: "1px solid #C7D2FE",
+                    border: "1px solid #f3c4ac",
                     borderRadius: 999,
                     padding: "3px 10px",
                     whiteSpace: "nowrap",

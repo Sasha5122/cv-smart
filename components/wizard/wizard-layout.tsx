@@ -1,21 +1,21 @@
 "use client";
 import Link from "next/link";
-import { CVPreview } from "./cv-preview";
+import { PreviewWithPageMarks } from "./paginated-preview";
 import { LogoMark } from "@/components/ui/logo";
 import type { WizardStep, CVData } from "@/lib/types/cv";
 
-// Maparea intrărilor din sidebar la pașii interni
+// Maparea intrărilor din sidebar la pașii interni (1-la-1, ordinea nouă)
 const SIDEBAR_STEPS = [
-  { label: "Job vizat", steps: [1] },
+  { label: "Contact", steps: [1] },
   { label: "Fotografie", steps: [2] },
-  { label: "Contact", steps: [3, 4, 5, 6, 7] },
-  { label: "Experiență", steps: [8] },
-  { label: "Educație", steps: [9] },
-  { label: "Abilități", steps: [10] },
-  { label: "Limbi", steps: [11] },
-  { label: "Permis", steps: [12] },
-  { label: "Hobby-uri", steps: [13] },
-  { label: "Finalizare", steps: [14] },
+  { label: "Unde aplici", steps: [3] },
+  { label: "Experiență", steps: [4] },
+  { label: "Educație", steps: [5] },
+  { label: "Abilități", steps: [6] },
+  { label: "Limbi", steps: [7] },
+  { label: "Permis", steps: [8] },
+  { label: "Hobby-uri", steps: [9] },
+  { label: "Finalizare", steps: [10] },
 ];
 
 type StepStatus = "done" | "current" | "future";
@@ -37,7 +37,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
   const currentItem = SIDEBAR_STEPS[sidebarIdx];
   const progressPct = Math.round(((sidebarIdx + 1) / SIDEBAR_STEPS.length) * 100);
   // pe Finalizare, preview-ul lateral dispare — pasul afișează el însuși CV-ul mare
-  const isFinalStep = currentStep === 14;
+  const isFinalStep = currentStep === 10;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -59,7 +59,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
       >
         {/* Logo */}
         <Link
-          href="/creare-cv"
+          href="/"
           style={{
             display: "flex",
             alignItems: "center",
@@ -79,7 +79,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
               letterSpacing: "-0.01em",
             }}
           >
-            CVexpress
+            CVexpres
           </span>
         </Link>
 
@@ -105,8 +105,8 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
                   gap: 12,
                   padding: "9px 12px",
                   borderRadius: 8,
-                  backgroundColor: isCurrent ? "rgba(37, 99, 235, 0.22)" : "transparent",
-                  border: isCurrent ? "1px solid rgba(59,130,246,0.45)" : "1px solid transparent",
+                  backgroundColor: isCurrent ? "rgba(244, 90, 39, 0.22)" : "transparent",
+                  border: isCurrent ? "1px solid rgba(244, 90, 39, 0.45)" : "1px solid transparent",
                   transition: "background-color 0.2s",
                 }}
               >
@@ -206,10 +206,10 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
             backgroundColor: "var(--sidebar-bg)",
           }}
         >
-          <Link href="/creare-cv" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
             <LogoMark size={28} />
             <span style={{ fontFamily: "var(--font-display), sans-serif", color: "var(--sidebar-fg)", fontWeight: 700, fontSize: 16 }}>
-              CVexpress
+              CVexpres
             </span>
           </Link>
           <span style={{ fontSize: 12, fontWeight: 700, color: "var(--sidebar-muted)", fontVariantNumeric: "tabular-nums" }}>
@@ -234,7 +234,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
                 textTransform: "uppercase",
                 color: "var(--primary)",
                 backgroundColor: "var(--wash)",
-                border: "1px solid #bfdbfe",
+                border: "1px solid #f8c2a7",
                 borderRadius: 6,
                 padding: "4px 10px",
               }}
@@ -322,7 +322,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
                 LIVE
               </span>
             </div>
-            {/* biroul */}
+            {/* biroul — foile A4 paginate ca PDF-ul, fără scrollbar intern */}
             <div
               style={{
                 backgroundColor: "var(--paper-deep)",
@@ -331,21 +331,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
                 padding: 14,
               }}
             >
-              {/* foaia: proporții A4 (210:297) + scroll intern — TOT
-                  conținutul (limbi, hobby-uri) rămâne accesibil */}
-              <div
-                style={{
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 10,
-                  boxShadow: "var(--shadow-lift)",
-                  backgroundColor: "#fff",
-                  aspectRatio: "210 / 297",
-                  maxHeight: "calc(100vh - 170px)",
-                  overflowY: "auto",
-                }}
-              >
-                <CVPreview cvData={cvData} />
-              </div>
+              <PreviewWithPageMarks cvData={cvData} />
             </div>
           </div>
           )}

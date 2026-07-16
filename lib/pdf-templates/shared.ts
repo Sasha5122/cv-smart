@@ -25,6 +25,24 @@ export function contactItemsOf(data: CVData): string[] {
   return items.filter((x): x is string => Boolean(x && x.trim()));
 }
 
+/** Sursa imaginii pentru <Image> din react-pdf.
+ *  Data-URI-urile NU se randează fiabil în react-pdf (eșuează silențios —
+ *  bug prins la testul cu utilizatori reali), așa că le decodăm în Buffer,
+ *  forma suportată garantat. URL-urile http(s) trec neschimbate. */
+export function photoSrcOf(
+  data: CVData
+): string | { data: Buffer; format: "jpg" | "png" } | null {
+  const url = data.personal?.photoUrl;
+  if (!url) return null;
+  const m = url.match(/^data:image\/(jpeg|jpg|png);base64,(.+)$/);
+  if (m) {
+    return { data: Buffer.from(m[2], "base64"), format: m[1] === "png" ? "png" : "jpg" };
+  }
+  // format nesuportat de PDF (ex. webp) → fără fotografie, nu PDF stricat
+  if (url.startsWith("data:")) return null;
+  return url;
+}
+
 export function hasLicenseInfoOf(data: CVData): boolean {
   return (
     (Boolean(data.license?.hasLicense) && (data.license?.categories.length ?? 0) > 0) ||

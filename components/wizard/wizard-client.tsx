@@ -37,14 +37,18 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const snap = JSON.parse(raw);
+      const p = snap?.cvData?.personal ?? {};
       const hasProgress =
         snap &&
         snap.cvData &&
-        (Number(snap.currentStep) > 1 || String(snap.jobDescription ?? "").trim());
+        (Number(snap.currentStep) > 1 ||
+          String(snap.jobDescription ?? "").trim() ||
+          // date introduse chiar pe pasul 1 (Contact) — tot progres e
+          p.firstName || p.lastName || p.email || p.phone);
       if (!hasProgress) return;
       wizard.hydrate({
         sessionId: typeof snap.sessionId === "string" ? snap.sessionId : undefined,
-        currentStep: Math.min(14, Math.max(1, Number(snap.currentStep))) as WizardStep,
+        currentStep: Math.min(10, Math.max(1, Number(snap.currentStep))) as WizardStep,
         cvData: snap.cvData,
         jobDescription: String(snap.jobDescription ?? ""),
       });
@@ -101,11 +105,43 @@ export function WizardClient({ sessionId }: WizardClientProps) {
     }, 1000);
   }, [wizard.cvData, wizard.sessionId]);
 
+  // Tracking best-effort: pasul atins (vizibil în admin la „unde s-a oprit userul")
+  useEffect(() => {
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId: wizard.sessionId, step: wizard.currentStep }),
+      keepalive: true,
+    }).catch(() => {});
+  }, [wizard.currentStep, wizard.sessionId]);
+
   const renderStep = () => {
-    const { currentStep, cvData, next, back, updateCVData, updatePersonal, setStep, setJobDescription, jobDescription } = wizard;
+    const { currentStep, cvData, next, back, updateCVData, updatePersonal, setJobDescription, jobDescription } = wizard;
 
     switch (currentStep as WizardStep) {
+      // Ordinea pașilor: 1 Contact → 2 Fotografie → 3 Job vizat →
+      // 4 Experiență → 5 Educație → 6 Abilități → 7 Limbi → 8 Permis →
+      // 9 Hobby-uri → 10 Finalizare
       case 1:
+        return (
+          <Step03Contact
+            value={cvData.personal}
+            onChange={updatePersonal}
+            onNext={next}
+            // primul pas — nu are unde să ducă înapoi
+          />
+        );
+      case 2:
+        return (
+          <Step02Photo
+            value={cvData.personal?.photoUrl}
+            onChange={(url) => updatePersonal({ photoUrl: url })}
+            onNext={next}
+            onSkip={next}
+            onBack={back}
+          />
+        );
+      case 3:
         return (
           <Step01JobDescription
             value={jobDescription}
@@ -126,33 +162,10 @@ export function WizardClient({ sessionId }: WizardClientProps) {
               next();
             }}
             onSkip={next}
-          />
-        );
-      case 2:
-        return (
-          <Step02Photo
-            value={cvData.personal?.photoUrl}
-            onChange={(url) => updatePersonal({ photoUrl: url })}
-            onNext={next}
-            onSkip={next}
             onBack={back}
           />
         );
-      // Steps 3-7 combined into single contact form
-      case 3:
       case 4:
-      case 5:
-      case 6:
-      case 7:
-        return (
-          <Step03Contact
-            value={cvData.personal}
-            onChange={updatePersonal}
-            onNext={() => setStep(8 as WizardStep)}
-            onBack={() => setStep(2 as WizardStep)}
-          />
-        );
-      case 8:
         return (
           <Step09Experience
             sessionId={wizard.sessionId}
@@ -163,7 +176,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             onBack={back}
           />
         );
-      case 9:
+      case 5:
         return (
           <Step08Education
             sessionId={wizard.sessionId}
@@ -174,7 +187,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             onBack={back}
           />
         );
-      case 10:
+      case 6:
         return (
           <Step10Skills
             sessionId={wizard.sessionId}
@@ -186,7 +199,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             onBack={back}
           />
         );
-      case 11:
+      case 7:
         return (
           <Step11Languages
             languages={cvData.languages}
@@ -195,7 +208,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             onBack={back}
           />
         );
-      case 12:
+      case 8:
         return (
           <Step12License
             license={cvData.license ?? { hasLicense: false, categories: [] }}
@@ -206,7 +219,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             onBack={back}
           />
         );
-      case 13:
+      case 9:
         return (
           <Step13Hobbies
             sessionId={wizard.sessionId}
@@ -216,7 +229,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             onBack={back}
           />
         );
-      case 14:
+      case 10:
         return (
           <Step14Draft
             sessionId={wizard.sessionId}

@@ -1,7 +1,7 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
-import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf } from "./shared";
+import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf, photoSrcOf } from "./shared";
 
 registerFonts();
 
@@ -30,6 +30,11 @@ const s = StyleSheet.create({
     fontSize: 10,
     color: C.text,
     lineHeight: 1.5,
+    // padding-ul vertical stă pe Page (nu pe coloane): coloanele care se
+    // sparg pe mai multe pagini își „revarsă" paddingBottom într-un fragment
+    // gol → pagină goală la final. Page-ul nu are problema asta.
+    paddingTop: 40,
+    paddingBottom: 44,
   },
   sideBg: {
     position: "absolute",
@@ -42,15 +47,11 @@ const s = StyleSheet.create({
   row: { flexDirection: "row" },
   side: {
     width: SIDEBAR_W,
-    paddingTop: 40,
-    paddingBottom: 44,
     paddingHorizontal: 20,
     color: C.sideText,
   },
   main: {
     flex: 1,
-    paddingTop: 40,
-    paddingBottom: 48,
     paddingLeft: 26,
     paddingRight: 40,
   },
@@ -126,18 +127,19 @@ export function ModernTemplate({ data }: { data: CVData }) {
   const fullName = fullNameOf(data);
   const contactItems = contactItemsOf(data);
   const hasLicenseInfo = hasLicenseInfoOf(data);
+  const photo = photoSrcOf(data);
 
   return (
-    <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpress"} creator="CVexpress">
+    <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
       <Page size="A4" style={s.page}>
         {/* fundalul sidebar-ului pe toată înălțimea, pe fiecare pagină */}
         <View style={s.sideBg} fixed />
         <View style={s.row}>
           {/* Sidebar */}
           <View style={s.side}>
-            {data.personal?.photoUrl && (
+            {photo && (
               /* eslint-disable-next-line jsx-a11y/alt-text */
-              <Image src={data.personal.photoUrl} style={s.photo} />
+              <Image src={photo} style={s.photo} />
             )}
             {contactItems.length > 0 && (
               <View style={s.sideSection}>

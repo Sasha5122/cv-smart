@@ -42,9 +42,42 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
     }
     setIsUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = (e) => { onChange(e.target?.result as string); setIsUploading(false); };
-      reader.readAsDataURL(file);
+      // Normalizare prin canvas: ORICE poză devine JPEG PĂTRAT 600×600 —
+      // niciun consumator (preview sau PDF) nu mai poate distorsiona
+      // imaginea, prin construcție. Rezolvă și WEBP-ul (nesuportat de PDF)
+      // și micșorează payload-ul.
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          const SIZE = 600;
+          // latura pătratului = latura mică a sursei
+          const side = Math.min(img.width, img.height);
+          const sx = (img.width - side) / 2;
+          // La pozele PORTRETE (inclusiv full-body) capul e în partea de
+          // sus — ancorăm decupajul aproape de vârf (10% din surplus), nu
+          // în centru, ca să nu tăiem fața. La landscape rămâne centrat.
+          const sy =
+            img.height > img.width
+              ? (img.height - side) * 0.1
+              : (img.height - side) / 2;
+          const canvas = document.createElement("canvas");
+          canvas.width = SIZE;
+          canvas.height = SIZE;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("canvas"));
+          ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+          resolve(canvas.toDataURL("image/jpeg", 0.88));
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error("decode"));
+        };
+        img.src = objectUrl;
+      });
+      onChange(dataUrl);
+      setIsUploading(false);
     } catch {
       toast.error("Eroare la încărcare. Încearcă din nou.");
       setIsUploading(false);

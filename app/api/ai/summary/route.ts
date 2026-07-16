@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callStructured, StructuredCallError } from "@/lib/openai";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
+import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 import type { CVData } from "@/lib/types/cv";
 
 export const maxDuration = 30;
@@ -30,12 +31,12 @@ Răspunzi STRICT în formatul JSON cerut.`;
 
 export async function POST(req: NextRequest) {
   try {
-    const limit = checkRateLimit(clientIp(req), "ai-summary", 30, 60 * 60 * 1000);
+    const limit = await checkRateLimit(clientIp(req), "ai-summary", 30, 60 * 60 * 1000);
     if (!limit.allowed) {
       return NextResponse.json({ error: "Prea multe cereri." }, { status: 429 });
     }
 
-    const body = await req.json();
+    const body = await readJsonLimited<Record<string, unknown>>(req, BODY_LIMITS.CV_DATA);
     const cvData = body.cvData as CVData;
     const jobDescription = String(body.jobDescription ?? "").trim();
     if (!cvData?.experience?.length) {
@@ -50,14 +51,21 @@ export async function POST(req: NextRequest) {
       .join("\n\n");
     const skills = (cvData.skills ?? []).map((s) => s.name).join(", ");
     const education = (cvData.education ?? [])
-      .map((e) => `${e.level}${e.field ? ` — ${e.field}` : ""}`)
+      .map((e) => `${e.level}${e.field ? ` — ${e.field}` : ""}${e.institution ? ` (${e.institution})` : ""}`)
       .join("; ");
+    // certificările și calificările cântăresc mult într-un rezumat
+    const courses = (cvData.courses ?? [])
+      .map((c) => `${c.name}${c.year ? ` (${c.year})` : ""}`)
+      .join("; ");
+    const qualifications = (cvData.qualifications ?? "").trim();
 
     const userContent = [
       "EXPERIENȚA CANDIDATULUI:",
       experience,
       skills ? `\nCOMPETENȚE: ${skills}` : "",
       education ? `\nEDUCAȚIE: ${education}` : "",
+      courses ? `\nCURSURI ȘI CERTIFICĂRI: ${courses}` : "",
+      qualifications ? `\nCALIFICĂRI: ${qualifications}` : "",
       jobDescription ? `\nANUNȚUL JOBULUI ȚINTĂ:\n<<<\n${jobDescription}\n>>>` : "",
     ]
       .filter(Boolean)

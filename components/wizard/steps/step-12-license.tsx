@@ -53,7 +53,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
             className={cn(
               "flex-1 py-3 rounded-xl border-2 text-lg font-medium transition-all",
               !license.hasLicense
-                ? "border-slate-500 bg-[var(--muted)] text-[var(--foreground)]"
+                ? "border-[var(--hairline-strong)] bg-[var(--muted)] text-[var(--foreground)]"
                 : "border-[var(--hairline)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--input-border)]"
             )}
           >

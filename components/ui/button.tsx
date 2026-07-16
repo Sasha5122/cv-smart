@@ -11,8 +11,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /**
- * Butoane în limbajul „atelier editorial”:
- * primary = cerneală plină, outline = hairline, ghost = discret.
+ * Butoane în stil Framework (frame.work): pastile (pill) —
+ * primary = orange plin cu text negru, outline = contur negru pe crem.
  */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -30,17 +30,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const base =
-      "inline-flex items-center justify-center gap-2 font-semibold rounded-[8px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] disabled:pointer-events-none disabled:opacity-45 select-none cursor-pointer";
+      "inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] disabled:pointer-events-none disabled:opacity-45 select-none cursor-pointer";
 
     const variants = {
       primary:
-        "bg-[var(--primary)] text-white border border-[var(--primary)] hover:bg-[var(--primary-strong)] hover:border-[var(--primary-strong)] hover:-translate-y-px active:translate-y-0 shadow-[0_1px_2px_rgba(37,99,235,0.3),0_6px_16px_-6px_rgba(37,99,235,0.5)]",
+        "bg-[var(--primary)] text-[var(--primary-foreground)] border border-[var(--primary)] hover:bg-[var(--primary-strong)] hover:border-[var(--primary-strong)] hover:-translate-y-px active:translate-y-0 shadow-[0_1px_2px_rgba(244,90,39,0.3),0_6px_16px_-6px_rgba(244,90,39,0.5)]",
       secondary:
-        "bg-[var(--muted)] text-[var(--ink)] border border-[var(--border)] hover:bg-[#e2e8f0]",
+        "bg-[var(--muted)] text-[var(--ink)] border border-[var(--border)] hover:bg-[var(--secondary)]",
       ghost:
-        "bg-transparent text-[var(--muted-foreground)] hover:text-[var(--ink)] hover:bg-[rgba(15,23,42,0.05)]",
+        "bg-transparent text-[var(--muted-foreground)] hover:text-[var(--ink)] hover:bg-[rgba(20,20,19,0.05)]",
       outline:
-        "border-[1.5px] border-[var(--border)] bg-white text-[var(--ink)] hover:border-[var(--ink)] hover:bg-[#f8fafc]",
+        "border-[1.5px] border-[var(--ink)] bg-transparent text-[var(--ink)] hover:bg-[rgba(20,20,19,0.05)]",
       danger:
         "bg-[var(--red,#dc2626)] text-white border border-transparent hover:opacity-90 shadow-[var(--shadow-paper)]",
     };

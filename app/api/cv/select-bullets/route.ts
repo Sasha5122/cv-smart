@@ -3,6 +3,8 @@ import {
   getPipelineSession,
   updatePipelineSession,
 } from "@/lib/cv-pipeline/store";
+import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
+import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 import type { GeneratedBullet } from "@/lib/types/cv-pipeline";
 
 /**
@@ -11,7 +13,11 @@ import type { GeneratedBullet } from "@/lib/types/cv-pipeline";
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const limit = await checkRateLimit(clientIp(req), "select-bullets", 60, 60 * 60 * 1000);
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "Prea multe cereri." }, { status: 429 });
+    }
+    const body = await readJsonLimited<Record<string, unknown>>(req, BODY_LIMITS.TEXT);
     const sessionId = String(body.sessionId ?? "");
     const selectedIds = (body.selectedIds ?? []) as string[];
 

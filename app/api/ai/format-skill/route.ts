@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chat, FAST_MODEL } from "@/lib/ai/client";
+import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
+import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 
 export async function POST(req: NextRequest) {
   try {
-    const { skill } = await req.json();
+    const limit = await checkRateLimit(clientIp(req), "format-skill", 60, 60 * 60 * 1000);
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "Prea multe cereri." }, { status: 429 });
+    }
+    const { skill } = await readJsonLimited<{ skill?: string }>(req, BODY_LIMITS.TINY);
     if (!skill?.trim()) return NextResponse.json({ corrected: skill ?? "" });
 
     const corrected = await chat({

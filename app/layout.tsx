@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Sora, Instrument_Sans } from "next/font/google";
 import "./globals.css";
+import { LEGAL } from "@/lib/legal-config";
 import { Toaster } from "@/components/ui/sonner";
 
 /**
@@ -23,18 +24,39 @@ const instrumentSans = Instrument_Sans({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || LEGAL.siteUrl;
+
 export const metadata: Metadata = {
-  title: "CVexpress — Creează CV profesional cu AI în 5 minute",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "CVexpres — CV profesionist cu AI, gata în 10 minute",
+    template: "%s | CVexpres",
+  },
   description:
-    "Generează un CV profesional optimizat pentru piața din România cu ajutorul inteligenței artificiale. ATS-friendly, personalizat pentru jobul tău.",
-  keywords: ["creare cv", "cv online", "cv profesional", "cv AI", "generator cv", "cv Romania"],
-  authors: [{ name: "CVexpress" }],
+    "Garantăm un CV profesionist, gata în 10 minute. Dezvoltat și optimizat special pentru piața din România. 49 RON, plată unică, PDF descărcabil.",
+  keywords: [
+    "creare cv", "cv online", "cv profesional", "cv AI", "generator cv",
+    "cv Romania", "model cv", "cv pdf", "cv angajare",
+  ],
+  authors: [{ name: "CVexpres" }],
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "CVexpress — CV profesional cu AI",
-    description: "Creează CV-ul perfect în 5 minute cu AI românesc",
+    title: "CVexpres — CV profesionist cu AI, gata în 10 minute",
+    description:
+      "Garantăm un CV profesionist, gata în 10 minute. Optimizat pentru piața din România. 49 RON, plată unică.",
     type: "website",
     locale: "ro_RO",
+    siteName: "CVexpres",
+    url: SITE_URL,
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "CVexpres — CV profesionist cu AI" }],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "CVexpres — CV profesionist cu AI, gata în 10 minute",
+    description: "Optimizat pentru piața din România. 49 RON, plată unică.",
+    images: ["/og-image.png"],
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

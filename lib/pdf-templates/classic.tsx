@@ -1,7 +1,7 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
-import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf } from "./shared";
+import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf, photoSrcOf } from "./shared";
 
 registerFonts();
 
@@ -178,19 +178,20 @@ export function ClassicTemplate({ data }: { data: CVData }) {
   const fullName = fullNameOf(data);
   const contactItems = contactItemsOf(data);
   const hasLicenseInfo = hasLicenseInfoOf(data);
+  const photo = photoSrcOf(data);
 
   return (
     <Document
       title={`CV ${fullName}`.trim()}
-      author={fullName || "CVexpress"}
-      creator="CVexpress"
+      author={fullName || "CVexpres"}
+      creator="CVexpres"
     >
       <Page size="A4" style={styles.page}>
         {/* Antet */}
         <View style={styles.headerRow}>
-          {data.personal?.photoUrl && (
+          {photo && (
             /* eslint-disable-next-line jsx-a11y/alt-text */
-            <Image src={data.personal.photoUrl} style={styles.photo} />
+            <Image src={photo} style={styles.photo} />
           )}
           <View style={{ flex: 1 }}>
             <Text style={styles.name}>{fullName || "Prenume Nume"}</Text>

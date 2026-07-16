@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════
-   CV SMART — SISTEM MODERN, CONTRAST PUTERNIC
-   Alb pur + navy închis · Albastru electric (primar) · Verde smarald
-   (progres/valid) · Roșu (erori). Fonturi: Sora (display) +
-   Instrument Sans (body) — ambele cu diacritice românești.
+   CVEXPRESS — STIL FRAMEWORK (frame.work)
+   Crem cald + negru neutru · Portocaliu de brand #f45a27 (butoane-
+   pastilă cu text negru) · Verde smarald (progres/valid) · Roșu
+   (erori). Fonturi: Sora (display) + Instrument Sans (body).
    ══════════════════════════════════════════════════════════════════ */
 
 @theme inline {
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-200: #bfdbfe;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-brand-900: #1e3a8a;
+  --color-brand-50: #fdf1ea;
+  --color-brand-100: #fbe0d2;
+  --color-brand-200: #f8c2a7;
+  --color-brand-500: #ff7447;
+  --color-brand-600: #f45a27;
+  --color-brand-700: #d8481a;
+  --color-brand-900: #8f2e0e;
   --color-success: #059669;
   --color-warning: #d97706;
   --color-error: #dc2626;
@@ -23,31 +23,31 @@
 }
 
 :root {
-  /* suprafețe */
-  --background: #f8fafc;
-  --paper: #f8fafc;          /* rama aplicației */
-  --paper-deep: #eef2f7;     /* birou preview / secțiuni alternative */
+  /* suprafețe — crem cald, ca fundalul deschis Framework */
+  --background: #edeae2;
+  --paper: #edeae2;          /* rama aplicației */
+  --paper-deep: #e4e0d5;     /* birou preview / secțiuni alternative */
   --card: #ffffff;           /* carduri, inputuri — alb pur */
-  --card-foreground: #0f172a;
+  --card-foreground: #141413;
 
-  /* text — contrast puternic */
-  --foreground: #1e293b;
-  --ink: #0f172a;
-  --ink-strong: #0b1220;
-  --muted-foreground: #475569;
-  --faint: #64748b;
+  /* text — negru neutru cald, contrast puternic */
+  --foreground: #2b2a26;
+  --ink: #141413;
+  --ink-strong: #0c0c0b;
+  --muted-foreground: #56534b;
+  --faint: #7d7970;
 
-  /* sidebar navy */
-  --sidebar-bg: #0b1220;
-  --sidebar-fg: #f1f5f9;
-  --sidebar-muted: #7c8aa5;
-  --sidebar-line: rgba(241, 245, 249, 0.1);
+  /* sidebar — negru aproape pur, ca hero-ul Framework */
+  --sidebar-bg: #0c0c0b;
+  --sidebar-fg: #f4f2ec;
+  --sidebar-muted: #8f8b82;
+  --sidebar-line: rgba(244, 242, 236, 0.1);
 
-  /* primar — albastru electric */
-  --primary: #2563eb;
-  --primary-strong: #1d4ed8;
-  --primary-foreground: #ffffff;
-  --wash: #eff6ff;
+  /* primar — portocaliul Framework; textul pe el e NEGRU */
+  --primary: #f45a27;
+  --primary-strong: #d8481a;
+  --primary-foreground: #141413;
+  --wash: #fbeade;
 
   /* verde smarald — progres, valid, done  */
   --green: #059669;
@@ -61,23 +61,25 @@
   --red: #dc2626;
   --red-soft: #fee2e2;
 
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --accent: #eff6ff;
-  --accent-foreground: #1d4ed8;
+  --secondary: #e4e0d5;
+  --secondary-foreground: #141413;
+  --muted: #f0ede5;
+  --accent: #fbeade;
+  --accent-foreground: #b03a12;
 
-  /* linii — vizibile, contrast bun */
-  --border: #cbd5e1;
-  --hairline: #e2e8f0;
-  --hairline-strong: #94a3b8;
-  --input-border: #cbd5e1;
+  /* linii — nuanțe calde, contrast bun */
+  --border: #cdc8ba;
+  --hairline: #dedacd;
+  --hairline-strong: #a5a093;
+  --input-border: #cdc8ba;
 
-  --ring: #2563eb;
+  --ring: #f45a27;
   --radius: 10px;
+  /* butoanele sunt pastile (pill) — semnătura Framework */
+  --radius-pill: 999px;
 
-  --shadow-paper: 0 1px 2px rgba(15, 23, 42, 0.06), 0 6px 20px -8px rgba(15, 23, 42, 0.1);
-  --shadow-lift: 0 2px 6px rgba(15, 23, 42, 0.07), 0 16px 40px -12px rgba(15, 23, 42, 0.18);
+  --shadow-paper: 0 1px 2px rgba(20, 20, 19, 0.05), 0 6px 20px -8px rgba(20, 20, 19, 0.09);
+  --shadow-lift: 0 2px 6px rgba(20, 20, 19, 0.06), 0 16px 40px -12px rgba(20, 20, 19, 0.16);
 }
 
 *, *::before, *::after {
@@ -108,11 +110,11 @@ h1, h2, h3, .font-display {
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #eef2f7; }
-::-webkit-scrollbar-thumb { background: #b6c2d1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-track { background: #e4e0d5; }
+::-webkit-scrollbar-thumb { background: #beb8a9; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a5a093; }
 
-::selection { background: #bfdbfe; color: #0b1220; }
+::selection { background: #f8c2a7; color: #141413; }
 
 :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
@@ -131,7 +133,7 @@ h1, h2, h3, .font-display {
 .hairline { border-bottom: 1px solid var(--hairline); }
 .rule-ink { border-bottom: 2px solid var(--primary); }
 
-/* buton primar plin (nume istoric păstrat) */
+/* buton primar plin — pastilă orange cu text negru (stil Framework) */
 .btn-ink {
   display: inline-flex;
   align-items: center;
@@ -144,11 +146,11 @@ h1, h2, h3, .font-display {
   font-size: 15px;
   padding: 14px 28px;
   border: 1px solid var(--primary);
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
   text-decoration: none;
   cursor: pointer;
   transition: background-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25), 0 6px 18px -6px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 1px 2px rgba(244, 90, 39, 0.25), 0 6px 18px -6px rgba(244, 90, 39, 0.45);
 }
 .btn-ink:hover {
   background: var(--primary-strong);
@@ -157,31 +159,32 @@ h1, h2, h3, .font-display {
 }
 .btn-ink:active { transform: translateY(0); }
 .btn-ink:disabled {
-  background: #94a3b8;
-  border-color: #94a3b8;
+  background: #b3aea1;
+  border-color: #b3aea1;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
+/* buton secundar — pastilă cu contur negru pe fundal deschis */
 .btn-quiet {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--card);
+  background: transparent;
   color: var(--ink);
   font-family: var(--font-body), sans-serif;
   font-weight: 600;
   font-size: 15px;
   padding: 13px 24px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-pill);
   text-decoration: none;
   cursor: pointer;
   transition: border-color 0.16s ease, background-color 0.16s ease;
 }
-.btn-quiet:hover { border-color: var(--ink); background: #f8fafc; }
+.btn-quiet:hover { border-color: var(--ink-strong); background: rgba(20, 20, 19, 0.05); }
 
 .paper-card {
   background: var(--card);
@@ -243,4 +246,34 @@ h1, h2, h3, .font-display {
     animation-duration: 0.01ms;
     animation-delay: 0ms;
   }
+}
+
+/* ── landing ───────────────────────────────────────────────────── */
+
+/* showcase-ul CV — schimbul de CV-uri, fără evenimente bruște:
+   noua coală apare treptat din transparent, ușor decalată spre dreapta,
+   apoi glisează uniform (ease-in-out simetric) peste cea curentă.
+   Două animații identice (a/b) alternate ca să repornească fără remount. */
+@keyframes slide-over-a {
+  0% { transform: translateX(55%); opacity: 0; animation-timing-function: ease-in-out; }
+  30% { transform: translateX(55%); opacity: 1; animation-timing-function: ease-in-out; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes slide-over-b {
+  0% { transform: translateX(55%); opacity: 0; animation-timing-function: ease-in-out; }
+  30% { transform: translateX(55%); opacity: 1; animation-timing-function: ease-in-out; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+.showcase-enter-a { animation: slide-over-a 14s both; will-change: transform, opacity; }
+.showcase-enter-b { animation: slide-over-b 14s both; will-change: transform, opacity; }
+
+/* butoanele landing: hover/active ca în spec */
+.cta-btn { transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease; }
+.cta-btn:hover { transform: scale(1.02); }
+.cta-btn:active { transform: scale(0.98); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* CV-urile se schimbă instant, fără slide */
+  .showcase-enter-a, .showcase-enter-b { animation-duration: 0.01ms; }
+  .cta-btn, .cta-btn:hover, .cta-btn:active { transform: none; }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { callStructured, StructuredCallError } from "@/lib/openai";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
+import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 
 export const maxDuration = 30;
 
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
   let text = "";
   try {
     // apeluri mici și dese — limită generoasă
-    const limit = checkRateLimit(clientIp(req), "correct-text", 120, 60 * 60 * 1000);
+    const limit = await checkRateLimit(clientIp(req), "correct-text", 120, 60 * 60 * 1000);
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Prea multe corectări. Încearcă mai târziu." },
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
+    const body = await readJsonLimited<Record<string, unknown>>(req, BODY_LIMITS.TEXT);
     text = String(body.text ?? "").trim();
     const kind = String(body.kind ?? "") as Kind;
 

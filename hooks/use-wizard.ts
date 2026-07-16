@@ -44,12 +44,12 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
     case "NEXT_STEP":
       return {
         ...state,
-        currentStep: Math.min(14, state.currentStep + 1) as WizardStep,
+        currentStep: Math.min(10, state.currentStep + 1) as WizardStep,
       };
     case "PREV_STEP":
       return {
         ...state,
-        currentStep: Math.max(0, state.currentStep - 1) as WizardStep,
+        currentStep: Math.max(1, state.currentStep - 1) as WizardStep,
       };
     case "SET_STEP":
       return { ...state, currentStep: action.step };
