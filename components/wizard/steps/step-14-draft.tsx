@@ -22,6 +22,8 @@ interface Props {
   /** rezumatul generat se salvează în CV (preview + PDF) */
   onUpdateSummary: (summary: string) => void;
   onBack: () => void;
+  /** șterge tot progresul și repornește wizard-ul de la pasul 1 */
+  onRestart: () => void;
 }
 
 const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
@@ -111,12 +113,15 @@ function TemplateThumb({ id }: { id: TemplateId }) {
   }
 }
 
-export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary, onBack }: Props) {
+export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary, onBack, onRestart }: Props) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [template, setTemplate] = useState<TemplateId>("classic");
   const [isSummarizing, setIsSummarizing] = useState(false);
   // fără acceptarea termenilor, descărcarea e blocată (cerință legală)
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // pe telefon: după descărcare oferim și „Trimite" (share sheet nativ —
+  // WhatsApp, Email, Copiază etc.). Pe desktop rămâne doar descărcarea.
+  const [shareFile, setShareFile] = useState<File | null>(null);
   const summaryRequested = useRef(false);
 
   // Rezumatul profesional se generează automat, o singură dată, din datele
@@ -158,14 +163,26 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       });
       if (!res.ok) throw new Error();
       const blob = await res.blob();
+      const filename = buildCvFilename(cvData);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       // numele utilizatorului + data generării (ex: CV_Elena_Stanciu_2026-07-10.pdf)
-      a.download = buildCvFilename(cvData);
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
       toast.success("CV-ul a fost descărcat. Succes la aplicare! 🎉");
+
+      // doar pe dispozitive touch cu share nativ de fișiere (telefoane/tablete)
+      try {
+        const file = new File([blob], filename, { type: "application/pdf" });
+        const isTouch = window.matchMedia("(pointer: coarse)").matches;
+        if (isTouch && navigator.canShare?.({ files: [file] })) {
+          setShareFile(file);
+        }
+      } catch {
+        // share indisponibil — descărcarea a mers oricum
+      }
     } catch {
       toast.error("Eroare la generarea PDF-ului. Încearcă din nou.");
     } finally {
@@ -314,6 +331,86 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           Descarcă PDF
         </Button>
       </div>
+
+      {/* pe telefon, după descărcare: trimite CV-ul oriunde (share sheet nativ) */}
+      {shareFile && (
+        <button
+          type="button"
+          data-testid="share-cv"
+          onClick={() => {
+            navigator
+              .share({
+                files: [shareFile],
+                title: "CV-ul meu",
+                text: "CV-ul meu, creat cu CVexpres",
+              })
+              .catch(() => {
+                // userul a închis share sheet-ul — nimic de făcut
+              });
+          }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            width: "100%",
+            marginTop: 14,
+            minHeight: 54,
+            borderRadius: "var(--radius-pill)",
+            border: "1.5px solid var(--primary)",
+            backgroundColor: "var(--wash)",
+            color: "var(--primary-strong)",
+            fontFamily: "var(--font-display), sans-serif",
+            fontWeight: 700,
+            fontSize: 15.5,
+            cursor: "pointer",
+          }}
+        >
+          📤 Trimite CV-ul — WhatsApp, Email, Salvează…
+        </button>
+      )}
+
+      {/* repornire completă — util când vrei alt CV sau ai greșit ceva major */}
+      <button
+        type="button"
+        data-testid="restart-wizard"
+        onClick={() => {
+          if (
+            window.confirm(
+              "Sigur vrei să începi de la zero? Toate datele introduse se vor șterge definitiv."
+            )
+          ) {
+            onRestart();
+          }
+        }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          marginTop: 22,
+          minHeight: 54,
+          borderRadius: "var(--radius-pill)",
+          border: "1.5px dashed var(--hairline-strong)",
+          backgroundColor: "transparent",
+          color: "var(--muted-foreground)",
+          fontFamily: "var(--font-display), sans-serif",
+          fontWeight: 700,
+          fontSize: 15.5,
+          cursor: "pointer",
+          transition: "border-color 0.15s, color 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "#dc2626";
+          e.currentTarget.style.color = "#dc2626";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "var(--hairline-strong)";
+          e.currentTarget.style.color = "var(--muted-foreground)";
+        }}
+      >
+        ↺ Începe de la zero
+      </button>
     </StepCard>
   );
 }

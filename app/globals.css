@@ -267,6 +267,28 @@ h1, h2, h3, .font-display {
 .showcase-enter-a { animation: slide-over-a 14s both; will-change: transform, opacity; }
 .showcase-enter-b { animation: slide-over-b 14s both; will-change: transform, opacity; }
 
+/* formularul de cursuri: stivuit pe mobil, pe 3 coloane pe desktop */
+.course-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+@media (min-width: 640px) {
+  .course-form-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 0.9fr);
+    align-items: end;
+  }
+}
+
+/* pașii parcurși din sidebar-ul wizard-ului — clicabili, cu hover vizibil */
+.sidebar-step-clickable:hover {
+  background-color: rgba(241, 245, 249, 0.08) !important;
+}
+.sidebar-step-clickable:hover span:last-child {
+  color: #fff !important;
+}
+
 /* butoanele landing: hover/active ca în spec */
 .cta-btn { transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease; }
 .cta-btn:hover { transform: scale(1.02); }

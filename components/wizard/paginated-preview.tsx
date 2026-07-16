@@ -3,6 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { CVPreview } from "./cv-preview";
 import type { CVData, TemplateId } from "@/lib/types/cv";
 
+/** Lățimea de referință la care e „proiectat" preview-ul (px). Conținutul se
+ *  randează mereu la această lățime și se SCALEAZĂ în containerul real —
+ *  astfel pe telefon foaia are exact aceleași proporții text/pagină ca
+ *  PDF-ul final (impresie realistă), nu text uriaș pe o foaie îngustă. */
+const BASE_W = 760;
+const PAGE_H = (BASE_W * 297) / 210; // înălțimea unei pagini A4 la lățimea de referință
+
 interface Props {
   cvData: CVData;
   template?: TemplateId;
@@ -11,14 +18,13 @@ interface Props {
 }
 
 /** Preview-ul CV-ului împărțit pe foi A4 separate — ca un PDF, fără
- *  scrollbar intern. Conținutul e măsurat pe prima foaie (care conține
- *  documentul întreg, decupat), iar fiecare foaie afișează felia ei.
- *  Aproximează paginarea reală a PDF-ului. */
+ *  scrollbar intern. Conținutul e măsurat la lățimea de referință și
+ *  scalat; fiecare foaie afișează felia ei. Aproximează paginarea PDF. */
 export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState(1);
-  const [pageH, setPageH] = useState(0);
+  const [scale, setScale] = useState(1);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -27,10 +33,9 @@ export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }
     const update = () => {
       const w = wrap.clientWidth;
       if (!w) return;
-      const ph = (w * 297) / 210; // proporții A4
-      setPageH(ph);
-      // -4px toleranță — erorile de rotunjire nu trebuie să creeze o foaie goală
-      setPages(Math.max(1, Math.ceil((meas.scrollHeight - 4) / ph)));
+      setScale(w / BASE_W);
+      // -6px toleranță — rotunjirile nu trebuie să creeze o foaie goală
+      setPages(Math.max(1, Math.ceil((meas.scrollHeight - 6) / PAGE_H)));
     };
     const ro = new ResizeObserver(update);
     ro.observe(wrap);
@@ -38,6 +43,8 @@ export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }
     update();
     return () => ro.disconnect();
   }, [cvData, template]);
+
+  const sheetH = PAGE_H * scale; // înălțimea reală (scalată) a unei foi
 
   return (
     <div ref={wrapRef} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -52,8 +59,8 @@ export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }
             style={{
               position: "relative",
               width: "100%",
-              height: pageH || undefined,
-              aspectRatio: pageH ? undefined : "210 / 297",
+              height: sheetH || undefined,
+              aspectRatio: sheetH ? undefined : "210 / 297",
               overflow: "hidden",
               border: "1px solid var(--hairline)",
               borderRadius: 10,
@@ -61,11 +68,18 @@ export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }
               backgroundColor: "#fff",
             }}
           >
-            {/* felia paginii i: același conținut, deplasat vertical;
+            {/* conținutul la lățimea de referință, scalat + deplasat pe felia i;
                 prima foaie servește și drept sursă de măsurare */}
             <div
               ref={i === 0 ? measureRef : undefined}
-              style={{ position: "absolute", top: -(i * pageH), left: 0, right: 0 }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: BASE_W,
+                transform: `scale(${scale}) translateY(${-(i * PAGE_H)}px)`,
+                transformOrigin: "top left",
+              }}
             >
               <CVPreview cvData={cvData} template={template} />
             </div>
@@ -83,11 +97,13 @@ export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }
 
 /** Varianta pentru preview-ul lateral: o singură foaie care crește cu
  *  conținutul (fără scrollbar), cu LINII DE SEPARARE acolo unde PDF-ul va
- *  rupe pagina. Conținutul există o singură dată în DOM. */
+ *  rupe pagina. Conținutul e randat la lățimea de referință și scalat —
+ *  proporții identice cu PDF-ul. */
 export function PreviewWithPageMarks({ cvData, template = "classic" }: Omit<Props, "sheetTestId">) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [pageH, setPageH] = useState(0);
+  const [scale, setScale] = useState(1);
+  const [contentH, setContentH] = useState(0); // la lățimea de referință
   const [pages, setPages] = useState(1);
 
   useEffect(() => {
@@ -97,9 +113,9 @@ export function PreviewWithPageMarks({ cvData, template = "classic" }: Omit<Prop
     const update = () => {
       const w = sheet.clientWidth;
       if (!w) return;
-      const ph = (w * 297) / 210;
-      setPageH(ph);
-      setPages(Math.max(1, Math.ceil((content.scrollHeight - 4) / ph)));
+      setScale(w / BASE_W);
+      setContentH(content.scrollHeight);
+      setPages(Math.max(1, Math.ceil((content.scrollHeight - 6) / PAGE_H)));
     };
     const ro = new ResizeObserver(update);
     ro.observe(sheet);
@@ -107,6 +123,10 @@ export function PreviewWithPageMarks({ cvData, template = "classic" }: Omit<Prop
     update();
     return () => ro.disconnect();
   }, [cvData, template]);
+
+  // foaia are minim o pagină A4; crește cu conținutul (scalat)
+  const minH = PAGE_H * scale;
+  const realH = Math.max(contentH, PAGE_H) * scale;
 
   return (
     <div
@@ -118,12 +138,22 @@ export function PreviewWithPageMarks({ cvData, template = "classic" }: Omit<Prop
         boxShadow: "var(--shadow-lift)",
         backgroundColor: "#fff",
         overflow: "hidden",
-        // un CV gol arată tot ca o foaie A4
-        minHeight: pageH || undefined,
-        aspectRatio: pageH ? undefined : "210 / 297",
+        height: contentH ? realH : undefined,
+        minHeight: contentH ? undefined : minH || undefined,
+        aspectRatio: contentH || minH ? undefined : "210 / 297",
       }}
     >
-      <div ref={contentRef}>
+      <div
+        ref={contentRef}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: BASE_W,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      >
         <CVPreview cvData={cvData} template={template} />
       </div>
 
@@ -135,7 +165,7 @@ export function PreviewWithPageMarks({ cvData, template = "classic" }: Omit<Prop
             aria-hidden
             style={{
               position: "absolute",
-              top: (i + 1) * pageH,
+              top: (i + 1) * PAGE_H * scale,
               left: 0,
               right: 0,
               borderTop: "2px dashed var(--hairline-strong)",

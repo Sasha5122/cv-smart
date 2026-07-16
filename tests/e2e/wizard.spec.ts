@@ -116,6 +116,11 @@ test.describe("Landing — pagina de start", () => {
     // showcase: pornește AUTOMAT — prima glisare începe la ~2s de la
     // încărcare, deci al doilea CV devine activ fără nicio interacțiune
     await expect(page.getByTestId("cv-showcase")).toBeVisible();
+    // rama taie animația (overflow hidden) — pe mobil nu se văd 2 CV-uri tăiate
+    await expect(page.getByTestId("showcase-layer-0").locator("..")).toHaveCSS(
+      "overflow",
+      "hidden"
+    );
     await expect(page.getByTestId("showcase-layer-1")).toHaveAttribute("aria-hidden", "false", {
       timeout: 10000,
     });
@@ -650,9 +655,9 @@ test.describe("Preview CV — conținut complet + pasul final", () => {
     await expect(preview.getByText("Medie: 9.50", { exact: false })).toBeVisible();
     await expect(preview.getByText(/Lucrare: „Optimizarea proceselor logistice"/)).toBeVisible();
 
-    // Cursuri & certificări — apar în preview în secțiune proprie
-    await page.getByPlaceholder(/Operator stivuitor ISCIR/).fill("Curs operare casă de marcat");
-    await page.getByPlaceholder("anul").fill("2023");
+    // Cursuri & certificări — câmpuri cu etichete clare; apar în preview
+    await page.getByLabel(/Numele cursului/).fill("Curs operare casă de marcat");
+    await page.getByLabel(/Anul \(opțional\)/).fill("2023");
     await page.getByRole("button", { name: /Adaugă cursul/ }).click();
     await expect(preview.getByText(/Curs operare casă de marcat/)).toBeVisible();
 
@@ -674,14 +679,72 @@ test.describe("Preview CV — conținut complet + pasul final", () => {
     await page.getByRole("button", { name: "✅ Da" }).click();
     await page.getByRole("button", { name: "B", exact: true }).click();
     await page.getByRole("button", { name: "CE", exact: true }).click();
-    await page
-      .getByPlaceholder(/Operator stivuitor autorizat ISCIR/)
-      .fill("Operator stivuitor autorizat ISCIR");
+    // calificările — ca la hobby: scrii, AI-ul corectează, apare chip cu X
+    await page.getByTestId("qualification-input").fill("Operator stivuitor autorizat ISCIR");
+    await page.getByTestId("qualification-add").click();
+    await expect(
+      page.getByRole("button", { name: /Șterge Operator stivuitor/ })
+    ).toBeVisible();
     await expect(preview.getByText("Permis de conducere: categoria B, CE")).toBeVisible();
     await expect(preview.getByText("Operator stivuitor autorizat ISCIR")).toBeVisible();
+    // X-ul șterge calificarea
+    await page.getByRole("button", { name: /Șterge Operator stivuitor/ }).click();
+    await expect(preview.getByText("Operator stivuitor autorizat ISCIR")).toHaveCount(0);
   });
 
-  test("pasul final: doar preview mare + Descarcă PDF + Înapoi", async ({ page }) => {
+  test("abilitățile NU se regenerează la revenirea pe pas; bifele rămân", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "mobile", "navigarea prin sidebar e desktop-only");
+    await mockPipeline(page);
+    let skillsCalls = 0;
+    await page.route("**/api/ai/generate-skills", (route) => {
+      skillsCalls++;
+      route.fulfill({
+        json: {
+          hardSkills: ["Vânzare consultativă", "Gestionare stocuri"],
+          softwareTools: ["Casă de marcat"],
+          softSkills: ["Comunicare"],
+        },
+      });
+    });
+    await gotoExperience(page, false);
+    await page.getByText(/prefer să scriu descrierile manual/i).click();
+    await page.getByLabel(/funcția/i).fill("Vânzător");
+    await page.getByLabel(/responsabilit/i).fill("Servit clienții");
+    await page.getByRole("button", { name: /Salvează jobul/ }).click();
+    await page.getByRole("button", { name: /Continuă/ }).click();
+    await expect(page.getByRole("heading", { name: /Educație/ })).toBeVisible({ timeout: 8000 });
+    await page.getByRole("button", { name: /Sari peste|Continuă/ }).click();
+
+    // Abilități — prima vizită: lista se generează (1 apel AI)
+    await expect(page.getByTestId("skills-selection")).toBeVisible({ timeout: 10000 });
+    expect(skillsCalls).toBe(1);
+    // bifăm o abilitate
+    const firstSkill = page.getByTestId("section-hard").locator("input[type=checkbox]").first();
+    await firstSkill.check();
+
+    // plecăm pe alt pas prin sidebar și revenim
+    await page.getByTestId("sidebar-step-4").click();
+    await expect(
+      page.getByRole("heading", { name: /Joburile tale|Povestește-ne/i }).first()
+    ).toBeVisible({ timeout: 8000 });
+    await page.getByTestId("sidebar-step-6").click();
+
+    // lista e din cache: NICIUN apel AI nou, bifa e tot acolo
+    await expect(page.getByTestId("skills-selection")).toBeVisible({ timeout: 8000 });
+    expect(skillsCalls).toBe(1);
+    await expect(
+      page.getByTestId("section-hard").locator("input[type=checkbox]").first()
+    ).toBeChecked();
+  });
+
+  test("pasul final: doar preview mare + Descarcă PDF + Înapoi", async ({ page }, testInfo) => {
+    // pe mobil, share-ul nativ e stub-uit — verificăm doar apariția butonului
+    await page.addInitScript(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (navigator as any).canShare = () => true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (navigator as any).share = () => Promise.resolve();
+    });
     await mockPipeline(page);
     await page.route("**/api/ai/generate-skills", (route) =>
       route.fulfill({
@@ -742,6 +805,13 @@ test.describe("Preview CV — conținut complet + pasul final", () => {
       (el) => el.scrollHeight <= el.clientHeight + 1
     );
     expect(hasNoInnerScroll).toBe(true);
+    // conținutul e randat la lățimea de referință și SCALAT — pe telefon
+    // proporțiile text/foaie sunt identice cu PDF-ul (impresie realistă)
+    const innerTransform = await sheet
+      .locator("> div")
+      .first()
+      .evaluate((el) => getComputedStyle(el).transform);
+    expect(innerTransform).not.toBe("none");
 
     // fără acceptarea Termenilor, butonul de descărcare e blocat
     const downloadBtn = page.getByRole("button", { name: /Descarcă PDF/ });
@@ -763,5 +833,53 @@ test.describe("Preview CV — conținut complet + pasul final", () => {
     const buf = readFileSync(path);
     expect(buf.subarray(0, 5).toString()).toBe("%PDF-");
     expect(buf.length).toBeGreaterThan(10000);
+
+    // ── pe telefon: după descărcare apare „Trimite" (share sheet nativ) ──
+    if (testInfo.project.name === "mobile") {
+      await expect(page.getByTestId("share-cv")).toBeVisible();
+      await page.getByTestId("share-cv").click(); // stub — nu crapă
+    } else {
+      // pe desktop butonul NU apare (pointer fin, nu touch)
+      await expect(page.getByTestId("share-cv")).toHaveCount(0);
+    }
+
+    // ── sidebar-ul clicabil: salt direct la un pas parcurs + înapoi ──
+    if ((page.viewportSize()?.width ?? 1440) >= 900) {
+      await page.getByTestId("sidebar-step-1").click();
+      await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible();
+      // datele sunt păstrate — editare liberă
+      await expect(page.getByLabel(/prenume/i)).toHaveValue("Elena");
+      // bifele verzi NU se pierd la saltul înapoi: pașii 2–9 rămân „completați"
+      // (verdele reflectă cât a completat userul, nu unde se află acum)
+      for (const s of [2, 5, 9]) {
+        await expect(page.getByTestId(`sidebar-step-${s}`).locator("svg")).toBeVisible();
+      }
+      // salt înainte, direct la Finalizare (pas deja vizitat)
+      await page.getByTestId("sidebar-step-10").click();
+      await expect(page.getByRole("heading", { name: /CV-ul tău e gata/ })).toBeVisible();
+      // pașii nevizitați nu sunt clicabili — nimic peste maxStep aici (toți vizitați)
+    }
+
+    // ── „Începe de la zero": confirmare → totul se resetează la pasul 1 ──
+    page.once("dialog", (d) => d.accept());
+    await page.getByTestId("restart-wizard").click();
+    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByText(/Pasul 1 din 10/i)).toBeVisible();
+    // câmpurile sunt goale — progresul vechi a fost șters definitiv
+    await expect(page.getByLabel(/prenume/i)).toHaveValue("");
+  });
+
+  test("pașii nevizitați din sidebar NU sunt clicabili", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "mobile", "sidebar-ul e ascuns pe mobil");
+    await page.goto("/creare-cv");
+    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByTestId("sidebar-step-5")).toBeDisabled();
+    await expect(page.getByTestId("sidebar-step-10")).toBeDisabled();
+    // pasul curent (1) nu e nici el buton de navigare
+    await expect(page.getByTestId("sidebar-step-1")).toBeDisabled();
   });
 });

@@ -3,7 +3,7 @@
  * Best-effort: la orice problemă returnează textul original — nu blochează
  * niciodată utilizatorul.
  */
-export type CorrectKind = "job-title" | "city" | "hobby";
+export type CorrectKind = "job-title" | "city" | "hobby" | "qualification";
 
 export async function correctText(text: string, kind: CorrectKind): Promise<string> {
   const t = text.trim();

@@ -203,7 +203,9 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
             Cursuri & certificări <span style={{ color: "var(--faint)", fontWeight: 400 }}>(opțional)</span>
           </p>
           <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginBottom: 12 }}>
-            Atestate, cursuri de calificare, autorizații — apar într-o secțiune separată în CV.
+            Ai un atestat, un curs de calificare sau o autorizație? Scrie numele lui mai
+            jos și apasă „Adaugă cursul" — apare într-o secțiune separată în CV. Poți
+            adăuga oricâte, unul câte unul.
           </p>
 
           {courses.length > 0 && (
@@ -234,24 +236,27 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
             </div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,2fr) minmax(0,1.4fr) minmax(0,0.8fr)", gap: 8, marginBottom: 10 }}>
+          {/* pe mobil câmpurile stau unul sub altul, cu etichete vizibile —
+              nimeni nu mai ghicește ce se completează în fiecare căsuță */}
+          <div className="course-form-grid">
             <Input
+              label="Numele cursului / atestatului"
               placeholder="ex: Operator stivuitor ISCIR"
               value={courseForm.name}
               onChange={(e) => setCourseForm((p) => ({ ...p, name: e.target.value }))}
-              aria-label="Numele cursului"
             />
             <Input
-              placeholder="furnizor (opțional)"
+              label="Cine l-a emis (opțional)"
+              placeholder="ex: ANC, ISCIR, firmă"
               value={courseForm.provider}
               onChange={(e) => setCourseForm((p) => ({ ...p, provider: e.target.value }))}
-              aria-label="Furnizorul cursului"
             />
             <Input
-              placeholder="anul"
+              label="Anul (opțional)"
+              placeholder="ex: 2021"
+              inputMode="numeric"
               value={courseForm.year}
               onChange={(e) => setCourseForm((p) => ({ ...p, year: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
-              aria-label="Anul cursului"
             />
           </div>
           <Button
@@ -263,6 +268,11 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
           >
             Adaugă cursul
           </Button>
+          {!courseForm.name.trim() && (
+            <p style={{ fontSize: 12, color: "var(--faint)", marginTop: 8, textAlign: "center" }}>
+              Completează numele cursului ca să se activeze butonul.
+            </p>
+          )}
         </div>
 
         {education.length === 0 && (

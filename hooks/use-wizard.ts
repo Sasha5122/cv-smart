@@ -8,6 +8,8 @@ import { EMPTY_CV_DATA } from "@/lib/types/cv";
 interface WizardState {
   sessionId: string;
   currentStep: WizardStep;
+  /** cel mai avansat pas atins — sidebar-ul permite saltul până aici */
+  maxStep: WizardStep;
   cvData: CVData;
   jobDescription: string;
   chatHistories: Record<number, ChatMessage[]>;
@@ -21,6 +23,7 @@ interface WizardState {
 export interface WizardSnapshot {
   sessionId?: string;
   currentStep: WizardStep;
+  maxStep?: WizardStep;
   cvData: CVData;
   jobDescription: string;
 }
@@ -41,24 +44,35 @@ type WizardAction =
 
 function wizardReducer(state: WizardState, action: WizardAction): WizardState {
   switch (action.type) {
-    case "NEXT_STEP":
+    case "NEXT_STEP": {
+      const step = Math.min(10, state.currentStep + 1) as WizardStep;
       return {
         ...state,
-        currentStep: Math.min(10, state.currentStep + 1) as WizardStep,
+        currentStep: step,
+        maxStep: Math.max(state.maxStep, step) as WizardStep,
       };
+    }
     case "PREV_STEP":
       return {
         ...state,
         currentStep: Math.max(1, state.currentStep - 1) as WizardStep,
       };
     case "SET_STEP":
-      return { ...state, currentStep: action.step };
+      return {
+        ...state,
+        currentStep: action.step,
+        maxStep: Math.max(state.maxStep, action.step) as WizardStep,
+      };
     case "HYDRATE":
       // restaurarea progresului după refresh (din localStorage)
       return {
         ...state,
         sessionId: action.snapshot.sessionId ?? state.sessionId,
         currentStep: action.snapshot.currentStep,
+        maxStep: Math.max(
+          action.snapshot.maxStep ?? 1,
+          action.snapshot.currentStep
+        ) as WizardStep,
         cvData: action.snapshot.cvData,
         jobDescription: action.snapshot.jobDescription,
       };
@@ -99,6 +113,7 @@ export function useWizard(sessionId: string) {
   const [state, dispatch] = useReducer(wizardReducer, {
     sessionId,
     currentStep: 1,
+    maxStep: 1,
     cvData: EMPTY_CV_DATA,
     jobDescription: "",
     chatHistories: {},

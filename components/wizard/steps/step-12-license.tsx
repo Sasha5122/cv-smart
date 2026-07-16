@@ -1,10 +1,17 @@
 "use client";
+import { useState } from "react";
 import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Car, ArrowRight } from "lucide-react";
+import { Car, ArrowRight, Plus, X, Loader2 } from "lucide-react";
 import type { DrivingLicense } from "@/lib/types/cv";
 import { cn } from "@/lib/utils";
+import { correctText } from "@/lib/correct-text";
+
+/** Calificările sunt stocate ca string (compatibil cu preview/PDF) —
+ *  UI-ul le tratează ca listă, separate prin virgulă. */
+function splitQualifications(q: string): string[] {
+  return q.split(",").map((s) => s.trim()).filter(Boolean);
+}
 
 const CATEGORIES = ["A", "A1", "A2", "B", "BE", "B1", "C", "CE", "C1", "D", "DE", "T"];
 
@@ -18,12 +25,32 @@ interface Props {
 }
 
 export function Step12License({ license, qualifications, onUpdateLicense, onUpdateQualifications, onNext, onBack }: Props) {
+  const [qualInput, setQualInput] = useState("");
+  const [isCorrecting, setIsCorrecting] = useState(false);
+  const qualList = splitQualifications(qualifications);
+
   const toggleCat = (cat: string) => {
     const cats = license.categories.includes(cat)
       ? license.categories.filter((c) => c !== cat)
       : [...license.categories, cat];
     onUpdateLicense({ ...license, categories: cats });
   };
+
+  const addQualification = async () => {
+    const raw = qualInput.trim();
+    if (!raw || isCorrecting) return;
+    setIsCorrecting(true);
+    // AI-ul corectează doar forma („oparater stivuiter" → „Operator stivuitor")
+    const corrected = await correctText(raw, "qualification");
+    setIsCorrecting(false);
+    if (!qualList.includes(corrected)) {
+      onUpdateQualifications([...qualList, corrected].join(", "));
+    }
+    setQualInput("");
+  };
+
+  const removeQualification = (i: number) =>
+    onUpdateQualifications(qualList.filter((_, idx) => idx !== i).join(", "));
 
   return (
     <StepCard
@@ -102,15 +129,91 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
         </div>
       )}
 
-      {/* Qualifications */}
-      <Textarea
-        label="Calificări profesionale (opțional)"
-        placeholder="ex: Operator stivuitor autorizat ISCIR, Electrician ANRE grad II, Sudor autorizat ISCIR..."
-        value={qualifications}
-        onChange={(e) => onUpdateQualifications(e.target.value)}
-        rows={3}
-        hint="Autorizații, atestări, certificate profesionale recunoscute oficial"
-      />
+      {/* Calificări — ca la hobby-uri: scrii, AI-ul corectează, apare ca etichetă cu X */}
+      <div
+        style={{
+          border: "1px dashed var(--input-border)",
+          borderRadius: 10,
+          padding: "18px 18px 20px",
+        }}
+      >
+        <label
+          htmlFor="qualification-input"
+          style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}
+        >
+          Calificări profesionale (opțional)
+        </label>
+        <div style={{ display: "flex", gap: 10 }}>
+          <input
+            id="qualification-input"
+            data-testid="qualification-input"
+            value={qualInput}
+            onChange={(e) => setQualInput(e.target.value)}
+            placeholder="ex: operator stivuitor, electrician ANRE…"
+            onKeyDown={(e) => e.key === "Enter" && addQualification()}
+            disabled={isCorrecting}
+            style={{ flex: 1, padding: "13px 16px", minWidth: 0 }}
+            className="rounded-[8px] border border-[var(--input-border)] bg-[var(--card)] text-[15.5px] text-[var(--ink)] placeholder:text-[var(--faint)] shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(244,90,39,0.18)] disabled:bg-[var(--muted)] disabled:text-[var(--faint)] transition-all duration-150"
+          />
+          <Button
+            onClick={addQualification}
+            data-testid="qualification-add"
+            disabled={!qualInput.trim() || isCorrecting}
+            icon={
+              isCorrecting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )
+            }
+          >
+            {isCorrecting ? "Corectăm…" : "Adaugă"}
+          </Button>
+        </div>
+        <p style={{ fontSize: 12.5, color: "var(--faint)", marginTop: 10 }}>
+          Autorizații, atestări, certificate recunoscute oficial — corectăm noi scrierea.
+        </p>
+
+        {qualList.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}>
+            {qualList.map((q, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  backgroundColor: "var(--wash)",
+                  border: "1px solid #f3c4ac",
+                  color: "var(--primary-strong)",
+                  borderRadius: 999,
+                  padding: "8px 14px",
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                }}
+              >
+                {q}
+                <button
+                  onClick={() => removeQualification(i)}
+                  aria-label={`Șterge ${q}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "none",
+                    border: "none",
+                    color: "var(--primary)",
+                    cursor: "pointer",
+                    padding: 2,
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex gap-3" style={{ marginTop: 32 }}>
         <Button variant="outline" onClick={onBack} className="flex-1">← Înapoi</Button>

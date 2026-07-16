@@ -49,6 +49,60 @@ interface Props {
   onBack: () => void;
 }
 
+/** Cache-ul listei generate — lista NU se regenerează la fiecare vizită pe
+ *  pas, ci doar când se schimbă experiența/anunțul sau la „Începe de la zero".
+ *  Bifele userului se păstrează și ele. */
+export const SKILLS_CACHE_KEY = "cv-smart-skills-cache";
+
+/** Amprenta datelor din care se generează lista: experiența + anunțul.
+ *  Dacă amprenta nu se schimbă, lista veche rămâne valabilă. */
+function skillsFingerprint(cvData: CVData, jobDescription?: string): string {
+  const src =
+    (cvData.experience ?? [])
+      .map((e) => [e.title, e.company, ...(e.responsibilities ?? [])].join("|"))
+      .join("||") +
+    "##" +
+    (jobDescription ?? "").trim();
+  let h = 0;
+  for (let i = 0; i < src.length; i++) h = (h * 31 + src.charCodeAt(i)) | 0;
+  return String(h);
+}
+
+interface SkillsCache {
+  fingerprint: string;
+  pool: SkillPool;
+  selectedHard: string[];
+  selectedSoftware: string[];
+  selectedSoft: string[];
+  custom: string[];
+}
+
+/** Deduplicare la nivel de modul: două montări simultane (StrictMode în dev,
+ *  dublu-click etc.) împart UN SINGUR apel AI pentru aceeași amprentă. */
+const inflightSkills = new Map<string, Promise<SkillPool>>();
+
+function fetchSkillsOnce(
+  fingerprint: string,
+  body: { cvData: CVData; jobDescription?: string; sessionId: string }
+): Promise<SkillPool> {
+  const existing = inflightSkills.get(fingerprint);
+  if (existing) return existing;
+  const req = fetch("/api/ai/generate-skills", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+    .then(async (res) => {
+      if (!res.ok) throw new Error();
+      return (await res.json()) as SkillPool;
+    })
+    .finally(() => {
+      inflightSkills.delete(fingerprint);
+    });
+  inflightSkills.set(fingerprint, req);
+  return req;
+}
+
 export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNext, onBack }: Props) {
   const [phase, setPhase] = useState<"loading" | "selection">("loading");
   const [loadError, setLoadError] = useState(false);
@@ -62,26 +116,30 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
 
   const selectionSets = { hardSkills: selectedHard, softwareTools: selectedSoftware, softSkills: selectedSoft };
   const setters = { hardSkills: setSelectedHard, softwareTools: setSelectedSoftware, softSkills: setSelectedSoft };
+  const fingerprint = skillsFingerprint(cvData, jobDescription);
 
   const loadSkills = () => {
     setPhase("loading");
     setLoadError(false);
-    fetch("/api/ai/generate-skills", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // anunțul + sessionId (pentru cuvintele-cheie ATS din research)
-      body: JSON.stringify({
-        cvData,
-        jobDescription: jobDescription?.trim() || undefined,
-        sessionId,
-      }),
+    // anunțul + sessionId (pentru cuvintele-cheie ATS din research)
+    fetchSkillsOnce(fingerprint, {
+      cvData,
+      jobDescription: jobDescription?.trim() || undefined,
+      sessionId,
     })
-      .then(async (res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
       .then((data: SkillPool) => {
         setPool(data);
+        // dacă userul avea deja abilități salvate în CV, le rebifăm pe cele
+        // care există și în noua listă (restul devin „adăugate manual")
+        const saved = new Set((cvData.skills ?? []).map((s) => s.name));
+        if (saved.size > 0) {
+          setSelectedHard(new Set(data.hardSkills.filter((s) => saved.has(s))));
+          setSelectedSoftware(new Set(data.softwareTools.filter((s) => saved.has(s))));
+          setSelectedSoft(new Set(data.softSkills.filter((s) => saved.has(s))));
+          // ce era salvat dar nu apare în noua listă rămâne ca „adăugat manual"
+          const inPool = new Set([...data.hardSkills, ...data.softwareTools, ...data.softSkills]);
+          setCustomSkills([...saved].filter((n) => !inPool.has(n)));
+        }
         setPhase("selection");
       })
       .catch(() => {
@@ -92,8 +150,46 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
   };
 
   useEffect(() => {
+    // 1) există o listă generată pentru EXACT aceleași date? → o refolosim
+    //    (zero apeluri AI, bifele rămân cum le-a lăsat userul)
+    try {
+      const raw = localStorage.getItem(SKILLS_CACHE_KEY);
+      if (raw) {
+        const c = JSON.parse(raw) as SkillsCache;
+        if (c.fingerprint === fingerprint && c.pool?.hardSkills?.length) {
+          setPool(c.pool);
+          setSelectedHard(new Set(c.selectedHard ?? []));
+          setSelectedSoftware(new Set(c.selectedSoftware ?? []));
+          setSelectedSoft(new Set(c.selectedSoft ?? []));
+          setCustomSkills(c.custom ?? []);
+          setPhase("selection");
+          return;
+        }
+      }
+    } catch {
+      // cache corupt — regenerăm
+    }
+    // 2) date noi (experiență/anunț schimbate sau prima vizită) → generăm
     loadSkills();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // orice schimbare (listă generată, bife, manuale) se salvează în cache
+  useEffect(() => {
+    if (phase !== "selection" || pool.hardSkills.length === 0) return;
+    try {
+      const cache: SkillsCache = {
+        fingerprint,
+        pool,
+        selectedHard: [...selectedHard],
+        selectedSoftware: [...selectedSoftware],
+        selectedSoft: [...selectedSoft],
+        custom: customSkills,
+      };
+      localStorage.setItem(SKILLS_CACHE_KEY, JSON.stringify(cache));
+    } catch {
+      // storage plin — nu blocăm
+    }
+  }, [phase, pool, selectedHard, selectedSoftware, selectedSoft, customSkills, fingerprint]);
 
   const toggleSkill = (key: "hardSkills" | "softwareTools" | "softSkills", skill: string) => {
     const next = new Set(selectionSets[key]);

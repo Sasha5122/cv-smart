@@ -77,12 +77,21 @@ export function CVShowcase() {
       {/* coloana showcase-ului — aliniată la dreapta, pe linia butonului
           „Începe" din header; pe mobil umple lățimea */}
       <div style={{ width: "min(100%, calc(88vh * 0.707))", marginLeft: "auto", marginRight: 0 }}>
-      {/* scena — A4, dimensionată după înălțimea ecranului */}
+      {/* scena — A4, dimensionată după înălțimea ecranului. Rama TAIE tot ce
+          iese din ea (overflow hidden): CV-ul nou alunecă ÎN INTERIORUL
+          ramei, peste cel curent — pe telefon nu se mai văd două CV-uri
+          tăiate în timpul animației. */}
       <div
         style={{
           position: "relative",
           width: "100%",
           aspectRatio: "420 / 594",
+          borderRadius: 18,
+          overflow: "hidden",
+          backgroundColor: "#fff",
+          border: "1px solid var(--hairline)",
+          boxShadow:
+            "0 48px 100px -26px rgba(20, 20, 19, 0.4), 0 18px 44px -18px rgba(20, 20, 19, 0.24)",
         }}
       >
         {SLIDES.map((s, i) => {
@@ -99,12 +108,9 @@ export function CVShowcase() {
                 position: "absolute",
                 inset: 0,
                 zIndex: isActive ? 2 : 1,
-                borderRadius: 18,
-                overflow: "hidden",
                 backgroundColor: "#fff",
-                border: "1px solid var(--hairline)",
-                boxShadow:
-                  "0 48px 100px -26px rgba(20, 20, 19, 0.4), 0 18px 44px -18px rgba(20, 20, 19, 0.24)",
+                // umbra coalei care alunecă peste cea de dedesubt
+                boxShadow: entering ? "-18px 0 40px -18px rgba(20, 20, 19, 0.35)" : "none",
                 // tab ascuns → glisarea îngheață pe loc și continuă la revenire
                 animationPlayState: paused ? "paused" : "running",
               }}

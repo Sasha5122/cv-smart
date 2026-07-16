@@ -20,19 +20,25 @@ const SIDEBAR_STEPS = [
 
 type StepStatus = "done" | "current" | "future";
 
-function getStatus(steps: number[], current: number): StepStatus {
-  if (current > Math.max(...steps)) return "done";
+/** Verdele reflectă CÂT A COMPLETAT userul (cel mai avansat pas atins),
+ *  nu unde se află acum — un salt înapoi pentru editare nu „pierde" bifele. */
+function getStatus(steps: number[], current: number, maxReached: number): StepStatus {
   if (steps.includes(current)) return "current";
+  if (Math.max(...steps) < maxReached) return "done";
   return "future";
 }
 
 interface WizardLayoutProps {
   currentStep: WizardStep;
+  /** cel mai avansat pas atins — până aici sidebar-ul permite saltul direct */
+  maxStep?: WizardStep;
   cvData: CVData;
+  /** click pe un pas parcurs în sidebar → salt direct acolo (editare liberă) */
+  onNavigate?: (step: WizardStep) => void;
   children: React.ReactNode;
 }
 
-export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProps) {
+export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNavigate, children }: WizardLayoutProps) {
   const sidebarIdx = SIDEBAR_STEPS.findIndex((s) => s.steps.includes(currentStep));
   const currentItem = SIDEBAR_STEPS[sidebarIdx];
   const progressPct = Math.round(((sidebarIdx + 1) / SIDEBAR_STEPS.length) * 100);
@@ -90,24 +96,36 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
           Pașii tăi
         </div>
 
-        {/* Pași */}
+        {/* Pași — cei parcurși sunt clicabili: salt direct pentru editare */}
         <nav style={{ display: "flex", flexDirection: "column", gap: 2, padding: "0 14px" }}>
           {SIDEBAR_STEPS.map((item, idx) => {
-            const status = getStatus(item.steps, currentStep);
+            const status = getStatus(item.steps, currentStep, maxStep);
             const isCurrent = status === "current";
             const isDone = status === "done";
+            const stepNo = item.steps[0] as WizardStep;
+            const clickable = Boolean(onNavigate) && stepNo <= maxStep && !isCurrent;
             return (
-              <div
+              <button
                 key={idx}
+                type="button"
+                data-testid={`sidebar-step-${stepNo}`}
+                className={clickable ? "sidebar-step-clickable" : undefined}
+                disabled={!clickable}
+                onClick={clickable ? () => onNavigate?.(stepNo) : undefined}
+                title={clickable ? `Mergi la pasul ${stepNo} — ${item.label}` : undefined}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
                   padding: "9px 12px",
                   borderRadius: 8,
+                  width: "100%",
+                  textAlign: "left",
                   backgroundColor: isCurrent ? "rgba(244, 90, 39, 0.22)" : "transparent",
                   border: isCurrent ? "1px solid rgba(244, 90, 39, 0.45)" : "1px solid transparent",
                   transition: "background-color 0.2s",
+                  cursor: clickable ? "pointer" : "default",
+                  font: "inherit",
                 }}
               >
                 {/* indicator */}
@@ -154,7 +172,7 @@ export function WizardLayout({ currentStep, cvData, children }: WizardLayoutProp
                 >
                   {item.label}
                 </span>
-              </div>
+              </button>
             );
           })}
         </nav>

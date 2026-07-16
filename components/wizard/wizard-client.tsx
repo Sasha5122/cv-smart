@@ -49,6 +49,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       wizard.hydrate({
         sessionId: typeof snap.sessionId === "string" ? snap.sessionId : undefined,
         currentStep: Math.min(10, Math.max(1, Number(snap.currentStep))) as WizardStep,
+        maxStep: Math.min(10, Math.max(1, Number(snap.maxStep ?? snap.currentStep))) as WizardStep,
         cvData: snap.cvData,
         jobDescription: String(snap.jobDescription ?? ""),
       });
@@ -61,6 +62,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             label: "Începe de la zero",
             onClick: () => {
               localStorage.removeItem(STORAGE_KEY);
+              localStorage.removeItem("cv-smart-skills-cache");
               window.location.reload();
             },
           },
@@ -69,6 +71,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
     } catch {
       // snapshot corupt — pornim curat
       localStorage.removeItem(STORAGE_KEY);
+              localStorage.removeItem("cv-smart-skills-cache");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -82,6 +85,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
           JSON.stringify({
             sessionId: wizard.sessionId,
             currentStep: wizard.currentStep,
+            maxStep: wizard.maxStep,
             cvData: wizard.cvData,
             jobDescription: wizard.jobDescription,
           })
@@ -91,7 +95,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [wizard.sessionId, wizard.currentStep, wizard.cvData, wizard.jobDescription]);
+  }, [wizard.sessionId, wizard.currentStep, wizard.maxStep, wizard.cvData, wizard.jobDescription]);
 
   // Auto-save to DB debounced (folosește sesiunea activă, inclusiv cea restaurată)
   useEffect(() => {
@@ -237,6 +241,17 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             jobDescription={jobDescription}
             onUpdateSummary={(summary) => updateCVData({ summary })}
             onBack={back}
+            onRestart={() => {
+              // reset total: progresul local dispare, serverul creează o
+              // sesiune nouă la reîncărcarea paginii
+              try {
+                localStorage.removeItem(STORAGE_KEY);
+              localStorage.removeItem("cv-smart-skills-cache");
+              } catch {
+                // storage blocat — reîncărcarea pornește oricum curat
+              }
+              window.location.href = "/creare-cv";
+            }}
           />
         );
       default:
@@ -245,7 +260,12 @@ export function WizardClient({ sessionId }: WizardClientProps) {
   };
 
   return (
-    <WizardLayout currentStep={wizard.currentStep} cvData={wizard.cvData}>
+    <WizardLayout
+      currentStep={wizard.currentStep}
+      maxStep={wizard.maxStep}
+      cvData={wizard.cvData}
+      onNavigate={(step) => wizard.setStep(step)}
+    >
       {renderStep()}
     </WizardLayout>
   );

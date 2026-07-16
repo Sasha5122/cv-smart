@@ -12,9 +12,15 @@ export const maxDuration = 30;
  */
 const CORRECT_MODEL = "gpt-5.4-nano";
 
-type Kind = "job-title" | "city" | "hobby";
+type Kind = "job-title" | "city" | "hobby" | "qualification";
 
 const SYSTEM_PROMPTS: Record<Kind, string> = {
+  qualification: `Corectezi denumiri de calificări/autorizații profesionale scrise de utilizatori români. Reguli stricte:
+- corectează tastarea, gramatica și diacriticele (ex: "oparater stivuiter" → "Operator stivuitor")
+- folosește denumirea standard a calificării, cu majusculele corecte (ex: "electrician anre" → "Electrician ANRE", "sudor iscir" → "Sudor autorizat ISCIR")
+- formă scurtă, nominală — NU propoziții
+- NU schimba sensul, NU adăuga calificări noi, NU inventa grade/niveluri pe care userul nu le-a scris
+- dacă textul e deja corect, returnează-l neschimbat`,
   "job-title": `Corectezi titluri de job scrise de utilizatori români. Reguli stricte:
 - corectează greșelile de tastare și gramatică (ex: "conttabil" → "Contabil")
 - adaugă diacriticele românești corecte (ex: "sofer" → "Șofer")
