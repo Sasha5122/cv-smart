@@ -52,11 +52,15 @@ async function decodeBlob(blob: Blob): Promise<DecodedPhoto> {
   if (typeof createImageBitmap === "function") {
     try {
       // la fișierele mari cerem browserului să decodeze DIRECT la mic —
-      // memorie minimă; la cele mici decodăm natural (fără upscale inutil)
-      const opts: ImageBitmapOptions =
-        blob.size > RESIZE_HINT_BYTES
-          ? { resizeWidth: RESIZE_TARGET, resizeQuality: "high" }
-          : {};
+      // memorie minimă; la cele mici decodăm natural (fără upscale inutil).
+      // Rotația EXIF cerută EXPLICIT — unele browsere nu o aplică implicit
+      // la createImageBitmap, iar poza ar ieși culcată cu fața tăiată.
+      const opts: ImageBitmapOptions = {
+        imageOrientation: "from-image",
+        ...(blob.size > RESIZE_HINT_BYTES
+          ? { resizeWidth: RESIZE_TARGET, resizeQuality: "high" as const }
+          : {}),
+      };
       const bmp = await createImageBitmap(blob, opts);
       if (bmp.width * bmp.height > MAX_PIXELS) {
         bmp.close();
@@ -92,13 +96,14 @@ export async function decodePhoto(file: File): Promise<DecodedPhoto> {
 }
 
 /**
- * Plasa finală: serverul redimensionează poza cu sharp (formate pe care
- * browserul nu le duce). Returnează data-URL-ul JPEG pătrat sau null.
+ * Serverul procesează poza cu sharp: rotație EXIF garantată + crop
+ * INTELIGENT pe subiect (strategia „attention" găsește fața și centrează
+ * pe ea). Returnează data-URL-ul JPEG pătrat 600×600 sau null.
  */
-export async function serverResizePhoto(file: File): Promise<string | null> {
+export async function serverResizePhoto(input: File | Blob): Promise<string | null> {
   try {
     const form = new FormData();
-    form.append("photo", file);
+    form.append("photo", input, "poza.jpg");
     const res = await fetch("/api/photo/process", { method: "POST", body: form });
     if (!res.ok) return null;
     const data = await res.json();
@@ -108,4 +113,22 @@ export async function serverResizePhoto(file: File): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Micșorează poza decodată la max `maxSide` px pe latura mare, FĂRĂ crop —
+ * doar ca uploadul către server să fie mic (~100-300KB). Proporțiile rămân
+ * intacte; crop-ul pe față îl face serverul.
+ */
+export function downscaleToJpegBlob(img: DecodedPhoto, maxSide = 1200): Promise<Blob | null> {
+  const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * scale));
+  const h = Math.max(1, Math.round(img.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return Promise.resolve(null);
+  ctx.drawImage(img, 0, 0, w, h);
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
 }

@@ -2,7 +2,12 @@
 import { useState, useCallback } from "react";
 import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
-import { decodePhoto, serverResizePhoto, MAX_PHOTO_BYTES } from "@/lib/photo-decode";
+import {
+  decodePhoto,
+  downscaleToJpegBlob,
+  serverResizePhoto,
+  MAX_PHOTO_BYTES,
+} from "@/lib/photo-decode";
 import { Camera, Upload, X, CheckCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,18 +52,25 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
     }
     setIsUploading(true);
     try {
-      // Decodare universală (inclusiv HEIC de pe iPhone; pozele mari sunt
-      // decodate direct la mic — merge și pe telefoane slabe; rotația EXIF
-      // aplicată automat) + normalizare prin canvas: ORICE poză devine
-      // JPEG PĂTRAT 600×600. Poza de 25MB de pe telefon iese la ~50KB.
+      // MECANISMUL DE ÎNCADRARE (fața mereu vizibilă, centrată, proporții
+      // corecte): clientul DOAR decodează (inclusiv HEIC; EXIF explicit) și
+      // micșorează poza FĂRĂ crop, apoi SERVERUL face crop-ul inteligent cu
+      // sharp „attention" — găsește automat zona feței și centrează pe ea.
+      // Fallback local (crop geometric) doar dacă serverul e indisponibil.
       const img = await decodePhoto(file);
+      const small = await downscaleToJpegBlob(img);
+      const smart = small ? await serverResizePhoto(small) : null;
+      if (smart) {
+        if ("close" in img) img.close();
+        onChange(smart);
+        setIsUploading(false);
+        return;
+      }
+
+      // fallback local: crop geometric (centru; la portrete ancorat sus)
       const SIZE = 600;
-      // latura pătratului = latura mică a sursei
       const side = Math.min(img.width, img.height);
       const sx = (img.width - side) / 2;
-      // La pozele PORTRETE (inclusiv full-body) capul e în partea de
-      // sus — ancorăm decupajul aproape de vârf (10% din surplus), nu
-      // în centru, ca să nu tăiem fața. La landscape rămâne centrat.
       const sy =
         img.height > img.width
           ? (img.height - side) * 0.1
@@ -69,7 +81,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("canvas");
       ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
-      if ("close" in img) img.close(); // eliberăm bitmap-ul imediat
+      if ("close" in img) img.close();
       onChange(canvas.toDataURL("image/jpeg", 0.88));
       setIsUploading(false);
     } catch (e) {
@@ -78,7 +90,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
         setIsUploading(false);
         return;
       }
-      // browserul nu a putut decoda — plasa finală: serverul o procesează
+      // browserul nu a putut decoda deloc — trimitem originalul la server
       const dataUrl = await serverResizePhoto(file);
       if (dataUrl) {
         onChange(dataUrl);

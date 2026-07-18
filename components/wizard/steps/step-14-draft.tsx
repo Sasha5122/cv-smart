@@ -154,20 +154,6 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     if (isFrozen) onPaidLock?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFrozen]);
-  // PDF-ul descărcat, ținut viu pentru „Vezi PDF-ul" (obligatoriu pe iOS,
-  // unde window.open automat e blocat de popup blocker)
-  const [pdfViewUrl, setPdfViewUrl] = useState<string | null>(null);
-  const pdfViewUrlRef = useRef<string | null>(null);
-  const setPdfUrl = (url: string) => {
-    if (pdfViewUrlRef.current) URL.revokeObjectURL(pdfViewUrlRef.current);
-    pdfViewUrlRef.current = url;
-    setPdfViewUrl(url);
-  };
-  useEffect(() => {
-    return () => {
-      if (pdfViewUrlRef.current) URL.revokeObjectURL(pdfViewUrlRef.current);
-    };
-  }, []);
   // fără acceptarea termenilor, descărcarea e blocată (cerință legală)
   const [termsAccepted, setTermsAccepted] = useState(false);
   // pe telefon: după descărcare oferim și „Trimite" (share sheet nativ —
@@ -340,12 +326,12 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       // numele utilizatorului + data generării (ex: CV_Elena_Stanciu_2026-07-10.pdf)
       a.download = filename;
       a.click();
-      // ținem URL-ul viu pentru butonul „Vezi PDF-ul" (revocat la înlocuire/unmount).
-      // NU deschidem tab automat: fără gest de user, Safari (iOS) îl blochează.
-      setPdfUrl(url);
+      // aplicația RĂMÂNE pagina finală — nu deschidem și nu înlocuim nimic
+      // cu PDF-ul; revocăm după ce browserul a preluat descărcarea
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
 
       if (IS_IOS) {
-        toast.success("PDF descărcat. Apasă „Vezi PDF-ul” ca să-l deschizi și să-l salvezi în Fișiere.");
+        toast.success("PDF descărcat — îl găsești în Descărcări (săgeata din Safari) sau în Fișiere.");
       } else if (IS_ANDROID) {
         toast.success("PDF salvat în folderul Descărcări. Succes la aplicare! 🎉");
       } else {
@@ -497,26 +483,24 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
             apasă „Începe de la zero” mai jos (proces nou, plată nouă).
           </p>
 
-          {/* deschiderea PDF-ului printr-un GEST REAL de user — singura cale
-              pe care Safari (iOS) nu o blochează cu popup blocker-ul */}
-          {pdfViewUrl && (
-            <a
-              href={pdfViewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="view-pdf"
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                width: "100%", marginTop: 14, minHeight: 50,
-                borderRadius: "var(--radius-pill)",
-                border: "none", backgroundColor: "var(--primary)", color: "#fff",
-                fontFamily: "var(--font-display), sans-serif", fontWeight: 700, fontSize: 15.5,
-                textDecoration: "none",
-              }}
-            >
-              📄 Vezi PDF-ul
-            </a>
-          )}
+          {/* butonul principal: descarcă (din nou) PDF-ul — pagina aplicației
+              rămâne pe loc, fișierul merge în Descărcări/Fișiere */}
+          <button
+            type="button"
+            data-testid="download-again"
+            onClick={() => handleDownload()}
+            disabled={isDownloading}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              width: "100%", marginTop: 14, minHeight: 50,
+              borderRadius: "var(--radius-pill)",
+              border: "none", backgroundColor: "var(--primary)", color: "#fff",
+              fontFamily: "var(--font-display), sans-serif", fontWeight: 700, fontSize: 15.5,
+              cursor: "pointer",
+            }}
+          >
+            ⬇ Descarcă PDF-ul
+          </button>
 
           {/* share nativ — gate pe capabilitate (canShare), nu pe userAgent:
               acoperă și iPad-urile care se prezintă ca desktop */}
@@ -547,8 +531,9 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           )}
           {IS_IOS && (
             <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 12, lineHeight: 1.55 }}>
-              După descărcare, apasă butonul de share (pătratul cu săgeată în sus) și
-              alege <strong>„Salvează în Fișiere”</strong> — sau trimite-l direct pe WhatsApp.
+              PDF-ul descărcat îl găsești în <strong>Descărcări</strong> (săgeata din
+              bara Safari) sau în aplicația <strong>Fișiere</strong> — ori trimite-l
+              direct pe WhatsApp de mai sus.
             </p>
           )}
         </div>
