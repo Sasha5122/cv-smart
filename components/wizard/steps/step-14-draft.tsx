@@ -31,6 +31,8 @@ interface Props {
   onBack: () => void;
   /** șterge tot progresul și repornește wizard-ul de la pasul 1 */
   onRestart: () => void;
+  /** anunță părintele că sesiunea e plătită → navigarea se blochează (CV înghețat) */
+  onPaidLock?: () => void;
 }
 
 // detecție platformă pentru instrucțiunile post-descărcare (doar client-side)
@@ -125,7 +127,7 @@ function TemplateThumb({ id }: { id: TemplateId }) {
   }
 }
 
-export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary, onBack, onRestart }: Props) {
+export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary, onBack, onRestart, onPaidLock }: Props) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [template, setTemplate] = useState<TemplateId>("classic");
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -146,6 +148,12 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
   const [paywall, setPaywall] = useState<PaywallStatus | null>(null);
   const paywallLoading = paywall === null;
   const isPaid = paywall ? !paywall.enabled || paywall.paid || Boolean(transactionId) : false;
+  // CV plătit = ÎNGHEȚAT: fără Înapoi, fără schimbat designul — un CV, o plată
+  const isFrozen = Boolean(paywall?.enabled) && isPaid;
+  useEffect(() => {
+    if (isFrozen) onPaidLock?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFrozen]);
   // PDF-ul descărcat, ținut viu pentru „Vezi PDF-ul" (obligatoriu pe iOS,
   // unde window.open automat e blocat de popup blocker)
   const [pdfViewUrl, setPdfViewUrl] = useState<string | null>(null);
@@ -204,6 +212,16 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     };
   }, [sessionId]);
 
+  /** Varianta FINALĂ (datele + designul) intră în DB chiar înainte de plată —
+   *  după plată, serverul o îngheață: doar ea se mai poate descărca/emaila. */
+  const flushFinalVersion = async () => {
+    await fetch(`/api/session/${sessionId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cv_data: cvData, template_id: template }),
+    }).catch(() => {});
+  };
+
   const handlePay = async () => {
     if (!termsAccepted) {
       toast.error("Pentru a continua, bifează mai întâi acordul cu Termenii și condițiile.");
@@ -211,6 +229,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     }
     if (!paywall?.enabled || !paywall.priceId) return;
     setIsPaying(true);
+    await flushFinalVersion();
     const paddle = await getPaddleClient(paywall);
     if (!paddle) {
       setIsPaying(false);
@@ -258,13 +277,9 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     if (code.length < 3) return;
     setPromoBusy(true);
     try {
-      // datele curente ajung în DB ÎNAINTE de livrare — emailul și PDF-ul
-      // trebuie să reflecte exact ce vede userul acum
-      await fetch(`/api/session/${sessionId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cv_data: cvData }),
-      }).catch(() => {});
+      // varianta finală (date + design) intră în DB ÎNAINTE de deblocare —
+      // emailul și PDF-ul reflectă exact ce vede userul, apoi se îngheață
+      await flushFinalVersion();
 
       const res = await fetch("/api/paywall/redeem", {
         method: "POST",
@@ -379,7 +394,8 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       title="CV-ul tău e gata."
       subtitle="Alege designul care ți se potrivește — exact așa va arăta PDF-ul descărcat."
     >
-      {/* Selectorul de design */}
+      {/* Selectorul de design — ascuns după plată: designul plătit e final */}
+      {!isFrozen && (
       <div
         role="radiogroup"
         aria-label="Alege designul CV-ului"
@@ -419,6 +435,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           );
         })}
       </div>
+      )}
 
       {isSummarizing && (
         <div
@@ -474,6 +491,10 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           )}
           <p style={{ fontSize: 12.5, color: "var(--muted-foreground)" }}>
             Poți re-descărca CV-ul oricând în următoarele 30 de zile din emailul primit.
+          </p>
+          <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 4 }}>
+            CV-ul plătit e <strong>final</strong> — pentru modificări sau un CV nou,
+            apasă „Începe de la zero” mai jos (proces nou, plată nouă).
           </p>
 
           {/* deschiderea PDF-ului printr-un GEST REAL de user — singura cale
@@ -583,9 +604,12 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       </label>
 
       <div className="flex gap-3" style={{ marginTop: 18 }}>
-        <Button variant="outline" onClick={onBack} className="flex-1">
-          ← Înapoi
-        </Button>
+        {/* după plată CV-ul e înghețat — Înapoi dispare, rămâne doar restart */}
+        {!isFrozen && (
+          <Button variant="outline" onClick={onBack} className="flex-1">
+            ← Înapoi
+          </Button>
+        )}
         {paywallLoading ? (
           <Button size="lg" className="flex-[2]" loading disabled>
             Se pregătește…

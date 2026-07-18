@@ -4,7 +4,6 @@ import {
   isSessionPaid,
   markSessionDownloaded,
   resolveTemplate,
-  updateSessionCVData,
 } from "@/lib/db/queries";
 import { paywallEnabled, verifyPaidTransaction } from "@/lib/paddle/server";
 import { renderCVPDF } from "@/lib/pdf-templates/render";
@@ -30,23 +29,24 @@ export const maxDuration = 30;
  *  - tranzacție prezentată de client, verificată la Paddle (fereastra de
  *    secunde până ajunge webhook-ul) — doar cumpărătorul o are în browser
  *
- * Anti-abuz: un link de sesiune distribuit altcuiva (fără transactionId)
- * primește DOAR CV-ul salvat al sesiunii, nu poate randa alt conținut —
- * o plată nu devine generator nelimitat de CV-uri pentru prieteni.
+ * ÎNGHEȚARE: un CV = o plată. Varianta salvată în DB LA MOMENTUL PLĂȚII
+ * (clientul face flush-save chiar înainte de checkout/cod) e SINGURA care
+ * se mai randează vreodată — nici cumpărătorul nu poate genera alt conținut
+ * cu aceeași plată. Pentru modificări: proces nou, plată nouă.
  */
 async function verifyAccess(
   sessionId: string,
   transactionId?: string
-): Promise<{ ok: boolean; session: Session | null; buyerProof: boolean }> {
-  if (!paywallEnabled()) return { ok: true, session: null, buyerProof: true };
+): Promise<{ ok: boolean; session: Session | null }> {
+  if (!paywallEnabled()) return { ok: true, session: null };
   const session = await getSession(sessionId).catch(() => null);
-  if (transactionId && (await verifyPaidTransaction(transactionId, sessionId))) {
-    return { ok: true, session, buyerProof: true };
-  }
   if (await isSessionPaid(session).catch(() => false)) {
-    return { ok: true, session, buyerProof: false };
+    return { ok: true, session };
   }
-  return { ok: false, session, buyerProof: false };
+  if (transactionId && (await verifyPaidTransaction(transactionId, sessionId))) {
+    return { ok: true, session };
+  }
+  return { ok: false, session };
 }
 
 function pdfResponse(pdfBuffer: Buffer, cvData: CVData) {
@@ -90,22 +90,19 @@ export async function POST(
       return NextResponse.json({ error: "Plata nu a fost confirmată." }, { status: 402 });
     }
 
-    // fără dovada cumpărătorului (transactionId), randăm DOAR datele salvate
-    // ale sesiunii — nu conținut arbitrar de la oricine are linkul
-    const cvData =
-      access.buyerProof || !access.session?.cv_data?.personal
-        ? bodyCvData
-        : (access.session.cv_data as CVData);
+    // ÎNGHEȚAT: pe o sesiune plătită se randează EXCLUSIV varianta din DB
+    // (salvată la momentul plății) — body-ul e ignorat, la fel și designul
+    // trimis ulterior. Body-ul contează doar cu paywall oprit (faza gratuită)
+    // sau în fereastra scurtă pre-webhook fără date salvate.
+    const frozen = Boolean(access.session?.cv_data?.personal);
+    const cvData = frozen ? (access.session!.cv_data as CVData) : bodyCvData;
+    const template = frozen ? await resolveTemplate(access.session!) : templateId;
 
-    const pdfBuffer = await renderCVPDF(await withSquarePhoto(cvData), templateId);
+    const pdfBuffer = await renderCVPDF(await withSquarePhoto(cvData), template);
 
-    // best-effort: salvăm ultima variantă a datelor + designul și marcăm
-    // sesiunea descărcată (tolerant la constraint-ul vechi de template),
-    // dar nu blocăm PDF-ul dacă persistența pică
-    if (access.buyerProof) {
-      updateSessionCVData(sessionId, cvData).catch(() => {});
-    }
-    markSessionDownloaded(sessionId, templateId).catch(() => {});
+    // marcăm sesiunea descărcată (tolerant la constraint-ul vechi de template);
+    // datele NU se mai suprascriu — varianta plătită rămâne cea de la plată
+    markSessionDownloaded(sessionId, template).catch(() => {});
 
     return pdfResponse(pdfBuffer, cvData);
   } catch (error) {

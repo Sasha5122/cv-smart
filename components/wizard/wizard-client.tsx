@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { WizardLayout } from "./wizard-layout";
 import { useWizard } from "@/hooks/use-wizard";
@@ -27,6 +27,9 @@ export function WizardClient({ sessionId }: WizardClientProps) {
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const lastResearchedJD = useRef<string>("");
   const hydratedRef = useRef(false);
+  // după plată CV-ul e ÎNGHEȚAT (un CV = o plată): navigarea înapoi se
+  // blochează complet — singura opțiune rămasă e „Începe de la zero"
+  const [paidLocked, setPaidLocked] = useState(false);
 
   // Restaurare după refresh: progresul stă în localStorage — un F5 accidental
   // nu mai pierde nimic. Rulează O DATĂ, înaintea efectului de persistare.
@@ -241,6 +244,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
             jobDescription={jobDescription}
             onUpdateSummary={(summary) => updateCVData({ summary })}
             onBack={back}
+            onPaidLock={() => setPaidLocked(true)}
             onRestart={() => {
               // reset total: progresul local dispare, serverul creează o
               // sesiune nouă la reîncărcarea paginii
@@ -264,7 +268,8 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       currentStep={wizard.currentStep}
       maxStep={wizard.maxStep}
       cvData={wizard.cvData}
-      onNavigate={(step) => wizard.setStep(step)}
+      // sesiune plătită = CV înghețat: sidebar-ul nu mai navighează nicăieri
+      onNavigate={paidLocked ? undefined : (step) => wizard.setStep(step)}
     >
       {renderStep()}
     </WizardLayout>
