@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import sharp from "sharp";
+import { smartSquareCrop } from "@/lib/photo-crop";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 
 /**
@@ -30,11 +30,8 @@ export async function POST(req: NextRequest) {
     }
 
     const input = Buffer.from(await file.arrayBuffer());
-    const jpeg = await sharp(input, { limitInputPixels: 80_000_000 })
-      .rotate() // aplică rotația EXIF (pozele de telefon vin des culcate)
-      .resize(SIZE, SIZE, { fit: "cover", position: sharp.strategy.attention })
-      .jpeg({ quality: 88 })
-      .toBuffer();
+    // rotație EXIF + crop cu fața garantat în cadru (bandă de sus la full-body)
+    const jpeg = await smartSquareCrop(input, SIZE);
 
     return NextResponse.json({ dataUrl: `data:image/jpeg;base64,${jpeg.toString("base64")}` });
   } catch (e) {

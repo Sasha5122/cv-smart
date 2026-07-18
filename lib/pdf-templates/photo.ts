@@ -1,10 +1,12 @@
 import sharp from "sharp";
+import { smartSquareCrop } from "@/lib/photo-crop";
 
 /**
  * Apărare server-side contra distorsiunii: orice fotografie data-URI care nu
- * e pătrată se decupează CENTRAT la pătrat (cover) înainte de generarea PDF.
- * Pozele noi vin deja pătrate de la upload (crop în canvas); asta acoperă
- * sesiunile vechi și orice client care ocolește normalizarea.
+ * e pătrată se decupează la pătrat înainte de generarea PDF, cu ACEEAȘI
+ * logică inteligentă ca la upload (lib/photo-crop — fața garantat în cadru).
+ * Pozele noi vin deja pătrate; asta acoperă sesiunile vechi și orice client
+ * care ocolește normalizarea.
  */
 export async function ensureSquarePhoto(photoUrl: string | undefined): Promise<string | undefined> {
   if (!photoUrl) return photoUrl;
@@ -13,8 +15,7 @@ export async function ensureSquarePhoto(photoUrl: string | undefined): Promise<s
 
   try {
     const input = Buffer.from(m[2], "base64");
-    const img = sharp(input);
-    const meta = await img.metadata();
+    const meta = await sharp(input).metadata();
     const w = meta.width ?? 0;
     const h = meta.height ?? 0;
     // deja pătrată și în format suportat de PDF → neatinsă
@@ -22,12 +23,7 @@ export async function ensureSquarePhoto(photoUrl: string | undefined): Promise<s
       return photoUrl;
     }
     const side = Math.min(600, Math.min(w, h) || 600);
-    // „attention" caută regiunea de interes (față/ton de piele) în loc de
-    // centru — la poze full-body decupajul prinde capul, nu abdomenul
-    const out = await img
-      .resize(side, side, { fit: "cover", position: sharp.strategy.attention })
-      .jpeg({ quality: 88 })
-      .toBuffer();
+    const out = await smartSquareCrop(input, side);
     return `data:image/jpeg;base64,${out.toString("base64")}`;
   } catch {
     // dacă procesarea pică, mai bine fără poză decât PDF stricat/distorsionat
