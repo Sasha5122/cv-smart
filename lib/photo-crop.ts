@@ -19,21 +19,28 @@ export async function smartSquareCrop(input: Buffer, size = 600): Promise<Buffer
   const rotated = await sharp(input, { limitInputPixels: 80_000_000 })
     .rotate()
     .toBuffer();
-  const meta = await sharp(rotated).metadata();
+
+  // 1) tăiem marginile uniforme de fundal (studio/alb) — persoana rămâne
+  //    strâns încadrată, deci capul ajunge chiar la marginea de sus a cadrului
+  let content = rotated;
+  try {
+    content = await sharp(rotated).trim({ threshold: 12 }).toBuffer();
+  } catch {
+    // fundal neuniform / nimic de tăiat — continuăm cu poza întreagă
+  }
+
+  const meta = await sharp(content).metadata();
   const w = meta.width ?? 0;
   const h = meta.height ?? 0;
 
-  let src = sharp(rotated);
-  if (w > 0 && h > 1.25 * w) {
-    src = src.extract({
-      left: 0,
-      top: 0,
-      width: w,
-      height: Math.min(h, Math.round(w * 1.15)),
-    });
-  }
-  return src
-    .resize(size, size, { fit: "cover", position: sharp.strategy.attention })
+  // 2) poză ÎNALTĂ (om în picioare / portret lung): ancorăm ferm SUS —
+  //    pătratul pornește de la marginea de sus, deci capul NU poate fi tăiat,
+  //    indiferent ce contrast au hainele. La formate normale, „attention"
+  //    caută regiunea de interes ca până acum.
+  const position = w > 0 && h > 1.25 * w ? "top" : sharp.strategy.attention;
+
+  return sharp(content)
+    .resize(size, size, { fit: "cover", position })
     .jpeg({ quality: 88 })
     .toBuffer();
 }
