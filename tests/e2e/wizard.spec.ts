@@ -26,11 +26,17 @@ const BULLETS = [
   category: "responsabilitate_core",
 }));
 
-/** Corectarea AI e best-effort — în teste returnează textul primit. */
+/** Corectarea AI e best-effort — în teste returnează textul primit
+ *  (inclusiv varianta batch pentru bullet-urile manuale). */
 async function mockCorrectText(page: Page) {
-  await page.route("**/api/ai/correct-text", (route, request) =>
-    route.fulfill({ json: { corrected: request.postDataJSON().text } })
-  );
+  await page.route("**/api/ai/correct-text", (route, request) => {
+    const body = request.postDataJSON();
+    if (body.kind === "cv-bullets") {
+      route.fulfill({ json: { corrected: body.lines, rewritten: true } });
+    } else {
+      route.fulfill({ json: { corrected: body.text } });
+    }
+  });
 }
 
 async function mockPipeline(page: Page) {
@@ -78,7 +84,7 @@ async function gotoExperience(page: Page, withJD = true) {
   await page.getByLabel(/oraș/i).first().fill("București");
   await page.getByRole("button", { name: /Continuă/ }).click();
   // Pas 2 — Fotografie (skip)
-  await page.getByText("Nu am fotografie potrivită").click();
+  await page.getByText("Nu am poză potrivită").click();
   // Pas 3 — Job vizat
   await expect(
     page.getByRole("heading", { name: "Ce job vrei să obții?" })
@@ -112,7 +118,7 @@ test.describe("Landing — pagina de start", () => {
     await expect(
       page.getByText(/serviciu online de creare a CV-urilor profesioniste/)
     ).toBeVisible();
-    await expect(page.getByText(/Preț: 49 RON per CV/)).toBeVisible();
+    await expect(page.getByText(/Preț: 49 lei \(9,99 €\) per CV/)).toBeVisible();
     // showcase: pornește AUTOMAT — prima glisare începe la ~2s de la
     // încărcare, deci al doilea CV devine activ fără nicio interacțiune
     await expect(page.getByTestId("cv-showcase")).toBeVisible();
@@ -151,9 +157,10 @@ test.describe("Landing — pagina de start", () => {
     await expect(page.getByTestId("hero-cta")).toBeVisible();
   });
 
-  test("pagina /pret afișează 49 RON cu plată unică", async ({ page }) => {
+  test("pagina /pret afișează 49 lei (9,99 €) cu plată unică", async ({ page }) => {
     await page.goto("/pret");
-    await expect(page.getByText("49 RON", { exact: true })).toBeVisible();
+    await expect(page.getByText("49 lei", { exact: true })).toBeVisible();
+    await expect(page.getByText(/9,99 €/).first()).toBeVisible();
     await expect(page.getByText(/Plată unică — fără abonament/)).toBeVisible();
     await expect(page.getByRole("link", { name: "Începe" }).last()).toBeVisible();
   });
@@ -240,7 +247,7 @@ test.describe("Wizard — navigare și shell editorial", () => {
     await page.getByLabel(/telefon/i).fill("0722314558");
     await page.getByLabel(/oraș/i).first().fill("Cluj");
     await page.getByRole("button", { name: /Continuă/ }).click();
-    await page.getByText("Nu am fotografie potrivită").click();
+    await page.getByText("Nu am poză potrivită").click();
     await expect(page.getByText(/Pasul 3 din 10/i)).toBeVisible();
     // fără exemple rapide (eliminate)
     await expect(page.getByText("Exemple rapide")).toHaveCount(0);
@@ -364,7 +371,7 @@ test.describe("Contact — județ dropdown + modal străinătate", () => {
 
     // poate continua FĂRĂ datele din România → pasul 2 (Fotografie)
     await page.getByRole("button", { name: /Continuă/ }).click();
-    await expect(page.getByRole("heading", { name: /Adaugă o fotografie/ })).toBeVisible({
+    await expect(page.getByRole("heading", { name: /Adaugă o poză/ })).toBeVisible({
       timeout: 10000,
     });
   });
@@ -517,6 +524,41 @@ test.describe("Wizard — pipeline experiență (AI mock)", () => {
     await expect(
       page.getByRole("button", { name: /Adaugă experiența de la jobul precedent/ })
     ).toBeVisible();
+  });
+
+  test("ruta manuală rescrie descrierile în formă nominală de CV", async ({ page }) => {
+    await gotoExperience(page);
+    // mock țintit: batch-ul de bullet-uri devine formă nominală
+    await page.route("**/api/ai/correct-text", (route, request) => {
+      const body = request.postDataJSON();
+      const map: Record<string, string> = {
+        "Coordonat echipa de 3 colegi": "Coordonarea unei echipe de 3 colegi",
+        "Gestionat stocul din depozit": "Gestionarea stocului din depozit",
+      };
+      if (body.kind === "cv-bullets") {
+        route.fulfill({
+          json: {
+            corrected: (body.lines as string[]).map((l) => map[l] ?? l),
+            rewritten: true,
+          },
+        });
+      } else {
+        route.fulfill({ json: { corrected: body.text } });
+      }
+    });
+
+    await page.getByText(/prefer să scriu descrierile manual/i).click();
+    await page.getByLabel(/funcția/i).fill("Șef depozit");
+    await page
+      .getByLabel(/responsabilit/i)
+      .fill("Coordonat echipa de 3 colegi\nGestionat stocul din depozit");
+    await page.getByRole("button", { name: /Salvează jobul/ }).click();
+
+    await expect(page.getByRole("heading", { name: /Joburile tale/ })).toBeVisible();
+    // bulleturile apar în formă nominală, nu participiu
+    await expect(page.getByText("Coordonarea unei echipe de 3 colegi").first()).toBeVisible();
+    await expect(page.getByText("Gestionarea stocului din depozit").first()).toBeVisible();
+    await expect(page.getByText("Coordonat echipa de 3 colegi")).toHaveCount(0);
   });
 
   test("eroarea de API e afișată elegant, cu revenire la input", async ({ page }) => {

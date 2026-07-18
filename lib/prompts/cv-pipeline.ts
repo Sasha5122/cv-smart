@@ -191,7 +191,7 @@ CINCI REGULI OBLIGATORII (restul e judecata ta de recrutor):
 
 1. FIDELITATE TOTALĂ: nu inventa, nu rotunji, nu exagera nicio cifră, sumă, denumire de software sau proces, și nu urca nivelul de responsabilitate peste ce reiese din ce a spus candidatul. Tot ce afirmi provine din descrierea și răspunsurile lui. Formularea e a ta; faptele sunt ale lui.
 
-2. FORMĂ NOMINALIZATĂ: fiecare bullet începe cu substantivul verbal al unei acțiuni („Gestionarea", „Întocmirea", „Coordonarea", „Soluționarea"...), nu cu participiu („Gestionat") și nu la persoana I.
+2. FORMĂ NOMINALIZATĂ (obligatoriu la FIECARE bullet, fără excepție): fiecare bullet începe cu substantivul verbal al unei acțiuni („Gestionarea", „Întocmirea", „Coordonarea", „Implementarea", „Soluționarea", „Verificarea", „Reducerea"...). INTERZIS participiul la început („Gestionat", „Coordonat", „Implementat", „Realizat", „Efectuat") și persoana I („am gestionat"). Complementul se acordă corect: „Coordonarea unei echipe de 12 oameni", „Gestionarea inventarului" — nu „Coordonarea echipa".
 
 3. Denumirile concrete (software, declarații, certificări) apar cu numele lor exact — sunt cuvinte-cheie pe care angajatorii și sistemele de recrutare le caută.
 

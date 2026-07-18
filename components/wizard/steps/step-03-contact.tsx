@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,61 @@ interface Errors {
 export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
   const [errors, setErrors] = useState<Errors>({});
   const [abroadOpen, setAbroadOpen] = useState(false);
+
+  // ── telefon: formatare live FĂRĂ să sară cursorul ─────────────────────────
+  // Reformatarea rescrie input-ul, iar browserul ar arunca cursorul la final —
+  // enervant mai ales pe telefon, la corectarea unei cifre din mijloc.
+  // Soluția: după fiecare reformatare recalculăm poziția cursorului numărând
+  // CIFRELE dinaintea lui (spațiile de formatare nu contează).
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const phoneCaretRef = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (phoneCaretRef.current !== null && phoneRef.current) {
+      phoneRef.current.setSelectionRange(phoneCaretRef.current, phoneCaretRef.current);
+      phoneCaretRef.current = null;
+    }
+  });
+
+  /** Aplică formatarea și programează cursorul după a `digitsBefore`-a cifră. */
+  const applyPhone = (raw: string, digitsBefore: number) => {
+    const formatted = formatPhone(raw);
+    let pos = 0;
+    let seen = 0;
+    while (pos < formatted.length && seen < digitsBefore) {
+      if (/\d/.test(formatted[pos])) seen++;
+      pos++;
+    }
+    phoneCaretRef.current = pos;
+    onChange({ phone: formatted });
+    setErrors((prev) => ({ ...prev, phone: undefined }));
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const caret = input.selectionStart ?? input.value.length;
+    const digitsBefore = input.value.slice(0, caret).replace(/\D/g, "").length;
+    applyPhone(input.value, digitsBefore);
+  };
+
+  /** Backspace/Delete peste un spațiu de formatare șterge CIFRA de lângă el,
+   *  nu doar spațiul (altfel formatarea îl pune la loc și pare că nu merge). */
+  const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const { selectionStart, selectionEnd, value: v } = input;
+    if (selectionStart === null || selectionStart !== selectionEnd) return;
+    if (e.key === "Backspace" && selectionStart > 0 && v[selectionStart - 1] === " ") {
+      e.preventDefault();
+      const raw = v.slice(0, selectionStart - 2) + v.slice(selectionStart);
+      const digitsBefore = v.slice(0, selectionStart - 2).replace(/\D/g, "").length;
+      applyPhone(raw, digitsBefore);
+    } else if (e.key === "Delete" && v[selectionStart] === " ") {
+      e.preventDefault();
+      const raw = v.slice(0, selectionStart + 1) + v.slice(selectionStart + 2);
+      const digitsBefore = v.slice(0, selectionStart).replace(/\D/g, "").length;
+      applyPhone(raw, digitsBefore);
+    }
+  };
 
   // datele din străinătate sunt completate (alternativa la datele din România)
   const isAbroad = Boolean(value?.country && value.country !== "România");
@@ -203,10 +258,12 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
           <>
             {/* Telefon */}
             <Input
+              ref={phoneRef}
               label="Telefon *"
               placeholder="0721 234 567"
               value={value?.phone ?? ""}
-              onChange={(e) => set("phone", formatPhone(e.target.value))}
+              onChange={handlePhoneChange}
+              onKeyDown={handlePhoneKeyDown}
               error={errors.phone}
               type="tel"
               inputMode="numeric"

@@ -41,7 +41,7 @@ export default function ConfidentialitatePage() {
         <ul style={{ paddingLeft: 22, marginBottom: 14 }}>
           <li style={LI}>
             <strong>Date introduse de dumneavoastră pentru CV:</strong> nume, prenume,
-            e-mail, telefon, adresă, fotografie (opțional), experiență profesională,
+            e-mail, telefon, adresă, poză (opțional), experiență profesională,
             educație, abilități, limbi străine, permis de conducere, hobby-uri, descrierea
             jobului vizat.
           </li>
@@ -82,7 +82,7 @@ export default function ConfidentialitatePage() {
           artificială (pentru formularea textelor din CV), furnizorul bazei de date și al
           găzduirii. Acești furnizori pot prelucra date în afara SEE numai cu garanții
           adecvate (clauze contractuale standard aprobate de Comisia Europeană sau decizii
-          de adecvare, inclusiv EU–US Data Privacy Framework). Textele și fotografia
+          de adecvare, inclusiv EU–US Data Privacy Framework). Textele și poza
           trimise modelelor AI prin API nu sunt folosite de aceștia pentru antrenarea
           modelelor, conform politicilor lor.
         </p>
@@ -95,11 +95,13 @@ export default function ConfidentialitatePage() {
 
         <h2 style={H}>5. Cât timp păstrăm datele</h2>
         <p style={S}>
-          Datele sesiunii de creare a CV-ului (inclusiv conținutul CV-ului) sunt{" "}
-          <strong>șterse automat după 30 de zile</strong> de la ultima activitate.
-          Fișierul PDF descărcat rămâne exclusiv pe dispozitivul dumneavoastră — nu îl
-          stocăm pe serverele noastre. Mesajele de contact se păstrează cel mult 12 luni.
-          Datele necesare facturării se păstrează conform termenelor legale fiscale.
+          CV-ul generat și datele sesiunii de creare (inclusiv conținutul CV-ului) se
+          păstrează <strong>30 de zile de la ultima activitate</strong>, pentru a
+          permite re-descărcarea documentului din linkul primit pe email, apoi sunt{" "}
+          <strong>șterse automat și definitiv</strong>. Emailul de livrare cu PDF-ul
+          atașat rămâne în căsuța dumneavoastră de email. Mesajele de contact se
+          păstrează cel mult 12 luni. Datele necesare facturării se păstrează conform
+          termenelor legale fiscale.
         </p>
 
         <h2 style={H}>6. Drepturile dumneavoastră</h2>

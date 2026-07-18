@@ -2,11 +2,11 @@ import Link from "next/link";
 import { LandingHeader } from "@/components/landing/header";
 import { LandingFooter } from "@/components/landing/footer";
 import { LandingPricing } from "@/components/landing/pricing";
+import { PRICE_DISPLAY } from "@/lib/pricing";
 
 export const metadata = {
   title: "Preț",
-  description:
-    "49 RON per CV în format PDF, cu TVA inclus. Plată unică — fără abonament, fără plăți recurente.",
+  description: `${PRICE_DISPLAY} per CV în format PDF, cu TVA inclus. Plată unică — fără abonament, fără plăți recurente.`,
 };
 
 export default function PretPage() {

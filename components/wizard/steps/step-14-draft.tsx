@@ -3,9 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import { StepCard } from "../step-card";
 import { PaginatedCVPreview } from "../paginated-preview";
 import { Button } from "@/components/ui/button";
-import { Download, Check, Loader2 } from "lucide-react";
+import { Download, Check, Loader2, Lock } from "lucide-react";
 import type { CVData, TemplateId } from "@/lib/types/cv";
 import { buildCvFilename } from "@/lib/pdf-filename";
+import {
+  fetchPaywallStatus,
+  getPaddleClient,
+  setCheckoutHandler,
+  type PaywallStatus,
+} from "@/lib/paddle/client";
+import { PRICE_DISPLAY } from "@/lib/pricing";
 import { toast } from "sonner";
 
 /* ────────────────────────────────────────────────────────────────
@@ -25,6 +32,11 @@ interface Props {
   /** șterge tot progresul și repornește wizard-ul de la pasul 1 */
   onRestart: () => void;
 }
+
+// detecție platformă pentru instrucțiunile post-descărcare (doar client-side)
+const IS_IOS =
+  typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+const IS_ANDROID = typeof navigator !== "undefined" && /Android/.test(navigator.userAgent);
 
 const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
   { id: "classic", label: "Clasic", hint: "echilibrat, accente albastre" },
@@ -117,6 +129,37 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
   const [isDownloading, setIsDownloading] = useState(false);
   const [template, setTemplate] = useState<TemplateId>("classic");
   const [isSummarizing, setIsSummarizing] = useState(false);
+  // plata: tranzacția confirmată de checkout; supraviețuiește unui refresh
+  const paidStorageKey = `cvx_txn_${sessionId}`;
+  const [transactionId, setTransactionId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.sessionStorage.getItem(paidStorageKey);
+  });
+  const [isPaying, setIsPaying] = useState(false);
+  // cod promo (testeri/prieteni) — deblochează exact ca o plată reală
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoBusy, setPromoBusy] = useState(false);
+  // starea paywall vine de la SERVER (o singură sursă de adevăr): enabled,
+  // config checkout și — crucial — dacă sesiunea e deja plătită (webhook),
+  // ca un refresh/alt device să nu mai ceară o a doua plată
+  const [paywall, setPaywall] = useState<PaywallStatus | null>(null);
+  const paywallLoading = paywall === null;
+  const isPaid = paywall ? !paywall.enabled || paywall.paid || Boolean(transactionId) : false;
+  // PDF-ul descărcat, ținut viu pentru „Vezi PDF-ul" (obligatoriu pe iOS,
+  // unde window.open automat e blocat de popup blocker)
+  const [pdfViewUrl, setPdfViewUrl] = useState<string | null>(null);
+  const pdfViewUrlRef = useRef<string | null>(null);
+  const setPdfUrl = (url: string) => {
+    if (pdfViewUrlRef.current) URL.revokeObjectURL(pdfViewUrlRef.current);
+    pdfViewUrlRef.current = url;
+    setPdfViewUrl(url);
+  };
+  useEffect(() => {
+    return () => {
+      if (pdfViewUrlRef.current) URL.revokeObjectURL(pdfViewUrlRef.current);
+    };
+  }, []);
   // fără acceptarea termenilor, descărcarea e blocată (cerință legală)
   const [termsAccepted, setTermsAccepted] = useState(false);
   // pe telefon: după descărcare oferim și „Trimite" (share sheet nativ —
@@ -147,22 +190,134 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleDownload = async () => {
+  // starea paywall de la server + preîncărcarea Paddle.js (overlay instant)
+  useEffect(() => {
+    let cancelled = false;
+    fetchPaywallStatus(sessionId).then((status) => {
+      if (cancelled) return;
+      setPaywall(status);
+      if (status.enabled) getPaddleClient(status);
+    });
+    return () => {
+      cancelled = true;
+      setCheckoutHandler(null);
+    };
+  }, [sessionId]);
+
+  const handlePay = async () => {
+    if (!termsAccepted) {
+      toast.error("Pentru a continua, bifează mai întâi acordul cu Termenii și condițiile.");
+      return;
+    }
+    if (!paywall?.enabled || !paywall.priceId) return;
+    setIsPaying(true);
+    const paddle = await getPaddleClient(paywall);
+    if (!paddle) {
+      setIsPaying(false);
+      toast.error("Plata nu poate fi inițiată acum. Reîncarcă pagina și încearcă din nou.");
+      return;
+    }
+    setCheckoutHandler((event) => {
+      if (event.name === "checkout.completed") {
+        const txn = event.data?.transaction_id;
+        if (txn) {
+          window.sessionStorage.setItem(paidStorageKey, txn);
+          setTransactionId(txn);
+          // lăsăm userul să vadă confirmarea Paddle, apoi pornim descărcarea
+          setTimeout(() => {
+            paddle.Checkout.close();
+            toast.success("Plată confirmată. Îți pregătim PDF-ul…");
+            handleDownload(txn);
+          }, 1800);
+        }
+      }
+      if (event.name === "checkout.closed") setIsPaying(false);
+      if (event.name === "checkout.error") {
+        setIsPaying(false);
+        toast.error("Checkout-ul nu s-a putut deschide. Încearcă din nou.");
+      }
+    });
+    const email = cvData.personal?.email?.trim();
+    paddle.Checkout.open({
+      items: [{ priceId: paywall.priceId, quantity: 1 }],
+      // leagă tranzacția de sesiune — serverul refuză PDF-ul fără potrivire
+      customData: { sessionId },
+      ...(email ? { customer: { email } } : {}),
+      settings: { variant: "one-page", locale: "ro", showAddDiscounts: false },
+    });
+  };
+
+  /** Codul promo: salvăm datele curente, revendicăm codul, apoi descărcăm —
+   *  fluxul devine identic cu cel de după o plată reală (inclusiv emailul). */
+  const handleRedeem = async () => {
+    if (!termsAccepted) {
+      toast.error("Pentru a continua, bifează mai întâi acordul cu Termenii și condițiile.");
+      return;
+    }
+    const code = promoCode.trim();
+    if (code.length < 3) return;
+    setPromoBusy(true);
+    try {
+      // datele curente ajung în DB ÎNAINTE de livrare — emailul și PDF-ul
+      // trebuie să reflecte exact ce vede userul acum
+      await fetch(`/api/session/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cv_data: cvData }),
+      }).catch(() => {});
+
+      const res = await fetch("/api/paywall/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, code }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Cod invalid sau expirat.");
+        return;
+      }
+      setPaywall((p) => (p ? { ...p, paid: true } : p));
+      toast.success(
+        data.emailSent
+          ? "Cod acceptat! Ți-am trimis CV-ul și pe email. Îl descărcăm acum…"
+          : "Cod acceptat! Îți descărcăm CV-ul…"
+      );
+      await handleDownload();
+    } finally {
+      setPromoBusy(false);
+    }
+  };
+
+  /** Aduce PDF-ul generat ca blob, sau null la refuz de plată / eroare. */
+  const fetchPdfBlob = async (txnOverride?: string): Promise<Blob | null> => {
+    // datele merg direct din browser — PDF-ul se generează și dacă
+    // persistența sesiunii e indisponibilă
+    const res = await fetch(`/api/pdf/${sessionId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cvData,
+        templateId: template,
+        transactionId: txnOverride ?? transactionId ?? undefined,
+      }),
+    });
+    if (res.status === 402) {
+      toast.error("Plata nu a fost confirmată încă. Dacă ai plătit, așteaptă câteva secunde și încearcă din nou.");
+      return null;
+    }
+    if (!res.ok) throw new Error();
+    return await res.blob();
+  };
+
+  const handleDownload = async (txnOverride?: string) => {
     if (!termsAccepted) {
       toast.error("Pentru a descărca CV-ul, bifează mai întâi acordul cu Termenii și condițiile.");
       return;
     }
     setIsDownloading(true);
     try {
-      // datele merg direct din browser — PDF-ul se generează și dacă
-      // persistența sesiunii e indisponibilă
-      const res = await fetch(`/api/pdf/${sessionId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cvData, templateId: template }),
-      });
-      if (!res.ok) throw new Error();
-      const blob = await res.blob();
+      const blob = await fetchPdfBlob(txnOverride);
+      if (!blob) return;
       const filename = buildCvFilename(cvData);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -170,8 +325,17 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       // numele utilizatorului + data generării (ex: CV_Elena_Stanciu_2026-07-10.pdf)
       a.download = filename;
       a.click();
-      URL.revokeObjectURL(url);
-      toast.success("CV-ul a fost descărcat. Succes la aplicare! 🎉");
+      // ținem URL-ul viu pentru butonul „Vezi PDF-ul" (revocat la înlocuire/unmount).
+      // NU deschidem tab automat: fără gest de user, Safari (iOS) îl blochează.
+      setPdfUrl(url);
+
+      if (IS_IOS) {
+        toast.success("PDF descărcat. Apasă „Vezi PDF-ul” ca să-l deschizi și să-l salvezi în Fișiere.");
+      } else if (IS_ANDROID) {
+        toast.success("PDF salvat în folderul Descărcări. Succes la aplicare! 🎉");
+      } else {
+        toast.success("CV-ul a fost descărcat. Succes la aplicare! 🎉");
+      }
 
       // doar pe dispozitive touch cu share nativ de fișiere (telefoane/tablete)
       try {
@@ -186,6 +350,25 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     } catch {
       toast.error("Eroare la generarea PDF-ului. Încearcă din nou.");
     } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  /** „Trimite pe WhatsApp" — share sheet nativ cu PDF-ul (doar mobil). */
+  const handleWhatsAppShare = async () => {
+    try {
+      let file = shareFile;
+      if (!file) {
+        setIsDownloading(true);
+        const blob = await fetchPdfBlob();
+        setIsDownloading(false);
+        if (!blob) return;
+        file = new File([blob], buildCvFilename(cvData), { type: "application/pdf" });
+        setShareFile(file);
+      }
+      await navigator.share({ files: [file], title: "CV-ul meu", text: "CV-ul meu, creat cu CVexpres" });
+    } catch {
+      // userul a închis share sheet-ul sau share indisponibil — nu e eroare
       setIsDownloading(false);
     }
   };
@@ -267,6 +450,89 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         </div>
       </div>
 
+      {/* ── după plată: confirmare + livrare pe toate canalele ── */}
+      {paywall?.enabled && isPaid && (
+        <div
+          data-testid="payment-success"
+          style={{
+            marginTop: 26,
+            padding: "22px 20px",
+            borderRadius: 14,
+            border: "1.5px solid var(--green, #16a34a)",
+            backgroundColor: "rgba(22, 163, 74, 0.06)",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ fontSize: 19, fontWeight: 800, color: "#166534", marginBottom: 6 }}>
+            CV-ul tău e gata! ✔
+          </p>
+          {cvData.personal?.email && (
+            <p style={{ fontSize: 14, color: "#15803D", marginBottom: 4 }}>
+              Ți l-am trimis și pe email la <strong>{cvData.personal.email}</strong> —
+              cu PDF-ul atașat.
+            </p>
+          )}
+          <p style={{ fontSize: 12.5, color: "var(--muted-foreground)" }}>
+            Poți re-descărca CV-ul oricând în următoarele 30 de zile din emailul primit.
+          </p>
+
+          {/* deschiderea PDF-ului printr-un GEST REAL de user — singura cale
+              pe care Safari (iOS) nu o blochează cu popup blocker-ul */}
+          {pdfViewUrl && (
+            <a
+              href={pdfViewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="view-pdf"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                width: "100%", marginTop: 14, minHeight: 50,
+                borderRadius: "var(--radius-pill)",
+                border: "none", backgroundColor: "var(--primary)", color: "#fff",
+                fontFamily: "var(--font-display), sans-serif", fontWeight: 700, fontSize: 15.5,
+                textDecoration: "none",
+              }}
+            >
+              📄 Vezi PDF-ul
+            </a>
+          )}
+
+          {/* share nativ — gate pe capabilitate (canShare), nu pe userAgent:
+              acoperă și iPad-urile care se prezintă ca desktop */}
+          {typeof navigator !== "undefined" && !!navigator.canShare && (
+            <button
+              type="button"
+              data-testid="whatsapp-share"
+              onClick={handleWhatsAppShare}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                width: "100%", marginTop: 12, minHeight: 50,
+                borderRadius: "var(--radius-pill)",
+                border: "none", backgroundColor: "#25D366", color: "#fff",
+                fontFamily: "var(--font-display), sans-serif", fontWeight: 700, fontSize: 15.5,
+                cursor: "pointer",
+              }}
+            >
+              💬 Trimite pe WhatsApp
+            </button>
+          )}
+
+          {/* instrucțiuni per platformă — doar pe mobil */}
+          {IS_ANDROID && (
+            <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 12, lineHeight: 1.55 }}>
+              După descărcare, CV-ul e în folderul <strong>Descărcări</strong>. Îl găsești
+              și trăgând în jos bara de notificări.
+            </p>
+          )}
+          {IS_IOS && (
+            <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 12, lineHeight: 1.55 }}>
+              După descărcare, apasă butonul de share (pătratul cu săgeată în sus) și
+              alege <strong>„Salvează în Fișiere”</strong> — sau trimite-l direct pe WhatsApp.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* consimțământ obligatoriu — fără bifă, descărcarea nu pornește */}
       <label
         data-testid="terms-consent"
@@ -320,20 +586,98 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         <Button variant="outline" onClick={onBack} className="flex-1">
           ← Înapoi
         </Button>
-        <Button
-          onClick={handleDownload}
-          size="lg"
-          className="flex-[2]"
-          loading={isDownloading}
-          disabled={!termsAccepted}
-          icon={<Download className="w-4 h-4" />}
-        >
-          Descarcă PDF
-        </Button>
+        {paywallLoading ? (
+          <Button size="lg" className="flex-[2]" loading disabled>
+            Se pregătește…
+          </Button>
+        ) : isPaid ? (
+          <Button
+            onClick={() => handleDownload()}
+            size="lg"
+            className="flex-[2]"
+            loading={isDownloading}
+            disabled={!termsAccepted}
+            icon={<Download className="w-4 h-4" />}
+          >
+            Descarcă PDF
+          </Button>
+        ) : (
+          <Button
+            onClick={handlePay}
+            size="lg"
+            className="flex-[2]"
+            loading={isPaying || isDownloading}
+            disabled={!termsAccepted}
+            data-testid="pay-download"
+            icon={<Lock className="w-4 h-4" />}
+          >
+            Plătește și descarcă — {PRICE_DISPLAY}
+          </Button>
+        )}
       </div>
 
-      {/* pe telefon, după descărcare: trimite CV-ul oriunde (share sheet nativ) */}
-      {shareFile && (
+      {!isPaid && !paywallLoading && paywall?.enabled && (
+        <>
+          <p
+            style={{
+              marginTop: 10,
+              fontSize: 12.5,
+              color: "var(--muted-foreground)",
+              textAlign: "center",
+            }}
+          >
+            {PRICE_DISPLAY} · plată unică, TVA inclus · plata se procesează securizat în EUR prin Paddle
+          </p>
+
+          {/* ── cod de reducere / promo (testeri) ── */}
+          {!promoOpen ? (
+            <button
+              type="button"
+              data-testid="promo-toggle"
+              onClick={() => setPromoOpen(true)}
+              style={{
+                display: "block", margin: "10px auto 0",
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: 13, fontWeight: 600, color: "var(--primary)",
+                textDecoration: "underline",
+              }}
+            >
+              Ai un cod de reducere?
+            </button>
+          ) : (
+            <div style={{ display: "flex", gap: 8, maxWidth: 380, margin: "12px auto 0" }}>
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && handleRedeem()}
+                placeholder="Codul tău"
+                data-testid="promo-input"
+                autoFocus
+                style={{
+                  flex: 1, padding: "11px 14px", fontSize: 15,
+                  borderRadius: 8, border: "1px solid var(--input-border)",
+                  backgroundColor: "var(--card)", color: "var(--ink)",
+                  textTransform: "uppercase", letterSpacing: 1,
+                }}
+              />
+              <Button
+                onClick={handleRedeem}
+                loading={promoBusy}
+                disabled={promoCode.trim().length < 3}
+                data-testid="promo-apply"
+              >
+                Aplică
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* pe telefon, după descărcare: trimite CV-ul oriunde (share sheet nativ).
+          Ascuns când caseta de succes post-plată e vizibilă — aceea are deja
+          propriul buton de share (evităm două butoane identice). */}
+      {shareFile && !(paywall?.enabled && isPaid) && (
         <button
           type="button"
           data-testid="share-cv"

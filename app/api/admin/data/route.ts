@@ -46,20 +46,31 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(200);
 
+    // 5) plățile — sursa de adevăr e evenimentul durabil payment_completed
+    const { data: paymentEvents } = await supabaseAdmin
+      .from("events")
+      .select("session_id, properties")
+      .eq("event_name", "payment_completed")
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    const paidSessions = new Set((paymentEvents ?? []).map((e) => e.session_id as string));
+
     const rows = (sessions ?? []).map((s) => {
       const cv = (s.cv_data ?? {}) as Partial<CVData>;
       const p = cv.personal;
       const name = [p?.firstName, p?.lastName].filter(Boolean).join(" ").trim();
+      const paid = paidSessions.has(s.id) || s.status === "paid";
       return {
         id: s.id,
         name: name || "—",
         email: p?.email || "—",
         status: s.status,
-        generated: s.status === "downloaded",
+        // „generat" = are un CV final de descărcat: descărcat SAU plătit
+        // (webhook-ul a livrat deja PDF-ul pe email pentru sesiunile plătite)
+        generated: s.status === "downloaded" || paid,
         template: s.template_id ?? null,
         lastStep: lastStep.get(s.id) ?? null,
-        // plățile nu sunt încă active în perioada de validare
-        paid: null as boolean | null,
+        paid,
         createdAt: s.created_at,
         updatedAt: s.updated_at,
       };

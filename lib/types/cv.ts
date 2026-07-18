@@ -111,7 +111,16 @@ export interface ChatMessage {
 
 // ─── Session ───────────────────────────────────────────────────────────────
 
-export type SessionStatus = "in_progress" | "draft_generated" | "downloaded";
+export type SessionStatus = "in_progress" | "draft_generated" | "paid" | "downloaded";
+
+/**
+ * Sesiunea e într-o stare plătită? — UNICUL loc care definește asta.
+ * (Nota: sursa completă de adevăr include și evenimentul `payment_completed`
+ * din tabela events — vezi isSessionPaid din lib/db/queries.)
+ */
+export function isPaidStatus(status: SessionStatus | string | undefined): boolean {
+  return status === "paid" || status === "downloaded";
+}
 
 export interface Session {
   id: string;
@@ -162,7 +171,7 @@ export const TOTAL_STEPS = 10;
 
 export const STEP_LABELS: Record<WizardStep, string> = {
   1: "Contact",
-  2: "Fotografie",
+  2: "Poză",
   3: "Unde aplici",
   4: "Experiență",
   5: "Educație",

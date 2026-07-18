@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRICE_EUR, PRICE_RON } from "@/lib/pricing";
 
 const INCLUSE = [
   "CV profesionist în format PDF",
@@ -44,10 +45,10 @@ export function LandingPricing() {
             marginBottom: 6,
           }}
         >
-          49 RON
+          {PRICE_RON}
         </p>
         <p style={{ fontSize: 15, color: "var(--muted-foreground)", marginBottom: 24 }}>
-          / CV în format PDF
+          ({PRICE_EUR}) / CV în format PDF
         </p>
 
         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", textAlign: "left" }}>

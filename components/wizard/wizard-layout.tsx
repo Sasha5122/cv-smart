@@ -7,7 +7,7 @@ import type { WizardStep, CVData } from "@/lib/types/cv";
 // Maparea intrărilor din sidebar la pașii interni (1-la-1, ordinea nouă)
 const SIDEBAR_STEPS = [
   { label: "Contact", steps: [1] },
-  { label: "Fotografie", steps: [2] },
+  { label: "Poză", steps: [2] },
   { label: "Unde aplici", steps: [3] },
   { label: "Experiență", steps: [4] },
   { label: "Educație", steps: [5] },

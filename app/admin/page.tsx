@@ -76,7 +76,7 @@ function fmtDate(iso: string): string {
 
 const STEP_LABELS: Record<number, string> = {
   1: "Contact",
-  2: "Fotografie",
+  2: "Poză",
   3: "Unde aplici",
   4: "Experiență",
   5: "Educație",

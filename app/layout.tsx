@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sora, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { LEGAL } from "@/lib/legal-config";
+import { PRICE_DISPLAY } from "@/lib/pricing";
 import { Toaster } from "@/components/ui/sonner";
 
 /**
@@ -32,8 +33,7 @@ export const metadata: Metadata = {
     default: "CVexpres — CV profesionist cu AI, gata în 10 minute",
     template: "%s | CVexpres",
   },
-  description:
-    "Garantăm un CV profesionist, gata în 10 minute. Dezvoltat și optimizat special pentru piața din România. 49 RON, plată unică, PDF descărcabil.",
+  description: `Garantăm un CV profesionist, gata în 10 minute. Dezvoltat și optimizat special pentru piața din România. ${PRICE_DISPLAY}, plată unică, PDF descărcabil.`,
   keywords: [
     "creare cv", "cv online", "cv profesional", "cv AI", "generator cv",
     "cv Romania", "model cv", "cv pdf", "cv angajare",
@@ -42,8 +42,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     title: "CVexpres — CV profesionist cu AI, gata în 10 minute",
-    description:
-      "Garantăm un CV profesionist, gata în 10 minute. Optimizat pentru piața din România. 49 RON, plată unică.",
+    description: `Garantăm un CV profesionist, gata în 10 minute. Optimizat pentru piața din România. ${PRICE_DISPLAY}, plată unică.`,
     type: "website",
     locale: "ro_RO",
     siteName: "CVexpres",
@@ -53,7 +52,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "CVexpres — CV profesionist cu AI, gata în 10 minute",
-    description: "Optimizat pentru piața din România. 49 RON, plată unică.",
+    description: `Optimizat pentru piața din România. ${PRICE_DISPLAY}, plată unică.`,
     images: ["/og-image.png"],
   },
   robots: { index: true, follow: true },

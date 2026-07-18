@@ -3,6 +3,7 @@ import { LandingHeader } from "@/components/landing/header";
 import { LandingHero } from "@/components/landing/hero";
 import { LandingFooter } from "@/components/landing/footer";
 import { LEGAL } from "@/lib/legal-config";
+import { PRICE_DISPLAY } from "@/lib/pricing";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || LEGAL.siteUrl;
 
@@ -52,7 +53,7 @@ export default function LandingPage() {
             format PDF.
           </p>
           <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--muted-foreground)", marginTop: 4 }}>
-            Preț: 49 RON per CV, cu TVA inclus — plată unică, fără abonament.{" "}
+            Preț: {PRICE_DISPLAY} per CV, cu TVA inclus — plată unică, fără abonament.{" "}
             <Link href="/pret" style={{ color: "var(--primary)", fontWeight: 600 }}>
               Vezi detalii
             </Link>

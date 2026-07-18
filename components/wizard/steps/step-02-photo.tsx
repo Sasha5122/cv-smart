@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
+import { decodePhoto, serverResizePhoto, MAX_PHOTO_BYTES } from "@/lib/photo-decode";
 import { Camera, Upload, X, CheckCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,7 +25,7 @@ const TIPS_NO = [
   "Selfie sau foto de vacanță",
   "Ochelari de soare sau pălărie",
   "Filtre sau efecte foto",
-  "Alte persoane în fotografie",
+  "Alte persoane în poză",
 ];
 
 export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) {
@@ -32,62 +33,66 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Acceptăm doar imagini (JPG, PNG, WEBP)");
+    const looksLikeImage =
+      file.type.startsWith("image/") || /\.(jpe?g|png|webp|hei[cf])$/i.test(file.name);
+    if (!looksLikeImage) {
+      toast.error("Acceptăm doar imagini (JPG, PNG, WEBP, HEIC)");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imaginea trebuie să fie sub 5MB");
+    // fără limită practică — pozele de telefon (8–25MB) sunt redimensionate
+    // de noi; 50MB e doar protecție anti-abuz
+    if (file.size > MAX_PHOTO_BYTES) {
+      toast.error("Imaginea e neobișnuit de mare (peste 50MB). Încearcă altă poză.");
       return;
     }
     setIsUploading(true);
     try {
-      // Normalizare prin canvas: ORICE poză devine JPEG PĂTRAT 600×600 —
-      // niciun consumator (preview sau PDF) nu mai poate distorsiona
-      // imaginea, prin construcție. Rezolvă și WEBP-ul (nesuportat de PDF)
-      // și micșorează payload-ul.
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const img = new Image();
-        const objectUrl = URL.createObjectURL(file);
-        img.onload = () => {
-          URL.revokeObjectURL(objectUrl);
-          const SIZE = 600;
-          // latura pătratului = latura mică a sursei
-          const side = Math.min(img.width, img.height);
-          const sx = (img.width - side) / 2;
-          // La pozele PORTRETE (inclusiv full-body) capul e în partea de
-          // sus — ancorăm decupajul aproape de vârf (10% din surplus), nu
-          // în centru, ca să nu tăiem fața. La landscape rămâne centrat.
-          const sy =
-            img.height > img.width
-              ? (img.height - side) * 0.1
-              : (img.height - side) / 2;
-          const canvas = document.createElement("canvas");
-          canvas.width = SIZE;
-          canvas.height = SIZE;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) return reject(new Error("canvas"));
-          ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
-          resolve(canvas.toDataURL("image/jpeg", 0.88));
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(objectUrl);
-          reject(new Error("decode"));
-        };
-        img.src = objectUrl;
-      });
-      onChange(dataUrl);
+      // Decodare universală (inclusiv HEIC de pe iPhone; pozele mari sunt
+      // decodate direct la mic — merge și pe telefoane slabe; rotația EXIF
+      // aplicată automat) + normalizare prin canvas: ORICE poză devine
+      // JPEG PĂTRAT 600×600. Poza de 25MB de pe telefon iese la ~50KB.
+      const img = await decodePhoto(file);
+      const SIZE = 600;
+      // latura pătratului = latura mică a sursei
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      // La pozele PORTRETE (inclusiv full-body) capul e în partea de
+      // sus — ancorăm decupajul aproape de vârf (10% din surplus), nu
+      // în centru, ca să nu tăiem fața. La landscape rămâne centrat.
+      const sy =
+        img.height > img.width
+          ? (img.height - side) * 0.1
+          : (img.height - side) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = SIZE;
+      canvas.height = SIZE;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("canvas");
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+      if ("close" in img) img.close(); // eliberăm bitmap-ul imediat
+      onChange(canvas.toDataURL("image/jpeg", 0.88));
       setIsUploading(false);
-    } catch {
-      toast.error("Eroare la încărcare. Încearcă din nou.");
+    } catch (e) {
+      if (e instanceof Error && e.message === "too-large") {
+        toast.error("Imaginea are dimensiuni neobișnuit de mari. Încearcă altă poză.");
+        setIsUploading(false);
+        return;
+      }
+      // browserul nu a putut decoda — plasa finală: serverul o procesează
+      const dataUrl = await serverResizePhoto(file);
+      if (dataUrl) {
+        onChange(dataUrl);
+      } else {
+        toast.error("Nu am putut citi poza. Încearcă alta (JPG sau PNG).");
+      }
       setIsUploading(false);
     }
   }, [onChange]);
 
   return (
     <StepCard
-      title="Adaugă o fotografie"
-      subtitle="Candidații cu fotografie profesională sunt contactați cu 38% mai des de recrutori."
+      title="Adaugă o poză"
+      subtitle="Candidații cu poză profesională sunt contactați cu 38% mai des de recrutori."
       icon={<Camera className="w-5 h-5" />}
     >
       {/* Stats banner */}
@@ -104,7 +109,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
         <span style={{ fontSize: 22, flexShrink: 0 }}>📈</span>
         <div>
           <p style={{ fontSize: 17, fontWeight: 700, color: "#166534", marginBottom: 2 }}>
-            +38% șanse mai multe cu fotografie profesională
+            +38% șanse mai multe cu poză profesională
           </p>
           <p style={{ fontSize: 16, color: "#15803D", lineHeight: 1.5 }}>
             Recrutorii filtrează CV-urile în primele 6 secunde.
@@ -153,7 +158,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
           <div style={{ position: "relative" }}>
             <img
               src={value}
-              alt="Fotografie profil"
+              alt="Poză de profil"
               style={{
                 width: 120, height: 150,
                 objectFit: "cover",
@@ -182,7 +187,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
             borderRadius: 50, padding: "6px 14px",
           }}>
             <CheckCircle style={{ width: 14, height: 14, color: "#22C55E" }} />
-            <span style={{ fontSize: 17, color: "#166534", fontWeight: 600 }}>Fotografie adăugată</span>
+            <span style={{ fontSize: 17, color: "#166534", fontWeight: 600 }}>Poză adăugată</span>
           </div>
         </div>
       ) : (
@@ -206,7 +211,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
             id="photo-input"
             type="file"
             style={{ display: "none" }}
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
             onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
           />
           {isUploading ? (
@@ -216,7 +221,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
                 border: "3px solid var(--primary)", borderTopColor: "transparent",
                 borderRadius: "50%", animation: "spin 0.8s linear infinite",
               }} />
-              <p style={{ fontSize: 18, color: "var(--muted-foreground)" }}>Încarc fotografia...</p>
+              <p style={{ fontSize: 18, color: "var(--muted-foreground)" }}>Încarc poza...</p>
             </div>
           ) : (
             <>
@@ -229,10 +234,10 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
                 <Upload style={{ width: 24, height: 24, color: "var(--primary)" }} />
               </div>
               <p style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>
-                Trage fotografia sau{" "}
-                <span style={{ color: "var(--primary)" }}>alege din calculator</span>
+                Trage poza sau{" "}
+                <span style={{ color: "var(--primary)" }}>alege din telefon sau calculator</span>
               </p>
-              <p style={{ fontSize: 16, color: "var(--faint)" }}>JPG, PNG sau WEBP · max 5MB</p>
+              <p style={{ fontSize: 16, color: "var(--faint)" }}>JPG, PNG, WEBP sau HEIC (iPhone) · orice mărime — o redimensionăm noi</p>
             </>
           )}
         </div>
@@ -248,7 +253,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
             style={{ flex: 2 }}
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
-            {value ? "Continuă cu fotografia" : "Continuă"}
+            {value ? "Continuă cu poza" : "Continuă"}
           </Button>
         </div>
         {!value && (
@@ -267,7 +272,7 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
               letterSpacing: 0.2,
             }}
           >
-            Nu am fotografie potrivită
+            Nu am poză potrivită
           </button>
         )}
       </div>

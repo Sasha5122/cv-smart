@@ -8,7 +8,7 @@ import { PeriodPicker, buildPeriod } from "../period-picker";
 import { ArrowRight, ArrowLeft, Plus, Trash2, RefreshCcw } from "lucide-react";
 import type { Experience } from "@/lib/types/cv";
 import type { GeneratedBullet, PipelineQuestion } from "@/lib/types/cv-pipeline";
-import { correctText } from "@/lib/correct-text";
+import { correctText, nominalizeBullets } from "@/lib/correct-text";
 import { toast } from "sonner";
 
 /* ────────────────────────────────────────────────────────────────
@@ -180,6 +180,7 @@ export function Step09Experience({
   const [bullets, setBullets] = useState<GeneratedBullet[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [manualText, setManualText] = useState("");
+  const [savingManual, setSavingManual] = useState(false);
 
   const hasJD = Boolean(jobDescription?.trim());
   const set = (field: keyof typeof EMPTY_FORM, val: string) =>
@@ -827,24 +828,38 @@ export function Step09Experience({
         label="Responsabilități (una pe rând)"
         value={manualText}
         onChange={(e) => setManualText(e.target.value)}
-        placeholder={"Gestionat facturile lunare\nCoordonat echipa de 3 colegi\n…"}
+        placeholder={"Coordonarea unei echipe de 3 colegi\nGestionarea facturilor lunare\n…"}
         rows={6}
       />
-      <div className="flex gap-3" style={{ marginTop: 32 }}>
+      <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 6 }}>
+        Le rescriem automat în stil profesionist de CV la salvare.
+      </p>
+      <div className="flex gap-3" style={{ marginTop: 26 }}>
         <Button variant="outline" onClick={() => setPhase("input")} className="flex-1" icon={<ArrowLeft className="w-4 h-4" />}>
           Înapoi la AI
         </Button>
         <Button
-          onClick={() =>
-            saveEntry(
-              manualText
-                .split("\n")
-                .map((l) => l.trim())
-                .filter(Boolean)
-            )
-          }
+          onClick={async () => {
+            const lines = manualText
+              .split("\n")
+              .map((l) => l.trim())
+              .filter(Boolean);
+            setSavingManual(true);
+            try {
+              // rescriem în formă nominală de CV („Coordonat…" → „Coordonarea…")
+              // — atomic: ori toate liniile, ori păstrăm exact ce a scris userul
+              const result = await nominalizeBullets(lines);
+              if (!result.rewritten) {
+                toast.info("Nu am putut rescrie descrierile acum — textul tău a fost păstrat exact cum l-ai scris.");
+              }
+              saveEntry(result.lines);
+            } finally {
+              setSavingManual(false);
+            }
+          }}
           size="lg"
           className="flex-[2]"
+          loading={savingManual}
           disabled={form.title.trim().length < 2 || manualText.trim().length < 3}
           iconRight={<ArrowRight className="w-4 h-4" />}
         >
