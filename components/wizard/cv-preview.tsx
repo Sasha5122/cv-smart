@@ -1,6 +1,7 @@
 "use client";
 import type { CVData, TemplateId } from "@/lib/types/cv";
 import { User } from "lucide-react";
+import { MODEL_PREVIEWS } from "./preview-models";
 
 interface CVPreviewProps {
   cvData: CVData;
@@ -139,6 +140,10 @@ const THEMES: Record<TemplateId, Theme> = {
 };
 
 export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
+  // cele 14 modele noi au preview-uri dedicate care oglindesc fidel PDF-ul
+  const ModelPreview = MODEL_PREVIEWS[template];
+  if (ModelPreview) return <ModelPreview data={cvData} />;
+
   const t = THEMES[template] ?? THEMES.classic;
   const { personal, experience, education, courses, skills, languages, hobbies, license, qualifications } = cvData;
   const hasName = personal?.firstName || personal?.lastName;

@@ -837,6 +837,20 @@ test.describe("Preview CV — conținut complet + pasul final", () => {
     // comutare pe Minimalist
     await page.getByTestId("template-minimal").click();
     await expect(sheet.locator("[data-template='minimal']")).toBeVisible();
+
+    // ── modelele NOI: fiecare are un preview DEDICAT (oglindește PDF-ul),
+    //    nu doar o schimbare de culoare. Fiecare are marca `data-model-preview`
+    //    și data-template propriu; selecția schimbă vizibil designul. ──
+    for (const id of ["meridian", "cobalt", "riviera", "sapphire", "sage"]) {
+      await page.getByTestId(`template-${id}`).click();
+      await expect(page.getByTestId(`template-${id}`)).toHaveAttribute("aria-checked", "true");
+      const model = sheet.locator(`[data-template='${id}'][data-model-preview]`);
+      await expect(model).toBeVisible();
+      // numele candidatului apare în designul ales (preview-ul e populat);
+      // unele modele împart numele pe 2 rânduri, deci verificăm numele de familie
+      await expect(model.getByText("Stanciu", { exact: false }).first()).toBeVisible();
+    }
+
     // înapoi pe Elegant pentru descărcare
     await page.getByTestId("template-elegant").click();
     await expect(sheet.locator("[data-template='elegant']")).toBeVisible();
