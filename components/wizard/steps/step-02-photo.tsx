@@ -1,22 +1,42 @@
 "use client";
 import { useState, useCallback } from "react";
 import { StepCard } from "../step-card";
+import { PhotoAdjust } from "../photo-adjust";
 import { Button } from "@/components/ui/button";
 import {
   decodePhoto,
   downscaleToJpegBlob,
   serverResizePhoto,
   MAX_PHOTO_BYTES,
+  type DecodedPhoto,
 } from "@/lib/photo-decode";
 import { Camera, Upload, X, CheckCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
   value?: string;
-  onChange: (url: string | undefined) => void;
+  /** imaginea întreagă (necropată) — sursa pentru ajustarea manuală */
+  fullValue?: string;
+  onChange: (url: string | undefined, fullUrl?: string) => void;
   onNext: () => void;
   onSkip: () => void;
   onBack: () => void;
+}
+
+/** imaginea întreagă, micșorată la max 1000px — destul pentru re-crop 600×600 */
+function fullFrameDataUrl(img: DecodedPhoto): string | undefined {
+  try {
+    const scale = Math.min(1, 1000 / Math.max(img.width, img.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return undefined;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.85);
+  } catch {
+    return undefined;
+  }
 }
 
 const TIPS_OK = [
@@ -33,9 +53,12 @@ const TIPS_NO = [
   "Alte persoane în poză",
 ];
 
-export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) {
+export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  // crop-ul „de revenire" pentru Resetează: încadrarea automată de la
+  // încărcare (sau cea existentă când userul revine pe pas)
+  const [autoCrop, setAutoCrop] = useState<string | undefined>(() => value);
 
   const handleFile = useCallback(async (file: File) => {
     const looksLikeImage =
@@ -58,11 +81,14 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
       // sharp „attention" — găsește automat zona feței și centrează pe ea.
       // Fallback local (crop geometric) doar dacă serverul e indisponibil.
       const img = await decodePhoto(file);
+      // păstrăm și cadrul întreg — sursa pentru „Ajustează încadrarea"
+      const fullUrl = fullFrameDataUrl(img);
       const small = await downscaleToJpegBlob(img);
       const smart = small ? await serverResizePhoto(small) : null;
       if (smart) {
         if ("close" in img) img.close();
-        onChange(smart);
+        setAutoCrop(smart);
+        onChange(smart, fullUrl);
         setIsUploading(false);
         return;
       }
@@ -82,7 +108,9 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
       if (!ctx) throw new Error("canvas");
       ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
       if ("close" in img) img.close();
-      onChange(canvas.toDataURL("image/jpeg", 0.88));
+      const localCrop = canvas.toDataURL("image/jpeg", 0.88);
+      setAutoCrop(localCrop);
+      onChange(localCrop, fullUrl);
       setIsUploading(false);
     } catch (e) {
       if (e instanceof Error && e.message === "too-large") {
@@ -164,42 +192,54 @@ export function Step02Photo({ value, onChange, onNext, onSkip, onBack }: Props) 
         </div>
       </div>
 
-      {/* Upload area */}
+      {/* Upload area — cu poză pusă, editorul de încadrare e vizibil DIRECT
+          (zoom + tragere, fără buton intermediar) */}
       {value ? (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginBottom: 32 }}>
-          <div style={{ position: "relative" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, marginBottom: 32 }}>
+          <PhotoAdjust
+            src={fullValue ?? value}
+            resetCrop={autoCrop}
+            onCrop={(url) => onChange(url, fullValue)}
+          />
+          {/* starea + rezultatul final (crop-ul curent) + ștergere */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value}
               alt="Poză de profil"
               style={{
-                width: 120, height: 150,
+                width: 52, height: 52,
                 objectFit: "cover",
-                borderRadius: 16,
-                border: "3px solid var(--hairline)",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+                borderRadius: "50%",
+                border: "2px solid var(--hairline)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
               }}
             />
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0",
+              borderRadius: 50, padding: "6px 14px",
+            }}>
+              <CheckCircle style={{ width: 14, height: 14, color: "#22C55E" }} />
+              <span style={{ fontSize: 17, color: "#166534", fontWeight: 600 }}>Poză adăugată</span>
+            </div>
             <button
-              onClick={() => onChange(undefined)}
+              onClick={() => {
+                setAutoCrop(undefined);
+                onChange(undefined, undefined);
+              }}
+              aria-label="Șterge poza"
               style={{
-                position: "absolute", top: -10, right: -10,
-                width: 28, height: 28,
+                width: 34, height: 34,
                 backgroundColor: "#EF4444", borderRadius: "50%",
                 border: "2px solid #fff",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer",
+                cursor: "pointer", flexShrink: 0,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
               }}
             >
-              <X style={{ width: 14, height: 14, color: "#fff" }} />
+              <X style={{ width: 16, height: 16, color: "#fff" }} />
             </button>
-          </div>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0",
-            borderRadius: 50, padding: "6px 14px",
-          }}>
-            <CheckCircle style={{ width: 14, height: 14, color: "#22C55E" }} />
-            <span style={{ fontSize: 17, color: "#166534", fontWeight: 600 }}>Poză adăugată</span>
           </div>
         </div>
       ) : (

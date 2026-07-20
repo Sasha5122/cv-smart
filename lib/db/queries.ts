@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "./supabase";
+import { ALL_TEMPLATE_IDS } from "@/lib/types/cv";
 import type { CVData, Session, IdealProfile, TemplateId } from "@/lib/types/cv";
 
 export async function createSession(): Promise<Session> {
@@ -73,8 +74,7 @@ export async function resolveTemplate(session: Session): Promise<TemplateId> {
     .order("created_at", { ascending: false })
     .limit(1);
   const t = data?.[0]?.properties?.template_id;
-  const valid: TemplateId[] = ["classic", "modern", "elegant", "compact", "minimal"];
-  return valid.includes(t) ? (t as TemplateId) : "classic";
+  return ALL_TEMPLATE_IDS.includes(t) ? (t as TemplateId) : "classic";
 }
 
 export async function updateIdealProfile(id: string, profile: IdealProfile) {

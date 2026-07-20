@@ -15,6 +15,9 @@ export const PersonalInfoSchema = z.object({
   postalCode: z.string().optional(),
   country: z.string().default("România"),
   photoUrl: z.string().optional(),
+  /** imaginea ÎNTREAGĂ (necropată, max ~1000px) — sursa pentru ajustarea
+   *  manuală a încadrării; PDF-ul folosește DOAR photoUrl */
+  photoFull: z.string().optional(),
   linkedin: z.string().optional(),
 });
 
@@ -151,7 +154,34 @@ export interface IdealProfile {
 
 // ─── Template ──────────────────────────────────────────────────────────────
 
-export type TemplateId = "classic" | "modern" | "elegant" | "compact" | "minimal";
+export type TemplateId =
+  | "classic"
+  | "modern"
+  | "elegant"
+  | "compact"
+  | "minimal"
+  // replici după modelele din modele_cv (id = numele fancy, lowercase)
+  | "meridian"
+  | "velvet"
+  | "riviera"
+  | "flamingo"
+  | "atlantic"
+  | "petrol"
+  | "manhattan"
+  | "blush"
+  | "sage"
+  | "graphite"
+  | "cobalt"
+  | "amber"
+  | "sterling"
+  | "sapphire";
+
+/** Toate designurile valide — sursa unică pentru validări (DB, API, preview). */
+export const ALL_TEMPLATE_IDS: TemplateId[] = [
+  "classic", "modern", "elegant", "compact", "minimal",
+  "meridian", "velvet", "riviera", "flamingo", "atlantic", "petrol",
+  "manhattan", "blush", "sage", "graphite", "cobalt", "amber", "sterling", "sapphire",
+];
 
 // ─── Wizard Step ───────────────────────────────────────────────────────────
 

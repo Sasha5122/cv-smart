@@ -60,6 +60,82 @@ const THEMES: Record<TemplateId, Theme> = {
     nameTransform: "uppercase", nameSpacing: "0.18em",
     rule: "ink", secAlign: "left", skills: "inline",
   },
+  /* ── cele 14 modele noi: preview pe o coloană, în culorile modelului ── */
+  meridian: {
+    font: SANS, ink: "#1e2a38", text: "#37424e", muted: "#67727e", faint: "#98a2ad",
+    accent: "#6aa63c", hairline: "#dfe5ea", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  atlantic: {
+    font: SANS, ink: "#16202c", text: "#374250", muted: "#68737f", faint: "#99a3ae",
+    accent: "#1b5fb5", hairline: "#dfe6ee", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  manhattan: {
+    font: SANS, ink: "#20303c", text: "#3a4854", muted: "#6a7681", faint: "#9aa5af",
+    accent: "#2077b4", hairline: "#dce7ee", bulletMark: "•", headerAlign: "left",
+    nameTransform: "uppercase", nameSpacing: "0.04em",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  cobalt: {
+    font: SANS, ink: "#1d2c52", text: "#39445e", muted: "#6a7590", faint: "#9aa4bb",
+    accent: "#25429e", hairline: "#dfe4f2", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  amber: {
+    font: SANS, ink: "#2c3038", text: "#41454d", muted: "#70747c", faint: "#a0a4ab",
+    accent: "#d9a412", hairline: "#e8e5dd", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  sapphire: {
+    font: SANS, ink: "#0e1c4e", text: "#333d61", muted: "#666f8d", faint: "#979fb8",
+    accent: "#29b7d3", hairline: "#dde6ef", bulletMark: "•", headerAlign: "left",
+    nameTransform: "uppercase", nameSpacing: "0.06em",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  velvet: {
+    font: SANS, ink: "#232244", text: "#3c3b5e", muted: "#6d6c88", faint: "#9d9cb3",
+    accent: "#c98fa6", hairline: "#e7e2e8", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "inline",
+  },
+  blush: {
+    font: SANS, ink: "#3f4448", text: "#4f545a", muted: "#7c8187", faint: "#aaafb4",
+    accent: "#e795a0", hairline: "#f0e2e3", bulletMark: "•", headerAlign: "left",
+    nameTransform: "uppercase", nameSpacing: "0.14em",
+    rule: "accent", secAlign: "left", skills: "inline",
+  },
+  sage: {
+    font: SERIF, ink: "#31413d", text: "#465753", muted: "#71827e", faint: "#9fadaa",
+    accent: "#7fa199", hairline: "#e0e7e4", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "inline",
+  },
+  graphite: {
+    font: SANS, ink: "#2b3138", text: "#3d4451", muted: "#6b7280", faint: "#9aa1ab",
+    accent: "#5d7386", hairline: "#e2e6ea", bulletMark: "–", headerAlign: "left",
+    nameTransform: "uppercase", nameSpacing: "0.1em",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  riviera: {
+    font: SANS, ink: "#17181c", text: "#3d4451", muted: "#6b7280", faint: "#9aa1ab",
+    accent: "#1fbcb4", hairline: "#d9ecea", bulletMark: "•", headerAlign: "left",
+    nameTransform: "uppercase", nameSpacing: "0.06em",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  sterling: {
+    font: SANS, ink: "#23272f", text: "#3d4451", muted: "#6b7280", faint: "#9aa1ab",
+    accent: "#3f6ad8", hairline: "#dfe2e7", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "chips",
+  },
+  flamingo: {
+    font: SERIF, ink: "#463c40", text: "#4b5157", muted: "#7a8087", faint: "#a8adb3",
+    accent: "#e795a0", hairline: "#f2e4e6", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "inline",
+  },
+  petrol: {
+    font: SANS, ink: "#263435", text: "#3d4a4b", muted: "#64777a", faint: "#96a5a7",
+    accent: "#4a7d80", hairline: "#d3e4e4", bulletMark: "•", headerAlign: "left",
+    rule: "accent", secAlign: "left", skills: "inline",
+  },
 };
 
 export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {

@@ -142,7 +142,8 @@ export function WizardClient({ sessionId }: WizardClientProps) {
         return (
           <Step02Photo
             value={cvData.personal?.photoUrl}
-            onChange={(url) => updatePersonal({ photoUrl: url })}
+            fullValue={cvData.personal?.photoFull}
+            onChange={(url, fullUrl) => updatePersonal({ photoUrl: url, photoFull: fullUrl })}
             onNext={next}
             onSkip={next}
             onBack={back}

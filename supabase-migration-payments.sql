@@ -9,4 +9,8 @@ alter table sessions add constraint sessions_status_check
 
 alter table sessions drop constraint if exists sessions_template_id_check;
 alter table sessions add constraint sessions_template_id_check
-  check (template_id in ('classic', 'modern', 'elegant', 'compact', 'minimal'));
+  check (template_id in (
+    'classic', 'modern', 'elegant', 'compact', 'minimal',
+    'meridian', 'velvet', 'riviera', 'flamingo', 'atlantic', 'petrol',
+    'manhattan', 'blush', 'sage', 'graphite', 'cobalt', 'amber', 'sterling', 'sapphire'
+  ));

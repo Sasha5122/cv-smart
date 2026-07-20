@@ -38,6 +38,18 @@ export function registerFonts() {
     ],
   });
 
+  // sans geometric pentru numele mari din template-urile noi
+  // (Manhattan, Cobalt, Sapphire etc.) — diacriticele RO verificate cu check-fonts
+  Font.register({
+    family: "Montserrat",
+    fonts: [
+      { src: path.join(FONTS_DIR, "Montserrat-Regular.ttf"), fontWeight: 400 },
+      { src: path.join(FONTS_DIR, "Montserrat-SemiBold.ttf"), fontWeight: 600 },
+      { src: path.join(FONTS_DIR, "Montserrat-Bold.ttf"), fontWeight: 700 },
+      { src: path.join(FONTS_DIR, "Montserrat-ExtraBold.ttf"), fontWeight: 800 },
+    ],
+  });
+
   // fără despărțire automată în silabe — cuvintele rămân întregi
   Font.registerHyphenationCallback((word) => [word]);
 }

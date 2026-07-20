@@ -3,9 +3,10 @@ import { getSession, isSessionPaid, updateSessionCVData, updateSessionStatus, tr
 import { paywallEnabled } from "@/lib/paddle/server";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
+import { ALL_TEMPLATE_IDS } from "@/lib/types/cv";
 import type { TemplateId } from "@/lib/types/cv";
 
-const VALID_TEMPLATES: TemplateId[] = ["classic", "modern", "elegant", "compact", "minimal"];
+const VALID_TEMPLATES: TemplateId[] = ALL_TEMPLATE_IDS;
 
 export async function PATCH(
   req: NextRequest,

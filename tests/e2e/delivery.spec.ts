@@ -98,6 +98,82 @@ test.describe("Poze — orice mărime de pe orice telefon", () => {
     await expect(page.getByText(/Imaginea trebuie să fie sub/)).toHaveCount(0);
   });
 
+  test("ajustare manuală: zoom + tragere schimbă încadrarea și pe telefon, și pe laptop", async ({ page }) => {
+    test.slow();
+    // poză reală cu variație (gradient + zgomot) — decodabilă și croppabilă
+    const w = 1200;
+    const h = 1600;
+    const raw = Buffer.alloc(w * h * 3);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 3;
+        raw[i] = (x * 255) / w;
+        raw[i + 1] = (y * 255) / h;
+        raw[i + 2] = ((x + y) * 7) % 255;
+      }
+    }
+    const jpeg = await sharp(raw, { raw: { width: w, height: h, channels: 3 } })
+      .jpeg({ quality: 90 })
+      .toBuffer();
+
+    await page.goto("/creare-cv");
+    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible({ timeout: 15000 });
+    await page.getByLabel(/prenume/i).fill("Test");
+    await page.getByLabel(/nume de familie/i).fill("Incadrare");
+    await page.getByLabel(/email/i).fill("test.incadrare@gmail.com");
+    await page.getByLabel(/telefon/i).fill("0722000001");
+    await page.getByLabel(/oraș/i).first().fill("București");
+    await page.getByRole("button", { name: /Continuă/ }).click();
+
+    await expect(page.getByRole("heading", { name: /Adaugă o poză/ })).toBeVisible({ timeout: 8000 });
+    await page.setInputFiles("#photo-input", { name: "poza.jpg", mimeType: "image/jpeg", buffer: jpeg });
+    await expect(page.getByText("Poză adăugată")).toBeVisible({ timeout: 30000 });
+
+    // editorul e vizibil DIRECT, fără vreun buton intermediar
+    const editor = page.getByTestId("photo-adjust-editor");
+    await expect(editor).toBeVisible();
+
+    // pe telefon (viewport îngust) editorul trebuie să încapă în ecran
+    const editorBox = (await editor.boundingBox())!;
+    const viewport = page.viewportSize()!;
+    expect(editorBox.width).toBeLessThanOrEqual(viewport.width);
+
+    const preview = page.locator('img[alt="Poză de profil"]');
+    const before = await preview.getAttribute("src");
+    expect(before).toMatch(/^data:image\/jpeg/);
+
+    // zoom din slider (funcționează identic pe touch și desktop)
+    await page.getByTestId("photo-adjust-zoom").evaluate((el) => {
+      const input = el as HTMLInputElement;
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+      setter.call(input, "1.8");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    // tragem poza (pointer events — echivalentul degetului pe telefon)
+    const vpBox = (await editor.locator("div").first().boundingBox())!;
+    const cx = vpBox.x + vpBox.width / 2;
+    const cy = vpBox.y + vpBox.height / 2;
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx + 45, cy + 30, { steps: 5 });
+    await page.mouse.up();
+
+    // crop-ul se aplică AUTOMAT (debounce) — fără buton de salvare
+    await expect
+      .poll(async () => preview.getAttribute("src"), { timeout: 5000 })
+      .not.toBe(before);
+    const after = await preview.getAttribute("src");
+    expect(after).toMatch(/^data:image\/jpeg/);
+
+    // Resetează revine la încadrarea automată inițială
+    await page.getByTestId("photo-adjust-reset").click();
+    await expect
+      .poll(async () => preview.getAttribute("src"), { timeout: 5000 })
+      .toBe(before);
+  });
+
   test("fallback server: /api/photo/process redimensionează un JPEG valid", async ({ request }) => {
     const jpeg = await sharp({
       create: { width: 1800, height: 2400, channels: 3, background: { r: 120, g: 140, b: 180 } },

@@ -16,7 +16,7 @@ import { PRICE_DISPLAY } from "@/lib/pricing";
 import { toast } from "sonner";
 
 /* ────────────────────────────────────────────────────────────────
-   Pasul final — alegi designul CV-ului (5 variante), preview-ul se
+   Pasul final — alegi designul CV-ului (19 variante), preview-ul se
    schimbă instant, apoi Descarcă PDF în designul ales. Schimbarea
    designului e 100% locală: zero apeluri AI, zero cost.
    ──────────────────────────────────────────────────────────────── */
@@ -46,6 +46,20 @@ const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
   { id: "elegant", label: "Elegant", hint: "serif, accente aurii" },
   { id: "compact", label: "Compact", hint: "dens, o singură pagină" },
   { id: "minimal", label: "Minimalist", hint: "alb-negru, aerisit" },
+  { id: "meridian", label: "Meridian", hint: "antet navy, accente verzi" },
+  { id: "velvet", label: "Velvet", hint: "sidebar prună, bandă mov" },
+  { id: "riviera", label: "Riviera", hint: "panglică teal, poză mare" },
+  { id: "flamingo", label: "Flamingo", hint: "curbe roz, panou gri" },
+  { id: "atlantic", label: "Atlantic", hint: "banner albastru, poză centrată" },
+  { id: "petrol", label: "Petrol", hint: "antet teal, dens, poză pătrată" },
+  { id: "manhattan", label: "Manhattan", hint: "nume mare albastru, grilă" },
+  { id: "blush", label: "Blush", hint: "pastel roz, forme geometrice" },
+  { id: "sage", label: "Sage", hint: "panou verde salvie, serif" },
+  { id: "graphite", label: "Graphite", hint: "coloană slate, bare de titlu" },
+  { id: "cobalt", label: "Cobalt", hint: "albastru regal, pill-uri" },
+  { id: "amber", label: "Amber", hint: "antracit cu galben, timeline" },
+  { id: "sterling", label: "Sterling", hint: "gri pal, accente albastre" },
+  { id: "sapphire", label: "Sapphire", hint: "cyan + navy, accente galbene" },
 ];
 
 /** Mini-mockup CSS al fiecărui design pentru cardul de selecție. */
@@ -111,6 +125,206 @@ function TemplateThumb({ id }: { id: TemplateId }) {
           <div style={{ width: "100%", height: 1, backgroundColor: "#111111" }} />
           {line("60%")}
           {line("70%")}
+        </div>
+      );
+    case "meridian":
+      return (
+        <div style={{ ...base, padding: 0, gap: 0 }}>
+          <div style={{ height: 20, backgroundColor: "#1e2a38", display: "flex", alignItems: "center", gap: 4, padding: "0 5px" }}>
+            <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#fff" }} />
+            <div style={{ width: 18, height: 3, backgroundColor: "#7cb342", borderRadius: 1 }} />
+          </div>
+          <div style={{ flex: 1, padding: 5, display: "flex", flexDirection: "column", gap: 3 }}>
+            {line("45%", "#6aa63c")}
+            {line("90%")}
+            {line("80%")}
+            {line("85%")}
+          </div>
+        </div>
+      );
+    case "velvet":
+      return (
+        <div style={{ ...base, flexDirection: "row", padding: 0, gap: 0 }}>
+          <div style={{ width: "38%", backgroundColor: "#232244" }} />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <div style={{ height: 12, backgroundColor: "#c98fa6", margin: "6px 0 4px -6px" }} />
+            <div style={{ padding: "0 5px", display: "flex", flexDirection: "column", gap: 3 }}>
+              {line("85%")}
+              {line("75%")}
+              {line("80%")}
+            </div>
+          </div>
+        </div>
+      );
+    case "riviera":
+      return (
+        <div style={{ ...base, padding: 0, gap: 0, position: "relative", backgroundColor: "#f4fafa" }}>
+          <div style={{ position: "absolute", top: 0, left: 10, width: 7, height: 26, backgroundColor: "#1fbcb4" }} />
+          <div style={{ position: "absolute", top: 5, left: 4, width: 16, height: 16, borderRadius: "50%", border: "2px solid #1fbcb4", backgroundColor: "#fff" }} />
+          <div style={{ position: "absolute", top: 8, right: 5, width: 20, height: 4, backgroundColor: "#17181c", borderRadius: 1 }} />
+          <div style={{ position: "absolute", top: 30, left: 5, right: 5, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ width: 18, height: 6, borderRadius: 3, backgroundColor: "#1fbcb4" }} />
+            {line("90%")}
+            {line("80%")}
+          </div>
+        </div>
+      );
+    case "flamingo":
+      return (
+        <div style={{ ...base, padding: 0, gap: 0, position: "relative" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 16, backgroundColor: "#f5b5bb", borderBottomLeftRadius: 14 }} />
+          <div style={{ position: "absolute", top: 12, right: 0, bottom: 0, width: 16, backgroundColor: "#5b6066", borderTopLeftRadius: 12 }} />
+          <div style={{ position: "absolute", top: 3, left: 5, width: 11, height: 11, borderRadius: "50%", backgroundColor: "#fff" }} />
+          <div style={{ position: "absolute", top: 24, left: 5, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ width: 18, height: 6, borderRadius: 3, backgroundColor: "#f5b5bb" }} />
+            {line("26px")}
+            {line("22px")}
+          </div>
+        </div>
+      );
+    case "atlantic":
+      return (
+        <div style={{ ...base, padding: 0, gap: 0, position: "relative" }}>
+          <div style={{ height: 22, backgroundColor: "#1b5fb5" }} />
+          <div style={{ position: "absolute", top: 14, left: "50%", marginLeft: -8, width: 16, height: 16, borderRadius: "50%", backgroundColor: "#fff", border: "2px solid #1b5fb5" }} />
+          <div style={{ marginTop: 12, padding: "0 5px", display: "flex", flexDirection: "column", gap: 3 }}>
+            {line("90%")}
+            {line("80%")}
+            {line("85%")}
+          </div>
+        </div>
+      );
+    case "petrol":
+      return (
+        <div style={{ ...base, padding: 0, gap: 0, backgroundColor: "#eef4f4" }}>
+          <div style={{ height: 18, backgroundColor: "#4a7d80", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
+            <div style={{ width: 20, height: 3, backgroundColor: "#fff", borderRadius: 1 }} />
+            <div style={{ width: 10, height: 10, backgroundColor: "#dfe9e9", border: "1px solid #fff" }} />
+          </div>
+          <div style={{ padding: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ width: "60%", height: 5, backgroundColor: "#d3e4e4" }} />
+            {line("90%")}
+            <div style={{ width: "70%", height: 5, backgroundColor: "#d3e4e4" }} />
+            {line("80%")}
+          </div>
+        </div>
+      );
+    case "manhattan":
+      return (
+        <div style={{ ...base, position: "relative" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div style={{ width: "55%", height: 6, backgroundColor: "#2077b4", borderRadius: 1 }} />
+            <div style={{ width: 13, height: 13, backgroundColor: "#cbd5e1" }} />
+          </div>
+          <div style={{ width: "100%", height: 10, backgroundColor: "#2077b4", borderRadius: 3, marginTop: 2 }} />
+          {line("85%")}
+          {line("75%")}
+          {line("80%")}
+        </div>
+      );
+    case "blush":
+      return (
+        <div style={{ ...base, padding: 0, gap: 0, position: "relative" }}>
+          <div style={{ position: "absolute", top: 0, right: 0, width: 0, height: 0, borderLeft: "18px solid transparent", borderTop: "18px solid #f3c4bd" }} />
+          <div style={{ position: "absolute", top: 4, left: 5, width: 15, height: 15, borderRadius: "50%", border: "2px solid #f3c4bd", backgroundColor: "#fff" }} />
+          <div style={{ position: "absolute", top: 26, left: 5, right: 5, display: "flex", flexDirection: "column", gap: 3 }}>
+            {line("60%", "#3f4448", 4)}
+            {line("40%", "#e795a0")}
+            {line("90%")}
+            {line("80%")}
+          </div>
+        </div>
+      );
+    case "sage":
+      return (
+        <div style={{ ...base, padding: 0, gap: 0, position: "relative" }}>
+          <div style={{ position: "absolute", top: 8, left: 0, right: 0, height: 12, backgroundColor: "#e5c1b5" }} />
+          <div style={{ position: "absolute", top: 2, left: 2, bottom: 2, width: 20, backgroundColor: "#7fa199", borderRadius: 5 }} />
+          <div style={{ position: "absolute", top: 6, left: 6, width: 12, height: 12, borderRadius: "50%", backgroundColor: "#fff" }} />
+          <div style={{ position: "absolute", top: 26, left: 27, right: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+            {line("80%", "#31413d", 4)}
+            {line("90%")}
+            {line("70%")}
+          </div>
+        </div>
+      );
+    case "graphite":
+      return (
+        <div style={{ ...base, flexDirection: "row", padding: 0, gap: 0 }}>
+          <div style={{ width: "40%", padding: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ width: "100%", height: 16, backgroundColor: "#cbd5e1" }} />
+            {line("80%", "#2b3138")}
+            {line("90%")}
+          </div>
+          <div style={{ flex: 1, backgroundColor: "#5d7386", padding: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ width: "100%", height: 6, backgroundColor: "#3e5468" }} />
+            {line("85%", "#dfe6ec", 2)}
+            <div style={{ width: "100%", height: 6, backgroundColor: "#3e5468" }} />
+            {line("75%", "#dfe6ec", 2)}
+          </div>
+        </div>
+      );
+    case "cobalt":
+      return (
+        <div style={{ ...base, flexDirection: "row", padding: 0, gap: 0 }}>
+          <div style={{ width: "40%", backgroundColor: "#25429e", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: 4 }}>
+            <div style={{ width: 13, height: 13, borderRadius: "50%", backgroundColor: "#fff" }} />
+            <div style={{ width: "90%", height: 3, backgroundColor: "#c8d2f0", borderRadius: 2 }} />
+            <div style={{ width: "90%", height: 3, backgroundColor: "#c8d2f0", borderRadius: 2 }} />
+          </div>
+          <div style={{ flex: 1, padding: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ width: "70%", height: 7, borderRadius: 4, backgroundColor: "#25429e" }} />
+            {line("90%")}
+            {line("80%")}
+          </div>
+        </div>
+      );
+    case "amber":
+      return (
+        <div style={{ ...base, flexDirection: "row", padding: 0, gap: 0 }}>
+          <div style={{ width: "40%", backgroundColor: "#2c3038", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: 4 }}>
+            <div style={{ width: 14, height: 14, borderRadius: "50%", backgroundColor: "#cbd5e1", border: "2px solid #ffc31e" }} />
+            <div style={{ width: "85%", height: 3, backgroundColor: "#ffc31e", borderRadius: 2 }} />
+            {line("80%", "#8b9097", 2)}
+          </div>
+          <div style={{ flex: 1, padding: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+            {line("70%", "#2c3038", 4)}
+            {line("90%")}
+            {line("80%")}
+          </div>
+        </div>
+      );
+    case "sterling":
+      return (
+        <div style={{ ...base, flexDirection: "row", padding: 0, gap: 0 }}>
+          <div style={{ width: "36%", backgroundColor: "#f0f1f3", padding: 3, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ width: "100%", height: 15, backgroundColor: "#cbd5e1" }} />
+            {line("80%", "#3f6ad8", 2)}
+            {line("90%", "#cbd5e1", 2)}
+          </div>
+          <div style={{ flex: 1, padding: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+            {line("60%", "#23272f", 4)}
+            {line("55%", "#3f6ad8", 4)}
+            {line("90%")}
+            {line("80%")}
+          </div>
+        </div>
+      );
+    case "sapphire":
+      return (
+        <div style={{ ...base, flexDirection: "row", padding: 0, gap: 0 }}>
+          <div style={{ width: "38%", display: "flex", flexDirection: "column" }}>
+            <div style={{ height: 20, backgroundColor: "#29b7d3" }} />
+            <div style={{ flex: 1, backgroundColor: "#0e1c4e", display: "flex", flexDirection: "column", gap: 3, padding: 3 }}>
+              <div style={{ width: "80%", height: 3, backgroundColor: "#f4c522", borderRadius: 2 }} />
+              <div style={{ width: "90%", height: 2, backgroundColor: "#3a4570", borderRadius: 2 }} />
+            </div>
+          </div>
+          <div style={{ flex: 1, padding: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+            {line("70%", "#0e1c4e", 4)}
+            {line("90%")}
+            {line("80%")}
+          </div>
         </div>
       );
     default: // classic
