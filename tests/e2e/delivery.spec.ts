@@ -35,7 +35,7 @@ test.describe("Link de re-descărcare (30 zile)", () => {
     await page.goto("/descarca/token-inexistent-sau-expirat");
     await expect(page.getByRole("heading", { name: /Linkul a expirat/ })).toBeVisible();
     await expect(page.getByText(/30 de zile/)).toBeVisible();
-    await expect(page.getByText(/contact@cvexpres\.ro/)).toBeVisible();
+    await expect(page.getByText(/support@cvexpres\.ro/)).toBeVisible();
     // oferă o cale înainte, nu e o fundătură
     await expect(page.getByRole("link", { name: /Creează un CV nou/ })).toBeVisible();
   });

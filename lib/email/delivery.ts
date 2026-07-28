@@ -113,7 +113,8 @@ export async function sendCvDeliveryEmail(input: DeliveryEmailInput): Promise<st
   const { data, error } = await resend().emails.send({
     from: "CVexpres <cv@cvexpres.ro>",
     to: input.to,
-    replyTo: process.env.REPLY_TO_EMAIL || undefined,
+    // răspunsurile clienților la emailul cu CV-ul ajung la suport (ImprovMX → Gmail)
+    replyTo: process.env.REPLY_TO_EMAIL || "support@cvexpres.ro",
     subject: `CV-ul tău e gata — ${input.firstName}, îl ai atașat aici`,
     html: buildHtml(input),
     text: buildText(input),

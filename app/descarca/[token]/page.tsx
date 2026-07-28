@@ -51,8 +51,8 @@ export default async function DescarcaPage({
           <p style={{ fontSize: 15, lineHeight: 1.65, color: "var(--muted-foreground, #64748b)", marginBottom: 20 }}>
             CV-urile se păstrează 30 de zile de la plată, apoi se șterg automat
             pentru protecția datelor tale. Scrie-ne la{" "}
-            <a href="mailto:contact@cvexpres.ro" style={{ color: "var(--primary, #2563eb)", fontWeight: 600 }}>
-              contact@cvexpres.ro
+            <a href="mailto:support@cvexpres.ro" style={{ color: "var(--primary, #2563eb)", fontWeight: 600 }}>
+              support@cvexpres.ro
             </a>{" "}
             dacă ai nevoie de ajutor.
           </p>

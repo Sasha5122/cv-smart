@@ -6,7 +6,7 @@
 export const LEGAL = {
   operatorName: "Alexandru Betivu",
   operatorType: "persoană fizică", // devine "SRL ..." la înființarea firmei
-  contactEmail: "sashabetivu@gmail.com",
+  contactEmail: "support@cvexpres.ro",
   contactPhone: "+373 602 441 59",
   siteUrl: "https://cvexpres.ro", // domeniul de producție
   priceText: "prețul afișat în pagina de comandă la momentul plasării acesteia",
