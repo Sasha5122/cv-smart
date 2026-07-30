@@ -78,9 +78,10 @@ export async function createCreemCheckout(opts: {
   return { checkoutUrl: data.checkout_url, checkoutId: data.id };
 }
 
-/** Interoghează o comandă/checkout după id — folosit la confirmarea imediată. */
+/** Interoghează o comandă/checkout după id — folosit la confirmarea imediată.
+ *  ID-ul de checkout Creem e de forma `ch_...` (uneori `chk_...`). */
 export async function retrieveCreemCheckout(checkoutId: string): Promise<CreemCheckout | null> {
-  if (!/^chk_[a-zA-Z0-9]+$/.test(checkoutId)) return null;
+  if (!/^ch[a-z]?_[a-zA-Z0-9]+$/.test(checkoutId)) return null;
   try {
     const res = await fetch(
       `${creemBaseUrl()}/v1/checkouts?checkout_id=${encodeURIComponent(checkoutId)}`,
