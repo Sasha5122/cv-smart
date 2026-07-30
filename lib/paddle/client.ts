@@ -9,6 +9,8 @@ import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 export interface PaywallStatus {
   enabled: boolean;
   paid: boolean;
+  /** furnizorul activ; „creem" folosește redirect, „paddle" overlay */
+  provider?: "creem" | "paddle";
   clientToken?: string;
   priceId?: string;
   environment?: "sandbox" | "production";

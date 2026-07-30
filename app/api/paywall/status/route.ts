@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { paywallEnabled, paywallMisconfigured } from "@/lib/paddle/server";
+import { paywallEnabled, paywallMisconfigured, paymentProvider } from "@/lib/payments/server";
 import { getSession, isSessionPaid } from "@/lib/db/queries";
 
 /**
@@ -29,9 +29,17 @@ export async function GET(req: NextRequest) {
     paid = await isSessionPaid(session).catch(() => false);
   }
 
+  const provider = paymentProvider();
+  // Creem: checkout prin redirect (fără token de client). Paddle: overlay,
+  // deci clientul primește token + priceId ca să inițializeze Paddle.js.
+  if (provider === "creem") {
+    return NextResponse.json({ enabled: true, paid, provider });
+  }
+
   return NextResponse.json({
     enabled: true,
     paid,
+    provider,
     clientToken: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_ID,
     environment: process.env.NEXT_PUBLIC_PADDLE_ENV === "production" ? "production" : "sandbox",

@@ -374,6 +374,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
   // WhatsApp, Email, Copiază etc.). Pe desktop rămâne doar descărcarea.
   const [shareFile, setShareFile] = useState<File | null>(null);
   const summaryRequested = useRef(false);
+  const creemConfirmRan = useRef(false);
 
   // Rezumatul profesional se generează automat, o singură dată, din datele
   // completate (apel ieftin) — CV-ul nu mai pleacă fără profil.
@@ -427,7 +428,35 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       toast.error("Pentru a continua, bifează mai întâi acordul cu Termenii și condițiile.");
       return;
     }
-    if (!paywall?.enabled || !paywall.priceId) return;
+    if (!paywall?.enabled) return;
+
+    // CREEM: checkout prin redirect. Salvăm varianta finală, creăm sesiunea de
+    // checkout pe server și plecăm pe pagina Creem. La revenire (success_url)
+    // confirmăm plata și pornim descărcarea (vezi efectul de mai jos).
+    if (paywall.provider === "creem") {
+      setIsPaying(true);
+      await flushFinalVersion();
+      try {
+        const res = await fetch("/api/checkout/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, email: cvData.personal?.email?.trim() }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && typeof data.url === "string") {
+          window.location.assign(data.url); // părăsim pagina spre checkout-ul Creem
+          return;
+        }
+        throw new Error("no-url");
+      } catch {
+        setIsPaying(false);
+        toast.error("Plata nu poate fi inițiată acum. Reîncarcă pagina și încearcă din nou.");
+      }
+      return;
+    }
+
+    // PADDLE: overlay pe pagină (comportamentul anterior)
+    if (!paywall.priceId) return;
     setIsPaying(true);
     await flushFinalVersion();
     const paddle = await getPaddleClient(paywall);
@@ -524,8 +553,10 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     return await res.blob();
   };
 
-  const handleDownload = async (txnOverride?: string) => {
-    if (!termsAccepted) {
+  const handleDownload = async (txnOverride?: string, opts?: { skipTerms?: boolean }) => {
+    // după o plată reală termenii au fost deja acceptați (înainte de checkout);
+    // la revenirea din redirect starea se resetează, deci sărim verificarea
+    if (!opts?.skipTerms && !termsAccepted) {
       toast.error("Pentru a descărca CV-ul, bifează mai întâi acordul cu Termenii și condițiile.");
       return;
     }
@@ -568,6 +599,51 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       setIsDownloading(false);
     }
   };
+
+  // REVENIREA din checkout-ul Creem (success_url = /creare-cv?creem=return):
+  // progresul s-a restaurat deja din localStorage (suntem pe pasul final).
+  // Confirmăm plata prin API — cu câteva reîncercări, în caz că webhook-ul nu
+  // a ajuns încă — apoi pornim automat descărcarea.
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (creemConfirmRan.current) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("creem") !== "return") return;
+    creemConfirmRan.current = true;
+    const checkoutId = params.get("checkout_id");
+    // curățăm query-ul ca un refresh să nu reia confirmarea
+    window.history.replaceState({}, "", window.location.pathname);
+    if (!checkoutId) return;
+
+    setIsPaying(true);
+    (async () => {
+      let paid = false;
+      for (let i = 0; i < 5 && !paid; i++) {
+        const res = await fetch("/api/creem/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, checkoutId }),
+        })
+          .then((r) => r.json())
+          .catch(() => ({ paid: false }));
+        paid = Boolean(res.paid);
+        if (!paid) await new Promise((r) => setTimeout(r, 1500));
+      }
+      setIsPaying(false);
+      if (paid) {
+        setTermsAccepted(true); // acceptase deja înainte de plată
+        setPaywall((p) => (p ? { ...p, paid: true } : p));
+        toast.success("Plată confirmată! Îți pregătim CV-ul…");
+        handleDownload(undefined, { skipTerms: true });
+      } else {
+        toast.error(
+          "Nu am putut confirma plata automat. Dacă ai plătit, verifică emailul — CV-ul a fost trimis acolo."
+        );
+      }
+    })();
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   /** „Trimite pe WhatsApp" — share sheet nativ cu PDF-ul (doar mobil). */
   const handleWhatsAppShare = async () => {

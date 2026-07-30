@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { paywallEnabled } from "@/lib/paddle/server";
+import { paywallEnabled } from "@/lib/payments/server";
 import {
   getSession,
   hasEventForTransaction,

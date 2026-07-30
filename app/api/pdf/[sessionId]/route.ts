@@ -5,7 +5,8 @@ import {
   markSessionDownloaded,
   resolveTemplate,
 } from "@/lib/db/queries";
-import { paywallEnabled, verifyPaidTransaction } from "@/lib/paddle/server";
+import { paywallEnabled } from "@/lib/payments/server";
+import { verifyPaidTransaction } from "@/lib/paddle/server";
 import { renderCVPDF } from "@/lib/pdf-templates/render";
 import { ensureSquarePhoto } from "@/lib/pdf-templates/photo";
 import { buildCvFilename } from "@/lib/pdf-filename";
