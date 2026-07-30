@@ -4,6 +4,8 @@ import "./globals.css";
 import { LEGAL } from "@/lib/legal-config";
 import { PRICE_DISPLAY } from "@/lib/pricing";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 /**
  * Tipografie modernă, contrast puternic:
@@ -68,6 +70,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased">
         {children}
         <Toaster position="top-right" richColors duration={3000} />
+        {/* Vercel Web Analytics (vizitatori/zi, pagini, țări) + Speed Insights —
+            privacy-friendly, fără cookie-uri, deci fără banner de consimțământ */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
