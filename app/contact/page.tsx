@@ -26,15 +26,11 @@ export default function ContactPage() {
 
         <ContactForm />
 
-        {/* datele operatorului — text simplu, cerință legală + Paddle */}
+        {/* datele de contact — doar emailul de suport */}
         <div style={{ marginTop: 36 }}>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Date de contact</p>
           <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--muted-foreground)" }}>
-            Operator: {LEGAL.operatorName}
-            <br />
             Email: {LEGAL.contactEmail}
-            <br />
-            Telefon: {LEGAL.contactPhone}
           </p>
         </div>
 

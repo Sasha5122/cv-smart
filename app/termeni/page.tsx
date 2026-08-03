@@ -29,8 +29,8 @@ export default function TermeniPage() {
         <p style={S}>
           Acești termeni și condiții („Termenii") reglementează utilizarea serviciului
           CVexpres, disponibil la adresa acestui site („Serviciul"). Serviciul este operat
-          de {LEGAL.operatorName}, {LEGAL.operatorType}, email {LEGAL.contactEmail},
-          telefon {LEGAL.contactPhone} („Operatorul", „noi"). Prin utilizarea Serviciului
+          sub marca CVexpres, adresă de contact {LEGAL.contactEmail} („Operatorul", „noi").
+          Prin utilizarea Serviciului
           și, în special, prin bifarea căsuței de acceptare înainte de generarea CV-ului,
           confirmați că ați citit, ați înțeles și acceptați integral acești Termeni. Dacă
           nu sunteți de acord, vă rugăm să nu utilizați Serviciul.
@@ -69,11 +69,10 @@ export default function TermeniPage() {
           afectează comenzile deja plătite.
         </p>
         <p style={S}>
-          Plățile sunt procesate de Paddle.com Market Ltd. („Paddle"), care acționează ca
+          Plățile sunt procesate de Creem (Armitage Labs OÜ, „Creem"), care acționează ca
           Merchant of Record — vânzătorul înregistrat al tranzacției. Factura fiscală este
-          emisă de Paddle, iar tranzacția apare pe extrasul de card cu denumirea
-          PADDLE.COM. Termenilor de cumpărare Paddle (paddle.com/legal/checkout-buyer-terms)
-          li se aplică procesarea plății.
+          emisă de Creem, iar tranzacția apare pe extrasul de card cu denumirea CREEM.
+          Termenilor de cumpărare Creem (creem.io/buyer-terms) li se aplică procesarea plății.
         </p>
 
         <h2 style={H}>4. Încheierea contractului și livrarea</h2>

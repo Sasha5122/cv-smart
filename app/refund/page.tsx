@@ -27,7 +27,7 @@ export default function RefundPage() {
         <p style={S}>
           Cum ceri o rambursare: scrie-ne la {LEGAL.contactEmail}, de pe emailul folosit
           la plată. Răspundem în cel mult 14 zile. Rambursările aprobate sunt procesate
-          prin Paddle pe metoda de plată originală.
+          prin Creem pe metoda de plată originală.
         </p>
 
         <h2 style={H}>1. Garanția noastră</h2>
@@ -63,8 +63,8 @@ export default function RefundPage() {
 
         <h2 style={H}>4. Procesarea rambursărilor</h2>
         <p style={S}>
-          Plățile sunt procesate de Paddle.com Market Ltd., în calitate de Merchant of
-          Record; rambursările aprobate se efectuează prin Paddle, pe metoda de plată
+          Plățile sunt procesate de Creem (Armitage Labs OÜ), în calitate de Merchant of
+          Record; rambursările aprobate se efectuează prin Creem, pe metoda de plată
           folosită la achiziție, de regulă în 5–10 zile lucrătoare, în funcție de bancă.
         </p>
 

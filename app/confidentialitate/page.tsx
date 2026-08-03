@@ -27,8 +27,8 @@ export default function ConfidentialitatePage() {
 
         <h2 style={H}>1. Operatorul de date</h2>
         <p style={S}>
-          Operatorul datelor dumneavoastră cu caracter personal este {LEGAL.operatorName},{" "}
-          {LEGAL.operatorType}, email {LEGAL.contactEmail}. Ne puteți contacta pentru orice
+          Operatorul datelor dumneavoastră cu caracter personal este CVexpres, cu adresa
+          de contact {LEGAL.contactEmail}. Ne puteți contacta pentru orice
           aspect legat de datele personale prin{" "}
           <Link href="/contact" style={{ color: "var(--primary)", fontWeight: 600 }}>
             pagina de Contact
@@ -87,9 +87,9 @@ export default function ConfidentialitatePage() {
           modelelor, conform politicilor lor.
         </p>
         <p style={S}>
-          Procesatorul de plăți Paddle.com Market Ltd., în calitate de Merchant of Record,
+          Procesatorul de plăți Creem (Armitage Labs OÜ), în calitate de Merchant of Record,
           prelucrează datele necesare tranzacției (email, date de plată) conform propriei
-          politici de confidențialitate (paddle.com/legal/privacy). Operatorul nu
+          politici de confidențialitate (creem.io/privacy). Operatorul nu
           stochează și nu are acces la datele complete ale cardului.
         </p>
 
@@ -129,7 +129,7 @@ export default function ConfidentialitatePage() {
         <p style={S}>
           Serviciul folosește stocarea locală a browserului (localStorage) pentru
           păstrarea progresului pe propriul dispozitiv. La finalizarea plății,
-          procesatorul Paddle poate seta cookie-uri strict necesare procesării tranzacției
+          procesatorul Creem poate seta cookie-uri strict necesare procesării tranzacției
           și prevenirii fraudei. Nu folosim cookie-uri de publicitate. Dacă vom introduce
           instrumente de analiză sau marketing, vom solicita consimțământul în prealabil
           printr-un banner dedicat.
