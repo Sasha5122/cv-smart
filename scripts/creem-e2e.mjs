@@ -8,7 +8,9 @@ import { chromium } from "@playwright/test";
  * wizard → redirect Creem → card → revenire → confirmare → auto-download.
  * NU face parte din suita Playwright (aceea rulează cu paywall dezactivat). */
 
-const BASE = "http://localhost:3000";
+// implicit local; poate rula și pe producție: BASE=https://www.cvexpres.ro node ...
+const BASE = process.env.BASE || "http://localhost:3000";
+const TEST_EMAIL = process.env.TEST_EMAIL || "elena.stanciu@gmail.com";
 
 const BULLETS = [
   "Servit clienții la casă și pe teren, cu accent pe consultanță.",
@@ -47,7 +49,7 @@ async function reachFinal(page) {
   await page.getByRole("heading", { name: "Date de contact" }).waitFor({ timeout: 20000 });
   await page.getByLabel(/prenume/i).fill("Elena");
   await page.getByLabel(/nume de familie/i).fill("Stanciu");
-  await page.getByLabel(/email/i).fill("elena.stanciu@gmail.com");
+  await page.getByLabel(/email/i).fill(TEST_EMAIL);
   await page.getByLabel(/telefon/i).fill("0722314558");
   await page.getByLabel(/oraș/i).first().fill("București");
   await page.getByRole("button", { name: /Continuă/ }).click();
@@ -175,9 +177,12 @@ try {
   console.log("→ apăs Pay…");
   await page.getByRole("button", { name: /Pay €?9[.,]99/i }).click();
 
-  // așteptăm revenirea pe localhost (success_url)
-  await page.waitForURL(/localhost:3000\/creare-cv/, { timeout: 60000 });
-  console.log("✓ revenit pe site:", page.url().slice(0, 70));
+  // așteptăm revenirea pe success_url (agnostic de host: local sau producție)
+  await page.waitForURL(
+    (url) => url.pathname === "/creare-cv" && url.searchParams.get("creem") === "return",
+    { timeout: 60000 }
+  );
+  console.log("✓ revenit pe site:", page.url().slice(0, 80));
 
   // așteptăm confirmarea + auto-download (confirm face până la 5 reîncercări)
   const okToast = await page.getByText(/Plată confirmată/i).waitFor({ timeout: 30000 }).then(() => true).catch(() => false);
