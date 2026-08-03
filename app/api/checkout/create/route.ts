@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: checkoutUrl });
   } catch (e) {
     console.error("[checkout-create] eroare:", e);
-    return NextResponse.json({ error: "Nu am putut porni plata." }, { status: 500 });
+    // DIAGNOSTIC TEMPORAR: expunem detaliul erorii Creem ca să depanăm env-ul
+    const detail = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: "Nu am putut porni plata.", detail }, { status: 500 });
   }
 }
