@@ -20,8 +20,10 @@ import { SterlingTemplate } from "./models/sterling";
 import { FlamingoTemplate } from "./models/flamingo";
 import { PetrolTemplate } from "./models/petrol";
 import type { CVData, TemplateId } from "@/lib/types/cv";
+import type { Locale } from "@/lib/i18n/locale";
+import { pdfLabels, type PdfLabels } from "./labels";
 
-const TEMPLATES: Record<TemplateId, React.ComponentType<{ data: CVData }>> = {
+const TEMPLATES: Record<TemplateId, React.ComponentType<{ data: CVData; L?: PdfLabels }>> = {
   classic: ClassicTemplate,
   modern: ModernTemplate,
   elegant: ElegantTemplate,
@@ -43,9 +45,14 @@ const TEMPLATES: Record<TemplateId, React.ComponentType<{ data: CVData }>> = {
   petrol: PetrolTemplate,
 };
 
-export async function renderCVPDF(data: CVData, templateId: TemplateId): Promise<Buffer> {
+export async function renderCVPDF(
+  data: CVData,
+  templateId: TemplateId,
+  locale: Locale = "ro"
+): Promise<Buffer> {
   const Template = TEMPLATES[templateId] ?? ClassicTemplate;
-  const component = React.createElement(Template, { data }) as React.ReactElement<DocumentProps>;
+  const L = pdfLabels(locale);
+  const component = React.createElement(Template, { data, L }) as React.ReactElement<DocumentProps>;
   const buffer = await renderToBuffer(component);
   return Buffer.from(buffer);
 }

@@ -6,6 +6,7 @@ import {
   roleOf, localityOf, streetOf, licenseTextOf,
   IconPhone, IconMail, IconPin,
 } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -68,11 +69,11 @@ const s = StyleSheet.create({
   eText: { fontSize: 8.6, color: C.muted, lineHeight: 1.45, marginBottom: 1.5 },
 });
 
-export function BlushTemplate({ data }: { data: CVData }) {
+export function BlushTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
@@ -97,13 +98,13 @@ export function BlushTemplate({ data }: { data: CVData }) {
         <View style={s.body}>
           {/* Stânga */}
           <View style={s.colL}>
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
             <View style={s.nameRule} />
 
             {data.summary ? (
               <View style={s.section}>
-                <Text style={s.secTitle}>Despre mine</Text>
+                <Text style={s.secTitle}>{L.about}</Text>
                 <View style={s.secRule} />
                 <Text style={s.about}>{data.summary}</Text>
               </View>
@@ -111,7 +112,7 @@ export function BlushTemplate({ data }: { data: CVData }) {
 
             {data.skills.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Competențe</Text>
+                <Text style={s.secTitle}>{L.skills}</Text>
                 <View style={s.secRule} />
                 {data.skills.map((sk, i) => (
                   <View key={i} style={s.skillRow}>
@@ -123,7 +124,7 @@ export function BlushTemplate({ data }: { data: CVData }) {
             )}
 
             <View style={s.section}>
-              <Text style={s.secTitle}>Contact</Text>
+              <Text style={s.secTitle}>{L.contact}</Text>
               <View style={s.secRule} />
               {p?.phone ? (
                 <View style={s.cRow}>
@@ -147,7 +148,7 @@ export function BlushTemplate({ data }: { data: CVData }) {
 
             {(data.languages.length > 0 || licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Extra</Text>
+                <Text style={s.secTitle}>{L.extra}</Text>
                 <View style={s.secRule} />
                 {data.languages.map((l, i) => (
                   <Text key={i} style={s.xText}>
@@ -159,7 +160,7 @@ export function BlushTemplate({ data }: { data: CVData }) {
                   <Text style={s.xText}>{data.qualifications.trim()}</Text>
                 ) : null}
                 {data.hobbies.length > 0 && (
-                  <Text style={s.xText}>Hobby-uri: {data.hobbies.join(", ")}</Text>
+                  <Text style={s.xText}>{L.hobbiesLabel} {data.hobbies.join(", ")}</Text>
                 )}
               </View>
             )}
@@ -169,7 +170,7 @@ export function BlushTemplate({ data }: { data: CVData }) {
           <View style={s.colR}>
             {data.education.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Educație</Text>
+                <Text style={s.secTitle}>{L.education}</Text>
                 <View style={s.secRule} />
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={s.tlRow}>
@@ -184,7 +185,7 @@ export function BlushTemplate({ data }: { data: CVData }) {
                         {edu.field ? ` — ${edu.field}` : ""}
                       </Text>
                       <Text style={s.eSub}>{edu.institution}</Text>
-                      {(edu.grade || edu.thesis) && <Text style={s.eText}>{eduMetaOf(edu)}</Text>}
+                      {(edu.grade || edu.thesis) && <Text style={s.eText}>{eduMetaOf(edu, L)}</Text>}
                     </View>
                   </View>
                 ))}
@@ -205,7 +206,7 @@ export function BlushTemplate({ data }: { data: CVData }) {
 
             {data.experience.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Experiență</Text>
+                <Text style={s.secTitle}>{L.experienceShort}</Text>
                 <View style={s.secRule} />
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={s.tlRow}>

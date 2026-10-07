@@ -7,6 +7,7 @@
  * Funcții pure — fără persistență; rutele API se ocupă de salvare.
  */
 import { CallConfig, CallUsage, callStructured } from "@/lib/openai";
+import type { Locale } from "@/lib/i18n/locale";
 import { recordValidation } from "@/lib/telemetry";
 import {
   buildStage1System,
@@ -37,6 +38,8 @@ export interface StageOptions {
   onUsage?: (u: CallUsage) => void;
   /** sesiunea wizard (pentru telemetrie); undefined = fără înregistrare */
   sessionId?: string | null;
+  /** limba prompturilor și a rezultatului (default: "ro") */
+  language?: Locale;
 }
 
 export async function runRecruiterQuestions(
@@ -44,14 +47,16 @@ export async function runRecruiterQuestions(
   opts: StageOptions = {}
 ): Promise<PipelineQuestion[]> {
   const variant = opts.variant ?? getDefaultPromptVariant();
+  const language: Locale = opts.language ?? "ro";
   const result = await callStructured<QuestionsResult>({
     stage: `apel1-intrebari-recrutor[${variant}]`,
     systemPrompt: buildStage1System(
       input.jobTitle,
       Boolean(input.jobDescription?.trim()),
-      variant
+      variant,
+      language
     ),
-    userContent: buildStage1User(input),
+    userContent: buildStage1User(input, language),
     schemaName: "recruiter_questions",
     jsonSchema: QUESTIONS_SCHEMA,
     model: opts.config?.model,
@@ -94,7 +99,17 @@ function stripSeparators(n: string): string {
 const WORD_MULTIPLIER_RE =
   /(\d+(?:[.,]\d+)?)\s*(?:de\s+)?(mii|mie|milioane|milion)\b/gi;
 
-function numbersIn(text: string): Set<string> {
+/** English equivalents, applied ONLY when language === "en":
+ *  "38 thousand" / "38k" / "38 k" → 38000, "2 million" / "2 mln" → 2000000,
+ *  "1 billion" / "1 bn" → 1000000000. "k"/"bn"/"mln" need a word boundary
+ *  after them ("5 km" does not match). "2m" is deliberately NOT accepted. */
+const WORD_MULTIPLIER_EN_RE =
+  /(\d+(?:[.,]\d+)?)\s*(thousand|k|million|mln|billion|bn)\b/gi;
+
+/** "1,200" / "1,200,000" (comma thousands groups) → 1200 / 1200000 — EN only. */
+const COMMA_GROUPED_EN_RE = /\b\d{1,3}(?:,\d{3})+\b/g;
+
+function numbersIn(text: string, language: Locale = "ro"): Set<string> {
   const out = new Set<string>();
   for (const m of text.matchAll(NUMBER_RE)) {
     out.add(normalizeNumber(m[0]));
@@ -105,6 +120,24 @@ function numbersIn(text: string): Set<string> {
     const mult = /mii|mie/i.test(m[2]) ? 1_000 : 1_000_000;
     if (Number.isFinite(base)) {
       out.add(String(Math.round(base * mult)));
+    }
+  }
+  if (language === "en") {
+    for (const m of text.matchAll(WORD_MULTIPLIER_EN_RE)) {
+      const base = parseFloat(normalizeNumber(m[1]));
+      const unit = m[2].toLowerCase();
+      const mult =
+        unit === "thousand" || unit === "k"
+          ? 1_000
+          : unit === "billion" || unit === "bn"
+            ? 1_000_000_000
+            : 1_000_000;
+      if (Number.isFinite(base)) {
+        out.add(String(Math.round(base * mult)));
+      }
+    }
+    for (const m of text.matchAll(COMMA_GROUPED_EN_RE)) {
+      out.add(m[0].replace(/,/g, ""));
     }
   }
   return out;
@@ -140,9 +173,10 @@ export interface BulletValidationResult {
  */
 export function validateBullets(
   bullets: GeneratedBullet[],
-  contextText: string
+  contextText: string,
+  language: Locale = "ro"
 ): BulletValidationResult {
-  const allowedNumbers = numbersIn(contextText);
+  const allowedNumbers = numbersIn(contextText, language);
   const allowedTokens = alnumTokensIn(contextText);
 
   const valid: GeneratedBullet[] = [];
@@ -178,7 +212,10 @@ export function validateBullets(
       invalid.push({
         bullet,
         badNumbers,
-        problem: `cifrele [${badNumbers.join(", ")}] nu există în descrierea sau răspunsurile candidatului`,
+        problem:
+          language === "en"
+            ? `the figures [${badNumbers.join(", ")}] do not exist in the candidate's description or answers`
+            : `cifrele [${badNumbers.join(", ")}] nu există în descrierea sau răspunsurile candidatului`,
       });
     }
   }
@@ -222,6 +259,7 @@ export async function runBulletsFromContext(
   opts: StageOptions = {}
 ): Promise<BulletStageResult> {
   const variant = opts.variant ?? getDefaultPromptVariant();
+  const language: Locale = opts.language ?? "ro";
   const hasJD = Boolean(input.jobDescription?.trim());
   // ancora de adevăr pentru validarea cifrelor
   const contextText = [
@@ -231,15 +269,18 @@ export async function runBulletsFromContext(
 
   const first = await callStructured<BulletsResult>({
     stage: `apel2-bullets[${variant}]`,
-    systemPrompt: buildStage2System(hasJD, variant),
-    userContent: buildStage2User({
-      jobTitle: input.jobTitle,
-      company: input.company,
-      period: input.period,
-      rawText: input.rawText,
-      interview: input.interview,
-      jobDescription: input.jobDescription,
-    }),
+    systemPrompt: buildStage2System(hasJD, variant, language),
+    userContent: buildStage2User(
+      {
+        jobTitle: input.jobTitle,
+        company: input.company,
+        period: input.period,
+        rawText: input.rawText,
+        interview: input.interview,
+        jobDescription: input.jobDescription,
+      },
+      language
+    ),
     schemaName: "cv_bullets",
     jsonSchema: BULLETS_SCHEMA,
     model: opts.config?.model,
@@ -249,7 +290,7 @@ export async function runBulletsFromContext(
   });
 
   let bullets = first.bullets.slice(0, 7);
-  let { valid, invalid } = validateBullets(bullets, contextText);
+  let { valid, invalid } = validateBullets(bullets, contextText, language);
   const firstPassInvalid = invalid.length;
   let regenerated = false;
   let dropped: BulletValidationIssue[] = [];
@@ -265,23 +306,26 @@ export async function runBulletsFromContext(
       reasoningEffort: opts.config?.reasoning_effort,
       onUsage: opts.onUsage,
     sessionId: opts.sessionId,
-      systemPrompt: buildStage2System(hasJD, variant),
-      userContent: buildStage2User({
-        jobTitle: input.jobTitle,
-        company: input.company,
-        period: input.period,
-        rawText: input.rawText,
-        interview: input.interview,
-        jobDescription: input.jobDescription,
-        regenerateFeedback: {
-          invalidBullets: invalid.map((i) => ({
-            id: i.bullet.id,
-            text: i.bullet.text,
-            problem: i.problem,
-          })),
-          validBullets: valid.map((b) => ({ id: b.id, text: b.text })),
+      systemPrompt: buildStage2System(hasJD, variant, language),
+      userContent: buildStage2User(
+        {
+          jobTitle: input.jobTitle,
+          company: input.company,
+          period: input.period,
+          rawText: input.rawText,
+          interview: input.interview,
+          jobDescription: input.jobDescription,
+          regenerateFeedback: {
+            invalidBullets: invalid.map((i) => ({
+              id: i.bullet.id,
+              text: i.bullet.text,
+              problem: i.problem,
+            })),
+            validBullets: valid.map((b) => ({ id: b.id, text: b.text })),
+          },
         },
-      }),
+        language
+      ),
       schemaName: "cv_bullets",
       jsonSchema: BULLETS_SCHEMA,
     });
@@ -290,7 +334,7 @@ export async function runBulletsFromContext(
     const correctedById = new Map(regen.bullets.map((b) => [b.id, b]));
     bullets = bullets.map((b) => correctedById.get(b.id) ?? b);
 
-    const second = validateBullets(bullets, contextText);
+    const second = validateBullets(bullets, contextText, language);
     dropped = second.invalid;
     valid = second.valid;
   }

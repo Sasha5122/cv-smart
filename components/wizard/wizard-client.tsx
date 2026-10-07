@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { WizardLayout } from "./wizard-layout";
 import { useWizard } from "@/hooks/use-wizard";
-import { useMessages } from "@/lib/i18n/context";
+import { useMessages, useLocale } from "@/lib/i18n/context";
 import { WIZARD_CLIENT_MESSAGES } from "@/lib/i18n/wizard/wizard-client";
 import type { WizardStep } from "@/lib/types/cv";
 
@@ -27,6 +27,7 @@ const STORAGE_KEY = "cv-smart-progress";
 export function WizardClient({ sessionId }: WizardClientProps) {
   const wizard = useWizard(sessionId);
   const t = useMessages(WIZARD_CLIENT_MESSAGES);
+  const locale = useLocale();
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const lastResearchedJD = useRef<string>("");
   const hydratedRef = useRef(false);
@@ -167,7 +168,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
                 fetch("/api/ai/research", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ sessionId: wizard.sessionId, jobDescription }),
+                  body: JSON.stringify({ sessionId: wizard.sessionId, jobDescription, language: locale }),
                 }).catch(() => {});
               }
               next();

@@ -2,6 +2,7 @@ import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
 import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf } from "./shared";
+import { pdfLabels, type PdfLabels } from "./labels";
 
 registerFonts();
 
@@ -69,7 +70,7 @@ const s = StyleSheet.create({
   },
 });
 
-export function MinimalTemplate({ data }: { data: CVData }) {
+export function MinimalTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const contactItems = contactItemsOf(data);
   const hasLicenseInfo = hasLicenseInfoOf(data);
@@ -77,7 +78,7 @@ export function MinimalTemplate({ data }: { data: CVData }) {
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
       <Page size="A4" style={s.page}>
-        <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+        <Text style={s.name}>{fullName || L.fullName}</Text>
         {data.targetTitle ? (
           <Text style={{ fontSize: 9.6, color: C.muted, marginTop: 4, letterSpacing: 1 }}>
             {data.targetTitle}
@@ -88,14 +89,14 @@ export function MinimalTemplate({ data }: { data: CVData }) {
 
         {data.summary ? (
           <View style={s.section}>
-            <Text style={s.secTitle}>Rezumat</Text>
+            <Text style={s.secTitle}>{L.summary}</Text>
             <Text style={{ fontSize: 9.8, lineHeight: 1.6 }}>{data.summary}</Text>
           </View>
         ) : null}
 
         {data.experience.length > 0 && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Experiență</Text>
+            <Text style={s.secTitle}>{L.experienceShort}</Text>
             {data.experience.map((exp, i) => (
               <View key={i} wrap={false} style={{ marginBottom: i < data.experience.length - 1 ? 12 : 0 }}>
                 <View style={s.entryHead}>
@@ -119,7 +120,7 @@ export function MinimalTemplate({ data }: { data: CVData }) {
 
         {data.education.length > 0 && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Educație</Text>
+            <Text style={s.secTitle}>{L.education}</Text>
             {data.education.map((edu, i) => (
               <View key={i} wrap={false} style={{ marginBottom: i < data.education.length - 1 ? 8 : 0 }}>
                 <View style={s.entryHead}>
@@ -133,7 +134,7 @@ export function MinimalTemplate({ data }: { data: CVData }) {
                   {edu.institution}
                   {edu.location ? ` — ${edu.location}` : ""}
                 </Text>
-                {(edu.grade || edu.thesis) && <Text style={s.meta}>{eduMetaOf(edu)}</Text>}
+                {(edu.grade || edu.thesis) && <Text style={s.meta}>{eduMetaOf(edu, L)}</Text>}
               </View>
             ))}
           </View>
@@ -141,7 +142,7 @@ export function MinimalTemplate({ data }: { data: CVData }) {
 
         {data.courses.length > 0 && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Cursuri & certificări</Text>
+            <Text style={s.secTitle}>{L.courses}</Text>
             {data.courses.map((c, i) => (
               <View key={i} style={s.bulletRow}>
                 <Text style={s.bulletMark}>–</Text>
@@ -157,14 +158,14 @@ export function MinimalTemplate({ data }: { data: CVData }) {
 
         {data.skills.length > 0 && (
           <View style={s.section} wrap={false}>
-            <Text style={s.secTitle}>Competențe</Text>
+            <Text style={s.secTitle}>{L.skills}</Text>
             <Text style={s.inline}>{data.skills.map((sk) => sk.name).join("    /    ")}</Text>
           </View>
         )}
 
         {data.languages.length > 0 && (
           <View style={s.section} wrap={false}>
-            <Text style={s.secTitle}>Limbi străine</Text>
+            <Text style={s.secTitle}>{L.languages}</Text>
             <Text style={s.inline}>
               {data.languages.map((l) => `${l.name} (${l.level})`).join("    /    ")}
             </Text>
@@ -173,10 +174,10 @@ export function MinimalTemplate({ data }: { data: CVData }) {
 
         {hasLicenseInfo && (
           <View style={s.section} wrap={false}>
-            <Text style={s.secTitle}>Permis & Calificări</Text>
+            <Text style={s.secTitle}>{L.licenseQualifications}</Text>
             {data.license?.hasLicense && data.license.categories.length > 0 && (
               <Text style={s.inline}>
-                Permis de conducere: categoria {data.license.categories.join(", ")}
+                {L.licenseLine(data.license.categories.join(", "))}
               </Text>
             )}
             {data.qualifications?.trim() ? (
@@ -187,7 +188,7 @@ export function MinimalTemplate({ data }: { data: CVData }) {
 
         {data.hobbies.length > 0 && (
           <View style={s.section} wrap={false}>
-            <Text style={s.secTitle}>Hobby-uri</Text>
+            <Text style={s.secTitle}>{L.hobbies}</Text>
             <Text style={s.inline}>{data.hobbies.join("    /    ")}</Text>
           </View>
         )}

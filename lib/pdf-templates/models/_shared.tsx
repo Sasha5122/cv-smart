@@ -1,5 +1,6 @@
 import { Svg, Path, Circle, Rect } from "@react-pdf/renderer";
 import type { CVData } from "@/lib/types/cv";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 /* Helpers + iconițe SVG comune template-urilor „model" (replici după modele_cv).
    Iconițele sunt path-uri simple pe viewBox 24×24, colorate prin prop `color`. */
@@ -34,9 +35,9 @@ export function streetOf(d: CVData): string {
     .join(", ");
 }
 
-export function licenseTextOf(d: CVData): string {
+export function licenseTextOf(d: CVData, L: PdfLabels = pdfLabels("ro")): string {
   if (d.license?.hasLicense && d.license.categories.length > 0) {
-    return `Permis categoria ${d.license.categories.join(", ")}`;
+    return L.licenseShortLine(d.license.categories.join(", "));
   }
   return "";
 }

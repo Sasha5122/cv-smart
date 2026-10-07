@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/render
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
 import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf, photoSrcOf } from "./shared";
+import { pdfLabels, type PdfLabels } from "./labels";
 
 registerFonts();
 
@@ -174,7 +175,7 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-export function ClassicTemplate({ data }: { data: CVData }) {
+export function ClassicTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const contactItems = contactItemsOf(data);
   const hasLicenseInfo = hasLicenseInfoOf(data);
@@ -194,7 +195,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
             <Image src={photo} style={styles.photo} />
           )}
           <View style={{ flex: 1 }}>
-            <Text style={styles.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={styles.name}>{fullName || L.fullName}</Text>
             {data.targetTitle ? (
               <Text style={{ fontSize: 10.5, color: COLORS.primary, fontWeight: 700, marginTop: 2 }}>
                 {data.targetTitle}
@@ -217,7 +218,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
         {/* Rezumat */}
         {data.summary ? (
           <View style={styles.section}>
-            <SectionHeader title="Rezumat" />
+            <SectionHeader title={L.summary} />
             <Text style={styles.bodyText}>{data.summary}</Text>
           </View>
         ) : null}
@@ -225,7 +226,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
         {/* Experiență */}
         {data.experience.length > 0 && (
           <View style={styles.section}>
-            <SectionHeader title="Experiență profesională" />
+            <SectionHeader title={L.experience} />
             {data.experience.map((exp, i) => (
               <View key={i} wrap={false} style={{ marginBottom: i < data.experience.length - 1 ? 10 : 0 }}>
                 <View style={styles.entryHeadRow}>
@@ -256,7 +257,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
         {/* Educație */}
         {data.education.length > 0 && (
           <View style={styles.section}>
-            <SectionHeader title="Educație" />
+            <SectionHeader title={L.education} />
             {data.education.map((edu, i) => (
               <View key={i} wrap={false} style={{ marginBottom: i < data.education.length - 1 ? 7 : 0 }}>
                 <View style={styles.entryHeadRow}>
@@ -271,7 +272,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
                   {edu.location ? ` · ${edu.location}` : ""}
                 </Text>
                 {(edu.grade || edu.thesis) && (
-                  <Text style={styles.entryMeta}>{eduMetaOf(edu)}</Text>
+                  <Text style={styles.entryMeta}>{eduMetaOf(edu, L)}</Text>
                 )}
               </View>
             ))}
@@ -281,7 +282,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
         {/* Cursuri */}
         {data.courses.length > 0 && (
           <View style={styles.section}>
-            <SectionHeader title="Cursuri & certificări" />
+            <SectionHeader title={L.courses} />
             {data.courses.map((c, i) => (
               <View key={i} style={styles.bulletRow}>
                 <Text style={styles.bulletDash}>—</Text>
@@ -298,7 +299,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
         {/* Competențe */}
         {data.skills.length > 0 && (
           <View style={styles.section} wrap={false}>
-            <SectionHeader title="Competențe" />
+            <SectionHeader title={L.skills} />
             <View style={styles.skillsWrap}>
               {data.skills.map((s, i) => (
                 <Text key={i} style={styles.skillChip}>
@@ -312,7 +313,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
         {/* Limbi străine */}
         {data.languages.length > 0 && (
           <View style={styles.section} wrap={false}>
-            <SectionHeader title="Limbi străine" />
+            <SectionHeader title={L.languages} />
             <View style={styles.langsRow}>
               {data.languages.map((l, i) => (
                 <Text key={i} style={styles.bodyText}>
@@ -326,10 +327,10 @@ export function ClassicTemplate({ data }: { data: CVData }) {
         {/* Permis & Calificări */}
         {hasLicenseInfo && (
           <View style={styles.section} wrap={false}>
-            <SectionHeader title="Permis & Calificări" />
+            <SectionHeader title={L.licenseQualifications} />
             {data.license?.hasLicense && data.license.categories.length > 0 && (
               <Text style={styles.bodyText}>
-                Permis de conducere: categoria {data.license.categories.join(", ")}
+                {L.licenseLine(data.license.categories.join(", "))}
               </Text>
             )}
             {data.qualifications?.trim() ? (
@@ -343,7 +344,7 @@ export function ClassicTemplate({ data }: { data: CVData }) {
         {/* Hobby-uri */}
         {data.hobbies.length > 0 && (
           <View style={styles.section} wrap={false}>
-            <SectionHeader title="Hobby-uri" />
+            <SectionHeader title={L.hobbies} />
             <Text style={styles.bodyText}>{data.hobbies.join(", ")}</Text>
           </View>
         )}
