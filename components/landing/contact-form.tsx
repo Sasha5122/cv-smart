@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useT } from "@/lib/i18n/context";
 
 const FIELD: React.CSSProperties = {
   width: "100%",
@@ -23,6 +24,8 @@ const LABEL: React.CSSProperties = {
 
 /** Formularul de contact: nume, e-mail, mesaj → POST /api/contact. */
 export function ContactForm() {
+  const t = useT();
+  const f = t.contact.form;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -41,13 +44,13 @@ export function ContactForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setErrorMsg(data.error || "Mesajul nu a putut fi trimis. Încearcă din nou.");
+        setErrorMsg(data.error || f.errorGeneric);
         setStatus("error");
         return;
       }
       setStatus("sent");
     } catch {
-      setErrorMsg("Mesajul nu a putut fi trimis. Verifică conexiunea și încearcă din nou.");
+      setErrorMsg(f.errorNetwork);
       setStatus("error");
     }
   };
@@ -65,10 +68,9 @@ export function ContactForm() {
           lineHeight: 1.6,
         }}
       >
-        <strong>Mesajul a fost trimis. Mulțumim!</strong>
+        <strong>{f.successTitle}</strong>
         <br />
-        Îți vom răspunde la adresa {email} în cel mult 14 zile (de regulă mult mai
-        repede).
+        {f.successLine(email)}
       </div>
     );
   }
@@ -77,7 +79,7 @@ export function ContactForm() {
     <form onSubmit={submit} data-testid="contact-form">
       <div style={{ marginBottom: 16 }}>
         <label style={LABEL} htmlFor="contact-name">
-          Numele tău
+          {f.name}
         </label>
         <input
           id="contact-name"
@@ -87,13 +89,13 @@ export function ContactForm() {
           onChange={(e) => setName(e.target.value)}
           required
           maxLength={200}
-          placeholder="ex: Andreea Popescu"
+          placeholder={f.namePlaceholder}
         />
       </div>
 
       <div style={{ marginBottom: 16 }}>
         <label style={LABEL} htmlFor="contact-email">
-          Adresa ta de e-mail
+          {f.email}
         </label>
         <input
           id="contact-email"
@@ -104,13 +106,13 @@ export function ContactForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           maxLength={320}
-          placeholder="ex: andreea@email.com"
+          placeholder={f.emailPlaceholder}
         />
       </div>
 
       <div style={{ marginBottom: 20 }}>
         <label style={LABEL} htmlFor="contact-message">
-          Mesajul tău
+          {f.message}
         </label>
         <textarea
           id="contact-message"
@@ -120,7 +122,7 @@ export function ContactForm() {
           onChange={(e) => setMessage(e.target.value)}
           required
           maxLength={5000}
-          placeholder="Scrie aici întrebarea sau problema ta…"
+          placeholder={f.messagePlaceholder}
         />
       </div>
 
@@ -153,7 +155,7 @@ export function ContactForm() {
           boxShadow: "0 2px 4px rgba(244,90,39,0.3), 0 10px 24px -8px rgba(244,90,39,0.5)",
         }}
       >
-        {status === "sending" ? "Se trimite…" : "Trimite mesajul"}
+        {status === "sending" ? f.sending : f.submit}
       </button>
     </form>
   );

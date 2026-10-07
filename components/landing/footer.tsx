@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/ui/logo";
+import { LanguageSwitch } from "@/components/i18n/language-switch";
+import { getT } from "@/lib/i18n/server";
 
 /** Footer pe fundal închis — culoarea sidebar-ului din wizard. */
-export function LandingFooter() {
+export async function LandingFooter() {
+  const t = await getT();
   return (
     <footer style={{ backgroundColor: "var(--sidebar-bg)" }}>
       <div
@@ -33,20 +36,21 @@ export function LandingFooter() {
 
         <nav style={{ display: "flex", flexWrap: "wrap", gap: "10px 24px" }}>
           <Link href="/termeni" style={{ fontSize: 13.5, color: "var(--sidebar-muted)", textDecoration: "none" }}>
-            Termeni și condiții
+            {t.footer.terms}
           </Link>
           <Link href="/confidentialitate" style={{ fontSize: 13.5, color: "var(--sidebar-muted)", textDecoration: "none" }}>
-            Politica de confidențialitate
+            {t.footer.privacy}
           </Link>
           <Link href="/refund" style={{ fontSize: 13.5, color: "var(--sidebar-muted)", textDecoration: "none" }}>
-            Politica de rambursare
+            {t.footer.refund}
           </Link>
           <Link href="/contact" style={{ fontSize: 13.5, color: "var(--sidebar-muted)", textDecoration: "none" }}>
-            Contact
+            {t.footer.contact}
           </Link>
           <Link href="/pret" style={{ fontSize: 13.5, color: "var(--sidebar-muted)", textDecoration: "none" }}>
-            Preț
+            {t.footer.price}
           </Link>
+          <LanguageSwitch on="dark" compact />
         </nav>
       </div>
       <div style={{ borderTop: "1px solid var(--sidebar-line)" }}>
@@ -59,7 +63,7 @@ export function LandingFooter() {
             color: "var(--sidebar-muted)",
           }}
         >
-          © {new Date().getFullYear()} CVexpres. Toate drepturile rezervate.
+          © {new Date().getFullYear()} CVexpres. {t.footer.rights}
         </p>
       </div>
     </footer>

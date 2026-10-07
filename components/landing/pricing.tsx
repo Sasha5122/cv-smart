@@ -1,14 +1,10 @@
 import Link from "next/link";
 import { PRICE_EUR, PRICE_RON } from "@/lib/pricing";
-
-const INCLUSE = [
-  "CV profesionist în format PDF",
-  "TVA inclus",
-  "Plată unică — fără abonament, fără plăți recurente",
-];
+import { getT } from "@/lib/i18n/server";
 
 /** Secțiunea de preț — o singură cartelă, un singur preț. */
-export function LandingPricing() {
+export async function LandingPricing() {
+  const t = await getT();
   return (
     <section id="pret" style={{ maxWidth: 1120, margin: "0 auto", padding: "24px 20px 96px" }}>
       <div
@@ -33,7 +29,7 @@ export function LandingPricing() {
             marginBottom: 10,
           }}
         >
-          Preț simplu
+          {t.pricing.eyebrow}
         </p>
         <p
           style={{
@@ -48,19 +44,19 @@ export function LandingPricing() {
           {PRICE_RON}
         </p>
         <p style={{ fontSize: 15, color: "var(--muted-foreground)", marginBottom: 24 }}>
-          ({PRICE_EUR}) / CV în format PDF
+          {t.pricing.perCv(PRICE_EUR)}
         </p>
 
         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", textAlign: "left" }}>
-          {INCLUSE.map((t) => (
+          {t.pricing.included.map((item) => (
             <li
-              key={t}
+              key={item}
               style={{ display: "flex", alignItems: "flex-start", gap: 9, fontSize: 14.5, fontWeight: 500, padding: "6px 0" }}
             >
               <svg width="15" height="15" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0, marginTop: 3 }}>
                 <path d="M2 6.2L4.8 9L10 3.5" stroke="var(--green)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              {t}
+              {item}
             </li>
           ))}
         </ul>
@@ -84,7 +80,7 @@ export function LandingPricing() {
             boxShadow: "0 2px 4px rgba(244,90,39,0.3), 0 10px 24px -8px rgba(244,90,39,0.5)",
           }}
         >
-          Începe
+          {t.pricing.start}
         </Link>
       </div>
     </section>

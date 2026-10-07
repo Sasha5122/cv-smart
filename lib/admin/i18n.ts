@@ -1,6 +1,8 @@
 "use client";
 import { useSyncExternalStore } from "react";
 import type { AiStageKey } from "./types";
+import { useLocale } from "@/lib/i18n/context";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from "@/lib/i18n/locale";
 
 /**
  * Textele panoului de administrare, în română (implicit) și engleză (opțiune).
@@ -405,9 +407,8 @@ const en: AdminStrings = {
 
 export const ADMIN_STRINGS: Record<AdminLocale, AdminStrings> = { ro, en };
 
-/* ── store minimal pentru limbă: URL ?lang= → localStorage → „ro” ───────── */
+/* ── store minimal pentru limbă: URL ?lang= → cookie-ul comun al aplicației → „ro” ── */
 
-const STORAGE_KEY = "cvx-admin-locale";
 const listeners = new Set<() => void>();
 let current: AdminLocale | null = null;
 
@@ -415,15 +416,20 @@ function isLocale(v: unknown): v is AdminLocale {
   return v === "ro" || v === "en";
 }
 
+function readCookie(name: string): string | null {
+  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
 function readLocale(): AdminLocale {
   if (current) return current;
   try {
     const fromUrl = new URLSearchParams(window.location.search).get("lang");
     if (isLocale(fromUrl)) return (current = fromUrl);
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (isLocale(stored)) return (current = stored);
+    const fromCookie = readCookie(LOCALE_COOKIE);
+    if (isLocale(fromCookie)) return (current = fromCookie);
   } catch {
-    // localStorage indisponibil (privat, blocat) — rămânem pe implicit
+    // fără acces la document — rămânem pe implicit
   }
   return (current = "ro");
 }
@@ -433,12 +439,14 @@ function subscribe(fn: () => void) {
   return () => listeners.delete(fn);
 }
 
+/** Aceeași limbă ca restul aplicației (cookie NEXT_LOCALE); comutatorul din admin o schimbă. */
 export function useAdminLocale(): [AdminLocale, (l: AdminLocale) => void] {
-  const locale = useSyncExternalStore(subscribe, readLocale, (): AdminLocale => "ro");
+  const serverLocale = useLocale();
+  const locale = useSyncExternalStore(subscribe, readLocale, (): AdminLocale => serverLocale);
   const setLocale = (l: AdminLocale) => {
     current = l;
     try {
-      window.localStorage.setItem(STORAGE_KEY, l);
+      document.cookie = `${LOCALE_COOKIE}=${l}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
     } catch {
       // ignorăm
     }

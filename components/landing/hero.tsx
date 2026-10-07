@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { CVShowcase } from "@/components/landing/cv-showcase";
+import { getT } from "@/lib/i18n/server";
 
 /** Hero minimal: mesajele mari + CTA în stânga, CV-ul — element central —
  *  în dreapta, aliniat cu butonul „Începe" din header.
  *  Pe mobil: CV-ul primul, mesajele și CTA-ul dedesubt, centrate. */
-export function LandingHero() {
+export async function LandingHero() {
+  const t = await getT();
   return (
     <section style={{ maxWidth: 1120, margin: "0 auto", padding: "44px 20px 88px" }}>
       <div className="hero-grid">
@@ -18,7 +20,7 @@ export function LandingHero() {
               marginBottom: 18,
             }}
           >
-            Garantăm un CV profesionist, gata în 10 minute
+            {t.hero.title}
           </h1>
 
           <p
@@ -31,7 +33,7 @@ export function LandingHero() {
               marginBottom: 34,
             }}
           >
-            Dezvoltat și optimizat special pentru piața din România
+            {t.hero.subtitle}
           </p>
 
           <Link
@@ -54,7 +56,7 @@ export function LandingHero() {
               boxShadow: "0 2px 4px rgba(244,90,39,0.3), 0 12px 30px -8px rgba(244,90,39,0.55)",
             }}
           >
-            Începe acum →
+            {t.hero.cta}
           </Link>
         </div>
 

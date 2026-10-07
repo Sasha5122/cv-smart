@@ -6,6 +6,8 @@ import { PRICE_DISPLAY } from "@/lib/pricing";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { LocaleProvider } from "@/lib/i18n/context";
+import { getLocale } from "@/lib/i18n/server";
 
 /**
  * Tipografie modernă, contrast puternic:
@@ -60,15 +62,17 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // limba interfeței vine din cookie (ro implicit); vezi lib/i18n
+  const locale = await getLocale();
   return (
-    <html lang="ro" data-scroll-behavior="smooth" className={`${sora.variable} ${instrumentSans.variable} h-full`}>
+    <html lang={locale} data-scroll-behavior="smooth" className={`${sora.variable} ${instrumentSans.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
-        {children}
+        <LocaleProvider locale={locale}>{children}</LocaleProvider>
         <Toaster position="top-right" richColors duration={3000} />
         {/* Vercel Web Analytics (vizitatori/zi, pagini, țări) + Speed Insights —
             privacy-friendly, fără cookie-uri, deci fără banner de consimțământ */}

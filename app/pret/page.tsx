@@ -3,13 +3,15 @@ import { LandingHeader } from "@/components/landing/header";
 import { LandingFooter } from "@/components/landing/footer";
 import { LandingPricing } from "@/components/landing/pricing";
 import { PRICE_DISPLAY } from "@/lib/pricing";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata = {
   title: "Preț",
   description: `${PRICE_DISPLAY} per CV în format PDF, cu TVA inclus. Plată unică — fără abonament, fără plăți recurente.`,
 };
 
-export default function PretPage() {
+export default async function PretPage() {
+  const t = await getT();
   return (
     <>
       <LandingHeader />
@@ -23,15 +25,15 @@ export default function PretPage() {
             marginBottom: 6,
           }}
         >
-          Preț simplu, fără surprize
+          {t.pricing.pageTitle}
         </h1>
         <p style={{ textAlign: "center", fontSize: 15.5, color: "var(--muted-foreground)", marginBottom: 8, padding: "0 20px" }}>
-          Plătești o singură dată, doar când CV-ul tău e gata de descărcat.
+          {t.pricing.pageSubtitle}
         </p>
         <LandingPricing />
         <div style={{ textAlign: "center", marginTop: -60, paddingBottom: 80 }}>
           <Link href="/" style={{ color: "var(--primary)", fontWeight: 600, textDecoration: "none" }}>
-            ← Înapoi la pagina principală
+            {t.common.back}
           </Link>
         </div>
       </main>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LandingHeader } from "@/components/landing/header";
+import { LegalLanguageNote } from "@/components/i18n/legal-language-note";
 import { LandingFooter } from "@/components/landing/footer";
 import { LEGAL } from "@/lib/legal-config";
 
@@ -17,6 +18,7 @@ export default function ConfidentialitatePage() {
   return (
     <>
       <LandingHeader />
+      <LegalLanguageNote />
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "56px 20px 96px" }}>
         <h1 style={{ fontSize: 34, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.02em" }}>
           Politica de confidențialitate
