@@ -63,10 +63,14 @@ test.describe("Admin real — anonimizare", () => {
     await page.goto("/admin");
     await page.getByTestId("admin-password").fill("playwright-admin"); // setată în playwright.config.ts
     const [res] = await Promise.all([
-      page.waitForResponse((r) => r.url().includes("/api/admin/data") && r.request().method() === "GET"),
+      // ignorăm GET-ul de la montare (401, fără cookie) — vrem răspunsul de după login
+      page.waitForResponse((r) => r.url().includes("/api/admin/data") && r.status() !== 401),
       page.getByTestId("admin-login-submit").click(),
     ]);
     // fără Supabase funcțional răspunsul poate fi 500 — atunci nu avem ce verifica
+    if (res.status() !== 200) {
+      console.log(`[admin.spec] /api/admin/data a răspuns ${res.status()}: ${(await res.text()).slice(0, 300)}`);
+    }
     test.skip(res.status() !== 200, "baza de date nu e disponibilă în acest mediu");
     const body = (await res.json()) as Record<string, unknown>;
     const raw = JSON.stringify(body);
