@@ -2,7 +2,7 @@
  * Metrici de evaluare calculate din AdminDataset — funcții pure, fără I/O.
  * Aceleași calcule rulează peste datele reale (/admin) și peste demo (/demo/admin).
  */
-import { AI_STAGE_ORDER, type AdminDataset, type AdminAiCall, type AdminError, type AiStageKey } from "./types";
+import { AI_STAGE_ORDER, type AdminDataset, type AdminAiCall, type AdminError, type AdminValidation, type AiStageKey } from "./types";
 
 /** Prețul produsului în EUR și un curs orientativ pentru comparația cu costul AI (USD). */
 export const PRICE_EUR = 9.99;
@@ -287,4 +287,65 @@ export function toCsv(rows: Record<string, unknown>[]): string {
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+}
+
+// ---------------------------------------------------------------------------
+
+/** Metricile unei singure sesiuni (rând în tabelele din Prezentare generală). */
+export interface SessionMetrics {
+  aiCalls: number;
+  costUSD: number;
+  tokens: number;
+  /** suma duratelor apelurilor AI */
+  aiTimeMs: number;
+  /** de la prima la ultima activitate */
+  timeInWizardMs: number;
+  errors: number;
+  regenerations: number;
+  /** bullet-uri valide din ultimul set validat (null = fără set) */
+  validBullets: number | null;
+  calls: AdminAiCall[];
+  errorList: AdminError[];
+}
+
+export function computeSessionMetrics(ds: AdminDataset): Map<string, SessionMetrics> {
+  const map = new Map<string, SessionMetrics>();
+  const get = (id: string, created?: string, updated?: string) => {
+    let m = map.get(id);
+    if (!m) {
+      m = { aiCalls: 0, costUSD: 0, tokens: 0, aiTimeMs: 0, timeInWizardMs: 0, errors: 0, regenerations: 0, validBullets: null, calls: [], errorList: [] };
+      map.set(id, m);
+    }
+    if (created && updated) m.timeInWizardMs = Math.max(0, Date.parse(updated) - Date.parse(created));
+    return m;
+  };
+  for (const s of ds.sessions) get(s.id, s.createdAt, s.updatedAt);
+  for (const c of ds.aiCalls) {
+    if (!c.sessionId) continue;
+    const m = get(c.sessionId);
+    m.aiCalls++;
+    m.costUSD += c.costUSD;
+    m.tokens += c.promptTokens + c.completionTokens;
+    m.aiTimeMs += c.durationMs;
+    m.calls.push(c);
+  }
+  for (const e of ds.errors) {
+    if (!e.sessionId) continue;
+    const m = get(e.sessionId);
+    m.errors++;
+    m.errorList.push(e);
+  }
+  const latestValidation = new Map<string, AdminValidation>();
+  for (const v of ds.validations) {
+    if (!v.sessionId) continue;
+    const prev = latestValidation.get(v.sessionId);
+    if (!prev || v.createdAt > prev.createdAt) latestValidation.set(v.sessionId, v);
+    if (v.regenerated) get(v.sessionId).regenerations++;
+  }
+  for (const [id, v] of latestValidation) get(id).validBullets = v.finalCount;
+  for (const m of map.values()) {
+    m.calls.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    m.errorList.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+  return map;
 }

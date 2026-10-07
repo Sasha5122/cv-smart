@@ -177,14 +177,14 @@ function makeAiCall(
 // ---------------------------------------------------------------------------
 
 const ERROR_CATALOG: { route: string; status: number; message: string; weight: number }[] = [
-  { route: "/api/cv/generate-bullets", status: 504, message: "APIConnectionTimeoutError: Request timed out (120 000 ms) — apel2-bullets[liber]", weight: 3 },
-  { route: "/api/cv/generate-bullets", status: 422, message: "InsufficientBulletsError: doar 4 bullet-uri valide din 7 după regenerare", weight: 2 },
-  { route: "/api/cv/analyze", status: 502, message: "StructuredCallError: JSON invalid după reîncercare (apel1-intrebari-recrutor[liber])", weight: 2 },
+  { route: "/api/cv/generate-bullets", status: 504, message: "APIConnectionTimeoutError: Request timed out after 120000 ms (apel2-bullets[liber])", weight: 3 },
+  { route: "/api/cv/generate-bullets", status: 422, message: "InsufficientBulletsError: 4/7 valid bullets after targeted regeneration", weight: 2 },
+  { route: "/api/cv/analyze", status: 502, message: "StructuredCallError: invalid JSON after retry (apel1-intrebari-recrutor[liber])", weight: 2 },
   { route: "/api/photo/process", status: 422, message: "Error: Input buffer contains unsupported image format (image/webp, 14.2 MB)", weight: 2 },
-  { route: "/api/cv/analyze", status: 429, message: "RateLimit: 10 analize/oră depășite pentru IP", weight: 1 },
-  { route: "/api/creem/webhook", status: 400, message: "Error: semnătură webhook invalidă (creem-signature)", weight: 1 },
-  { route: "/api/ai/generate-skills", status: 502, message: "Error: generarea abilităților a eșuat (fără dicționar de rezervă)", weight: 1 },
-  { route: "/api/pdf", status: 500, message: "Error: ENOENT fonts/Montserrat-SemiBold.ttf (bundle fără outputFileTracingIncludes)", weight: 1 },
+  { route: "/api/cv/analyze", status: 429, message: "RateLimitError: 10 analyses/hour exceeded for IP", weight: 1 },
+  { route: "/api/creem/webhook", status: 400, message: "Error: invalid webhook signature (creem-signature header)", weight: 1 },
+  { route: "/api/ai/generate-skills", status: 502, message: "Error: skills generation failed (no fallback dictionary by design)", weight: 1 },
+  { route: "/api/pdf", status: 500, message: "Error: ENOENT fonts/Montserrat-SemiBold.ttf (bundle without outputFileTracingIncludes)", weight: 1 },
 ];
 
 const CONTACT_MESSAGES = [

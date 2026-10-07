@@ -65,12 +65,14 @@ export function LineChart({
   color = "var(--primary)",
   format = (v: number) => String(v),
   testId,
+  labels = { max: "max", total: "total" },
 }: {
   points: LinePoint[];
   height?: number;
   color?: string;
   format?: (v: number) => string;
   testId?: string;
+  labels?: { max: string; total: string };
 }) {
   const W = 600;
   const H = height;
@@ -90,8 +92,8 @@ export function LineChart({
   return (
     <div data-testid={testId}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: "var(--muted-foreground)", marginBottom: 4 }}>
-        <span>max {format(max)}</span>
-        <span>total {format(points.reduce((s, p) => s + p.y, 0))}</span>
+        <span>{labels.max} {format(max)}</span>
+        <span>{labels.total} {format(points.reduce((s, p) => s + p.y, 0))}</span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height, display: "block" }} role="img" aria-label="grafic">
         <path d={area} fill={color} opacity={0.12} />
@@ -105,9 +107,10 @@ export function LineChart({
   );
 }
 
-const DAY_LABELS = ["Du", "Lu", "Ma", "Mi", "Jo", "Vi", "Sâ"];
+const DEFAULT_DAY_LABELS = ["Du", "Lu", "Ma", "Mi", "Jo", "Vi", "Sâ"];
 
-export function Heatmap({ grid, testId }: { grid: number[][]; testId?: string }) {
+export function Heatmap({ grid, testId, dayLabels }: { grid: number[][]; testId?: string; dayLabels?: string[] }) {
+  const DAY_LABELS = dayLabels ?? DEFAULT_DAY_LABELS;
   const max = Math.max(1, ...grid.flat());
   const cell: CSSProperties = { aspectRatio: "1 / 1", borderRadius: 3, minWidth: 0 };
   return (
