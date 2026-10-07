@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import {
   getPipelineSession,
   updatePipelineSession,
@@ -65,6 +66,7 @@ export async function POST(req: Request) {
     const selected = bullets.filter((b) => selectedIds.includes(b.id));
     return NextResponse.json({ selected });
   } catch (e) {
+    await recordApiError("/api/cv/select-bullets", 500, e);
     console.error("[cv/select-bullets]", e);
     return NextResponse.json(
       { error: "Eroare neașteptată. Încearcă din nou." },

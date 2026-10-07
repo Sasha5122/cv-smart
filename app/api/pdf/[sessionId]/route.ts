@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import {
   getSession,
   isSessionPaid,
@@ -107,6 +108,7 @@ export async function POST(
 
     return pdfResponse(pdfBuffer, cvData);
   } catch (error) {
+    await recordApiError("/api/pdf", 500, error);
     console.error("PDF generation error:", error);
     return NextResponse.json({ error: "Eroare la generarea PDF" }, { status: 500 });
   }
@@ -135,6 +137,7 @@ export async function GET(
 
     return pdfResponse(pdfBuffer, cvData);
   } catch (error) {
+    await recordApiError("/api/pdf", 500, error);
     console.error("PDF generation error:", error);
     return NextResponse.json({ error: "Eroare la generarea PDF" }, { status: 500 });
   }

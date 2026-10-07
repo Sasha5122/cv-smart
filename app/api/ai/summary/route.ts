@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { callStructured, StructuredCallError } from "@/lib/openai";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest) {
 
     const result = await callStructured<{ summary: string }>({
       stage: "cv-summary",
+      sessionId: typeof body.sessionId === "string" ? body.sessionId : null,
       systemPrompt: SYSTEM,
       userContent,
       schemaName: "cv_summary",
@@ -85,6 +87,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ summary: result.summary?.trim() ?? "" });
   } catch (e) {
+    await recordApiError("/api/ai/summary", 502, e);
     if (e instanceof StructuredCallError) console.warn(`[summary] ${e.message}`);
     // best-effort: fără rezumat e mai bine decât cu eroare blocantă
     return NextResponse.json({ summary: "" });

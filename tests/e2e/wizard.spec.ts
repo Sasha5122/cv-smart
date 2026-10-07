@@ -184,9 +184,8 @@ test.describe("Landing — pagina de start", () => {
     await page.getByTestId("contact-message").fill("Salut! Acesta este un mesaj de test.");
     await page.getByTestId("contact-submit").click();
     await expect(page.getByTestId("contact-success")).toBeVisible();
-    // datele operatorului sunt vizibile ca text (cerință Paddle)
-    await expect(page.getByText(/Operator: /)).toBeVisible();
-    await expect(page.getByText(/Telefon: /)).toBeVisible();
+    // din commit-ul „Legal: doar email de suport la contact” pagina afișează doar emailul
+    await expect(page.getByText(/Email: /)).toBeVisible();
   });
 
   test("adminul cere parolă; parola corectă deschide panoul", async ({ page }) => {

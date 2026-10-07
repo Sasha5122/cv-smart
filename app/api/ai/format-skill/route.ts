@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { chat, FAST_MODEL } from "@/lib/ai/client";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
@@ -13,6 +14,8 @@ export async function POST(req: NextRequest) {
     if (!skill?.trim()) return NextResponse.json({ corrected: skill ?? "" });
 
     const corrected = await chat({
+      stage: "format-skill",
+      sessionId: null,
       model: FAST_MODEL,
       system: "Ești un expert în redactarea CV-urilor profesionale în limba română.",
       messages: [
@@ -25,7 +28,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ corrected: corrected.trim() || skill.trim() });
-  } catch {
+  } catch (e) {
+    await recordApiError("/api/ai/format-skill", 502, e);
     return NextResponse.json({ corrected: "" });
   }
 }

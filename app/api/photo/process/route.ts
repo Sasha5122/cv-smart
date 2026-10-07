@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { smartSquareCrop } from "@/lib/photo-crop";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ dataUrl: `data:image/jpeg;base64,${jpeg.toString("base64")}` });
   } catch (e) {
+    await recordApiError("/api/photo/process", 422, e);
     console.warn("[photo-process] decodare eșuată:", e instanceof Error ? e.message : e);
     return NextResponse.json({ error: "Nu am putut procesa imaginea." }, { status: 422 });
   }

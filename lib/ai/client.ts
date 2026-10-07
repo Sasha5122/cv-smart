@@ -4,6 +4,8 @@
  * o folosesc identic, indiferent de providerul de dedesubt.
  */
 import { openai, OPENAI_MODEL } from "@/lib/openai";
+import { computeCostUSD } from "@/lib/ai-pricing";
+import { recordAiCall } from "@/lib/telemetry";
 
 /**
  * Prioritatea actuală e calitatea → ambele aliasuri merg pe gpt-5.5.
@@ -28,6 +30,9 @@ export interface ChatOptions {
   maxTokens?: number;
   /** ignorat pe gpt-5.5 (nu suportă temperature) */
   temperature?: number;
+  /** telemetrie: numele etapei → apelul se înregistrează ca `ai_call` */
+  stage?: string;
+  sessionId?: string | null;
 }
 
 export interface ExtractOptions<T = unknown> {
@@ -37,6 +42,46 @@ export interface ExtractOptions<T = unknown> {
   schema?: string;
   maxTokens?: number;
   fallback: T;
+  /** telemetrie: numele etapei → apelul se înregistrează ca `ai_call` */
+  stage?: string;
+  sessionId?: string | null;
+}
+
+/** Forma minimă a răspunsului de care are nevoie telemetria. */
+interface UsageLike {
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    prompt_tokens_details?: { cached_tokens?: number } | null;
+    completion_tokens_details?: { reasoning_tokens?: number } | null;
+  } | null;
+}
+
+async function reportUsage(
+  opts: { stage?: string; sessionId?: string | null },
+  model: string,
+  response: UsageLike,
+  startedAt: number
+): Promise<void> {
+  if (!opts.stage) return;
+  const u = response.usage;
+  const promptTokens = u?.prompt_tokens ?? 0;
+  const cachedTokens = u?.prompt_tokens_details?.cached_tokens ?? 0;
+  const completionTokens = u?.completion_tokens ?? 0;
+  const reasoningTokens = u?.completion_tokens_details?.reasoning_tokens ?? 0;
+  await recordAiCall({
+    sessionId: opts.sessionId ?? null,
+    stage: opts.stage,
+    model,
+    promptTokens,
+    cachedTokens,
+    completionTokens,
+    reasoningTokens,
+    costUSD: computeCostUSD(model, promptTokens, cachedTokens, completionTokens),
+    durationMs: Date.now() - startedAt,
+    jsonRetries: 0,
+    effortRejected: false,
+  });
 }
 
 function toOpenAIMessages(
@@ -50,11 +95,14 @@ function toOpenAIMessages(
 }
 
 export async function chat(opts: ChatOptions): Promise<string> {
+  const model = opts.model ?? SMART_MODEL;
+  const t0 = Date.now();
   const response = await openai.chat.completions.create({
-    model: opts.model ?? SMART_MODEL,
+    model,
     max_completion_tokens: opts.maxTokens ?? 2048,
     messages: toOpenAIMessages(opts),
   });
+  await reportUsage(opts, model, response, t0);
   return response.choices[0]?.message?.content ?? "";
 }
 
@@ -91,9 +139,11 @@ IMPORTANT: Răspunde EXCLUSIV cu JSON valid, fără markdown, fără explicații
   // fallback-ul nu e array (unele rute așteaptă array-uri, ex. string[]).
   const expectsArray = Array.isArray(opts.fallback);
 
+  const model = opts.model ?? SMART_MODEL;
+  const t0 = Date.now();
   try {
     const response = await openai.chat.completions.create({
-      model: opts.model ?? SMART_MODEL,
+      model,
       max_completion_tokens: opts.maxTokens ?? 2048,
       messages: [
         { role: "system", content: systemPrompt },
@@ -104,6 +154,7 @@ IMPORTANT: Răspunde EXCLUSIV cu JSON valid, fără markdown, fără explicații
         : { response_format: { type: "json_object" as const } }),
     });
 
+    await reportUsage(opts, model, response, t0);
     const text = response.choices[0]?.message?.content?.trim() ?? "";
     const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
     if (!jsonMatch) return opts.fallback;

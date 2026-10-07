@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { extractJSON, FAST_MODEL } from "@/lib/ai/client";
 import { getCachedProfile, upsertCachedProfile, updateIdealProfile } from "@/lib/db/queries";
 import { normalizeRole } from "@/lib/utils";
@@ -21,6 +22,8 @@ export async function POST(req: NextRequest) {
 
     // Extract role from job description
     const intent = await extractJSON<{ role: string; industry: string; seniority: string }>({
+      stage: "research-intent",
+      sessionId,
       model: FAST_MODEL,
       system: `Extrage rolul, industria și seniority-ul din descrierea jobului. JSON strict: {"role": "...", "industry": "...", "seniority": "junior|mid|senior"}`,
       userMessage: jobDescription,
@@ -38,6 +41,8 @@ export async function POST(req: NextRequest) {
 
     // Generate new profile
     const profile = await extractJSON<IdealProfile>({
+      stage: "research-profile",
+      sessionId,
       model: FAST_MODEL,
       system: `Ești un expert HR român. Generează profilul ideal pentru rolul dat.
 JSON strict: {"role": "...", "industry": "...", "seniority": "...", "responsibilities": [...], "hardSkills": [...], "softSkills": [...], "atsKeywords": [...]}
@@ -60,6 +65,7 @@ Toate listele au 5-8 itemi. Focusat pe piața românească.`,
 
     return NextResponse.json({ profile, cached: false });
   } catch (error) {
+    await recordApiError("/api/ai/research", 500, error);
     console.error("Research error:", error);
     return NextResponse.json({ error: "Eroare la research" }, { status: 500 });
   }

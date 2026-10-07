@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { paywallEnabled, paymentProvider } from "@/lib/payments/server";
 import { confirmCreemCheckout } from "@/lib/creem/server";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
     const paid = await confirmCreemCheckout(sessionId, checkoutId);
     return NextResponse.json({ paid });
   } catch (e) {
+    await recordApiError("/api/creem/confirm", 500, e);
     console.error("[creem-confirm] eroare:", e);
     return NextResponse.json({ paid: false }, { status: 500 });
   }

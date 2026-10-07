@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { verifyCreemWebhook, parseCreemEvent, handleCreemPaid } from "@/lib/creem/server";
 
 /**
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ received: true });
   } catch (e) {
+    await recordApiError("/api/creem/webhook", 500, e);
     console.error("[creem-webhook] eroare:", e);
     // non-2xx = retry (plata/livrarea sunt idempotente)
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

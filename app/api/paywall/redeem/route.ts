@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { paywallEnabled } from "@/lib/payments/server";
 import {
   getSession,
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, emailSent });
   } catch (e) {
+    await recordApiError("/api/paywall/redeem", 500, e);
     console.error("[promo-redeem] eroare:", e);
     return NextResponse.json({ error: "Eroare internă." }, { status: 500 });
   }

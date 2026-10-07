@@ -7,6 +7,7 @@
  * Funcții pure — fără persistență; rutele API se ocupă de salvare.
  */
 import { CallConfig, CallUsage, callStructured } from "@/lib/openai";
+import { recordValidation } from "@/lib/telemetry";
 import {
   buildStage1System,
   buildStage1User,
@@ -34,6 +35,8 @@ export interface StageOptions {
   /** model + reasoning_effort pentru acest apel (default: OPENAI_MODEL) */
   config?: CallConfig;
   onUsage?: (u: CallUsage) => void;
+  /** sesiunea wizard (pentru telemetrie); undefined = fără înregistrare */
+  sessionId?: string | null;
 }
 
 export async function runRecruiterQuestions(
@@ -54,6 +57,7 @@ export async function runRecruiterQuestions(
     model: opts.config?.model,
     reasoningEffort: opts.config?.reasoning_effort,
     onUsage: opts.onUsage,
+    sessionId: opts.sessionId,
   });
 
   // Garantăm exact 5 întrebări (schema strict nu poate impune count).
@@ -241,6 +245,7 @@ export async function runBulletsFromContext(
     model: opts.config?.model,
     reasoningEffort: opts.config?.reasoning_effort,
     onUsage: opts.onUsage,
+    sessionId: opts.sessionId,
   });
 
   let bullets = first.bullets.slice(0, 7);
@@ -259,6 +264,7 @@ export async function runBulletsFromContext(
       model: opts.config?.model,
       reasoningEffort: opts.config?.reasoning_effort,
       onUsage: opts.onUsage,
+    sessionId: opts.sessionId,
       systemPrompt: buildStage2System(hasJD, variant),
       userContent: buildStage2User({
         jobTitle: input.jobTitle,
@@ -287,6 +293,15 @@ export async function runBulletsFromContext(
     const second = validateBullets(bullets, contextText);
     dropped = second.invalid;
     valid = second.valid;
+  }
+
+  if (opts.sessionId !== undefined) {
+    await recordValidation(opts.sessionId, {
+      firstPassInvalid,
+      regenerated,
+      dropped: dropped.length,
+      finalCount: valid.length,
+    });
   }
 
   if (valid.length < 5) {

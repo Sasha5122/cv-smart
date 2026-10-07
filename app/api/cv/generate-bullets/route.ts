@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import {
   InsufficientBulletsError,
   runBulletsFromContext,
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
         interview,
         jobDescription: session.job_description ?? undefined,
       },
-      { config: PIPELINE_PROD_CONFIG.call2 }
+      { config: PIPELINE_PROD_CONFIG.call2, sessionId: session.wizard_session_id ?? null }
     );
 
     await updatePipelineSession(sessionId, {
@@ -110,6 +111,11 @@ export async function POST(req: Request) {
       droppedCount: result.dropped.length,
     });
   } catch (e) {
+    await recordApiError(
+      "/api/cv/generate-bullets",
+      e instanceof InsufficientBulletsError ? 422 : e instanceof StructuredCallError ? 502 : 500,
+      e
+    );
     if (e instanceof InsufficientBulletsError) {
       return NextResponse.json(
         {
