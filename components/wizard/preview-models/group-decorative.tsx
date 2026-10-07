@@ -1,6 +1,8 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import type { CVData } from "@/lib/types/cv";
+import { useMessages } from "@/lib/i18n/context";
+import { PREVIEW_LABELS } from "@/lib/i18n/wizard/preview-labels";
 import {
   Sheet, Row, Bullet, pt, SERIF,
   fullNameOf, firstNameOf, lastNameOf, roleOf, localityOf, streetOf, licenseTextOf,
@@ -22,9 +24,10 @@ const R_RIBBON_W = 46;
 const R_RIBBON_X = 40 + R_PHOTO / 2 - R_RIBBON_W / 2;
 
 export function RivieraPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const pill = (label: string, right = false) => (
     <div style={{ backgroundColor: RC.teal, borderRadius: pt(11), padding: `${pt(4.5)}px ${pt(16)}px`, display: "inline-block", alignSelf: right ? "flex-end" : "flex-start", marginBottom: pt(8) }}>
       <span style={{ fontSize: pt(9.5), fontWeight: 700, color: "#fff", letterSpacing: pt(0.4) }}>{label}</span>
@@ -46,9 +49,9 @@ export function RivieraPreview({ data }: { data: CVData }) {
       )}
       <div style={{ position: "absolute", top: pt(52), left: pt(215), right: pt(36), textAlign: "right" }}>
         <div style={{ fontSize: pt(30), fontWeight: 900, color: RC.ink, textTransform: "uppercase", letterSpacing: pt(1), lineHeight: 1.08 }}>
-          {firstNameOf(data) || "Prenume"}
+          {firstNameOf(data) || L.firstName}
           <br />
-          {lastNameOf(data) || "Nume"}
+          {lastNameOf(data) || L.lastName}
         </div>
         {roleOf(data) && <div style={{ fontSize: pt(12), fontStyle: "italic", color: RC.teal, marginTop: pt(5) }}>{roleOf(data)}</div>}
       </div>
@@ -56,7 +59,7 @@ export function RivieraPreview({ data }: { data: CVData }) {
       <Row gap={pt(26)} style={{ paddingTop: pt(216), paddingLeft: pt(36), paddingRight: pt(36), paddingBottom: pt(32) }}>
         <div style={{ width: "37%" }}>
           <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-            {pill("Contact")}
+            {pill(L.contact)}
             {p?.phone && <div style={lItem}>{p.phone}</div>}
             {p?.email && <div style={lItem}>{p.email}</div>}
             {(streetOf(data) || localityOf(data)) && <div style={lItem}>{[streetOf(data), localityOf(data)].filter(Boolean).join(", ")}</div>}
@@ -64,7 +67,7 @@ export function RivieraPreview({ data }: { data: CVData }) {
           </div>
           {data.skills.length > 0 && (
             <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-              {pill("Competențe")}
+              {pill(L.skills)}
               {data.skills.map((sk, i) => (
                 <div key={i} style={lItem}>{sk.name}</div>
               ))}
@@ -72,7 +75,7 @@ export function RivieraPreview({ data }: { data: CVData }) {
           )}
           {data.languages.length > 0 && (
             <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-              {pill("Limbi străine")}
+              {pill(L.languages)}
               {data.languages.map((l, i) => (
                 <div key={i} style={lItem}>{l.name} — {l.level}</div>
               ))}
@@ -80,23 +83,23 @@ export function RivieraPreview({ data }: { data: CVData }) {
           )}
           {(licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
             <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-              {pill("Extra")}
+              {pill(L.extra)}
               {licenseText && <div style={lItem}>{licenseText}</div>}
               {data.qualifications?.trim() && <div style={lItem}>{data.qualifications.trim()}</div>}
-              {data.hobbies.length > 0 && <div style={lItem}>Hobby-uri: {data.hobbies.join(", ")}</div>}
+              {data.hobbies.length > 0 && <div style={lItem}>{L.hobbiesLabel} {data.hobbies.join(", ")}</div>}
             </div>
           )}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           {data.summary && (
             <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-              {pill("Profil", true)}
+              {pill(L.profile, true)}
               <div style={{ fontSize: pt(9.2), lineHeight: 1.6, color: RC.text }}>{data.summary}</div>
             </div>
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-              {pill("Experiență", true)}
+              {pill(L.experienceShort, true)}
               {data.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: pt(9) }}>
                   <div style={entryYears}>{exp.period}</div>
@@ -114,7 +117,7 @@ export function RivieraPreview({ data }: { data: CVData }) {
           )}
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-              {pill("Educație", true)}
+              {pill(L.education, true)}
               {data.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: pt(9) }}>
                   <div style={entryYears}>{edu.years}</div>
@@ -123,7 +126,7 @@ export function RivieraPreview({ data }: { data: CVData }) {
                     {edu.field ? ` — ${edu.field}` : ""}
                   </div>
                   <div style={entryMeta}>{edu.institution}</div>
-                  {(edu.grade || edu.thesis) && <div style={entryText}>{eduMetaOf(edu)}</div>}
+                  {(edu.grade || edu.thesis) && <div style={entryText}>{eduMetaOf(edu, L)}</div>}
                 </div>
               ))}
               {data.courses.map((c, i) => (
@@ -146,9 +149,10 @@ const BC = { pink: "#f3c4bd", pinkDeep: "#e8a79e", gray: "#8b8b8b", ink: "#3a3a3
 const B_PHOTO = 118;
 
 export function BlushPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const secTitle: React.CSSProperties = { fontSize: pt(9.5), fontWeight: 900, color: BC.ink, textTransform: "uppercase", letterSpacing: pt(2), marginBottom: pt(6) };
   const secRule = <div style={{ width: pt(30), height: 1.5, backgroundColor: BC.pink, marginBottom: pt(8) }} />;
   const xText: React.CSSProperties = { fontSize: pt(8.4), color: BC.muted, lineHeight: 1.4, marginBottom: pt(2.5) };
@@ -187,21 +191,21 @@ export function BlushPreview({ data }: { data: CVData }) {
       <Row gap={pt(26)} style={{ paddingTop: pt(172), paddingLeft: pt(36), paddingRight: pt(36), paddingBottom: pt(34) }}>
         <div style={{ width: "38%" }}>
           <div style={{ fontSize: pt(17), fontWeight: 700, color: BC.ink, textTransform: "uppercase", letterSpacing: pt(3), lineHeight: 1.25 }}>
-            {fullNameOf(data) || "Prenume Nume"}
+            {fullNameOf(data) || L.fullName}
           </div>
           {roleOf(data) && <div style={{ fontSize: pt(9), fontWeight: 700, color: BC.pinkDeep, textTransform: "uppercase", letterSpacing: pt(2), marginTop: pt(4) }}>{roleOf(data)}</div>}
           <div style={{ width: pt(46), height: 2, backgroundColor: BC.pink, marginTop: pt(8), marginBottom: pt(14) }} />
 
           {data.summary && (
             <div style={{ marginBottom: pt(15) }}>
-              <div style={secTitle}>Despre mine</div>
+              <div style={secTitle}>{L.about}</div>
               {secRule}
               <div style={{ fontSize: pt(8.8), lineHeight: 1.55, color: BC.muted }}>{data.summary}</div>
             </div>
           )}
           {data.skills.length > 0 && (
             <div style={{ marginBottom: pt(15) }}>
-              <div style={secTitle}>Competențe</div>
+              <div style={secTitle}>{L.skills}</div>
               {secRule}
               {data.skills.map((sk, i) => (
                 <Bullet key={i} markColor={BC.pinkDeep} markSize={pt(9)} gap={pt(6)} mb={pt(3)} textStyle={{ fontSize: pt(8.4), color: BC.text, lineHeight: 1.4 }}>{sk.name}</Bullet>
@@ -209,7 +213,7 @@ export function BlushPreview({ data }: { data: CVData }) {
             </div>
           )}
           <div style={{ marginBottom: pt(15) }}>
-            <div style={secTitle}>Contact</div>
+            <div style={secTitle}>{L.contact}</div>
             {secRule}
             {p?.phone && (
               <div style={{ display: "flex", alignItems: "center", gap: pt(7), marginBottom: pt(5) }}>
@@ -232,28 +236,28 @@ export function BlushPreview({ data }: { data: CVData }) {
           </div>
           {(data.languages.length > 0 || licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
             <div style={{ marginBottom: pt(15) }}>
-              <div style={secTitle}>Extra</div>
+              <div style={secTitle}>{L.extra}</div>
               {secRule}
               {data.languages.map((l, i) => (
                 <div key={i} style={xText}>{l.name} — {l.level}</div>
               ))}
               {licenseText && <div style={xText}>{licenseText}</div>}
               {data.qualifications?.trim() && <div style={xText}>{data.qualifications.trim()}</div>}
-              {data.hobbies.length > 0 && <div style={xText}>Hobby-uri: {data.hobbies.join(", ")}</div>}
+              {data.hobbies.length > 0 && <div style={xText}>{L.hobbiesLabel} {data.hobbies.join(", ")}</div>}
             </div>
           )}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(15) }}>
-              <div style={secTitle}>Educație</div>
+              <div style={secTitle}>{L.education}</div>
               {secRule}
               {data.education.map((edu, i) =>
                 tlEntry(
                   edu.years,
                   <>{edu.level}{edu.field ? ` — ${edu.field}` : ""}</>,
                   edu.institution,
-                  (edu.grade || edu.thesis) ? <div style={eText}>{eduMetaOf(edu)}</div> : null,
+                  (edu.grade || edu.thesis) ? <div style={eText}>{eduMetaOf(edu, L)}</div> : null,
                   i,
                   i === data.education.length - 1 && data.courses.length === 0
                 )
@@ -265,7 +269,7 @@ export function BlushPreview({ data }: { data: CVData }) {
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(15) }}>
-              <div style={secTitle}>Experiență</div>
+              <div style={secTitle}>{L.experienceShort}</div>
               {secRule}
               {data.experience.map((exp, i) =>
                 tlEntry(
@@ -294,9 +298,10 @@ const F_PHOTO = 84;
 const A4H = 842;
 
 export function FlamingoPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const pill = (label: string, right = false) => (
     <div style={{ backgroundColor: FC.pink, borderRadius: pt(12), padding: `${pt(5)}px ${right ? pt(18) : pt(20)}px`, display: "inline-block", alignSelf: right ? "flex-start" : "flex-end", marginBottom: pt(9), marginLeft: right ? pt(-8) : 0 }}>
       <span style={{ fontFamily: SERIF, fontSize: pt(10), fontWeight: 700, color: "#fff", letterSpacing: pt(1.6), textTransform: "uppercase" }}>{label}</span>
@@ -323,7 +328,7 @@ export function FlamingoPreview({ data }: { data: CVData }) {
         </div>
       )}
       <div style={{ position: "absolute", top: pt(28), left: pt(190), right: pt(F_PANEL_W + 18) }}>
-        <div style={{ fontFamily: SERIF, fontSize: pt(23), fontWeight: 700, color: "#463c40", lineHeight: 1.12 }}>{fullNameOf(data) || "Prenume Nume"}</div>
+        <div style={{ fontFamily: SERIF, fontSize: pt(23), fontWeight: 700, color: "#463c40", lineHeight: 1.12 }}>{fullNameOf(data) || L.fullName}</div>
         {roleOf(data) && <div style={{ fontSize: pt(10.5), color: FC.muted, marginTop: pt(3), letterSpacing: pt(1) }}>{roleOf(data)}</div>}
       </div>
 
@@ -331,18 +336,18 @@ export function FlamingoPreview({ data }: { data: CVData }) {
       <div style={{ paddingTop: pt(150), paddingLeft: pt(38), paddingBottom: pt(34), width: pt(A4W - F_PANEL_W - 20), boxSizing: "border-box" }}>
         {data.summary && (
           <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-            {pill("Profil")}
+            {pill(L.profile)}
             <div style={{ fontSize: pt(9.2), lineHeight: 1.6 }}>{data.summary}</div>
           </div>
         )}
         {data.education.length > 0 && (
           <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-            {pill("Educație")}
+            {pill(L.education)}
             {data.education.map((edu, i) => (
               <div key={i} style={{ marginBottom: pt(8), paddingBottom: pt(7), borderBottom: `0.75px solid ${FC.hair}` }}>
                 <div style={entryTitle}>{edu.level}{edu.field ? `, ${edu.field}` : ""}</div>
                 <div style={entryMeta}>({edu.years}) · {edu.institution}</div>
-                {(edu.grade || edu.thesis) && <div style={entryText}>{eduMetaOf(edu)}</div>}
+                {(edu.grade || edu.thesis) && <div style={entryText}>{eduMetaOf(edu, L)}</div>}
               </div>
             ))}
             {data.courses.map((c, i) => (
@@ -355,7 +360,7 @@ export function FlamingoPreview({ data }: { data: CVData }) {
         )}
         {data.experience.length > 0 && (
           <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-            {pill("Experiență")}
+            {pill(L.experienceShort)}
             {data.experience.map((exp, i) => (
               <div key={i} style={{ marginBottom: pt(8), paddingBottom: pt(7), borderBottom: `0.75px solid ${FC.hair}` }}>
                 <div style={entryTitle}>{exp.company}</div>
@@ -372,7 +377,7 @@ export function FlamingoPreview({ data }: { data: CVData }) {
         )}
         {data.skills.length > 0 && (
           <div style={{ marginBottom: pt(14), display: "flex", flexDirection: "column" }}>
-            {pill("Competențe")}
+            {pill(L.skills)}
             <div style={entryText}>{data.skills.map((sk) => sk.name).join("  ·  ")}</div>
           </div>
         )}
@@ -381,7 +386,7 @@ export function FlamingoPreview({ data }: { data: CVData }) {
       {/* conținutul panoului gri */}
       <div style={{ position: "absolute", top: pt(190), right: 0, width: pt(F_PANEL_W - 52), paddingRight: pt(20), boxSizing: "border-box" }}>
         <div style={{ marginBottom: pt(16) }}>
-          {pill("Contact", true)}
+          {pill(L.contact, true)}
           {p?.phone && (
             <div style={{ display: "flex", alignItems: "center", gap: pt(7), marginBottom: pt(6) }}>
               <IPhone color={FC.pink} size={pt(9)} />
@@ -409,7 +414,7 @@ export function FlamingoPreview({ data }: { data: CVData }) {
         </div>
         {data.languages.length > 0 && (
           <div style={{ marginBottom: pt(16) }}>
-            {pill("Limbi", true)}
+            {pill(L.languagesShort, true)}
             {data.languages.map((l, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: pt(7), marginBottom: pt(6) }}>
                 <span style={{ color: FC.pink, fontSize: pt(9) }}>•</span>
@@ -420,7 +425,7 @@ export function FlamingoPreview({ data }: { data: CVData }) {
         )}
         {(licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
           <div style={{ marginBottom: pt(16) }}>
-            {pill("Extra", true)}
+            {pill(L.extra, true)}
             {licenseText && (
               <div style={{ display: "flex", alignItems: "flex-start", gap: pt(7), marginBottom: pt(6) }}>
                 <span style={{ color: FC.pink, fontSize: pt(9) }}>•</span>
@@ -462,9 +467,10 @@ function Chevron() {
 }
 
 export function SagePreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const sideSecTitle: React.CSSProperties = { fontFamily: "var(--font-body), sans-serif", fontSize: pt(9.5), fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: pt(1.6), marginBottom: pt(6), marginTop: pt(14) };
   const sideText: React.CSSProperties = { fontSize: pt(8.8), color: "#f2f6f4", lineHeight: 1.55 };
   const secHead = (label: string) => (
@@ -491,11 +497,11 @@ export function SagePreview({ data }: { data: CVData }) {
           )}
           {data.summary && (
             <>
-              <div style={sideSecTitle}>Profil</div>
+              <div style={sideSecTitle}>{L.profile}</div>
               <div style={sideText}>{data.summary}</div>
             </>
           )}
-          <div style={sideSecTitle}>Contact</div>
+          <div style={sideSecTitle}>{L.contact}</div>
           {p?.phone && (
             <div style={{ display: "flex", alignItems: "center", gap: pt(7), marginBottom: pt(6) }}>
               <IPhone color="#fff" size={pt(9)} />
@@ -516,7 +522,7 @@ export function SagePreview({ data }: { data: CVData }) {
           )}
           {data.hobbies.length > 0 && (
             <>
-              <div style={sideSecTitle}>Hobby-uri</div>
+              <div style={sideSecTitle}>{L.hobbies}</div>
               {data.hobbies.map((h, i) => (
                 <div key={i} style={{ ...sideText, marginBottom: pt(2.5) }}>{h}</div>
               ))}
@@ -524,7 +530,7 @@ export function SagePreview({ data }: { data: CVData }) {
           )}
           {(licenseText || data.qualifications?.trim()) && (
             <>
-              <div style={sideSecTitle}>Calificări</div>
+              <div style={sideSecTitle}>{L.qualifications}</div>
               {licenseText && <div style={{ ...sideText, marginBottom: pt(2.5) }}>{licenseText}</div>}
               {data.qualifications?.trim() && <div style={sideText}>{data.qualifications.trim()}</div>}
             </>
@@ -533,21 +539,21 @@ export function SagePreview({ data }: { data: CVData }) {
 
         <div style={{ flex: 1, minWidth: 0, paddingLeft: pt(26), paddingRight: pt(30), paddingTop: pt(60), position: "relative", zIndex: 1 }}>
           <div style={{ fontSize: pt(25), fontWeight: 700, color: GS.ink, textTransform: "uppercase", letterSpacing: pt(1.5), lineHeight: 1.15 }}>
-            {fullNameOf(data) || "Prenume Nume"}
+            {fullNameOf(data) || L.fullName}
           </div>
           {roleOf(data) && <div style={{ fontSize: pt(11), fontStyle: "italic", color: GS.muted, marginTop: pt(3), marginBottom: pt(66) }}>{roleOf(data)}</div>}
 
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secHead("Educație")}
+              {secHead(L.education)}
               {data.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: pt(7) }}>
                   <div style={eName}>{edu.institution}</div>
                   <div style={eSub}>
                     {edu.level}
-                    {edu.field ? ` în ${edu.field}` : ""} · <span style={years}>{edu.years}</span>
+                    {edu.field ? L.inField(edu.field) : ""} · <span style={years}>{edu.years}</span>
                   </div>
-                  {(edu.grade || edu.thesis) && <div style={eText}>{eduMetaOf(edu)}</div>}
+                  {(edu.grade || edu.thesis) && <div style={eText}>{eduMetaOf(edu, L)}</div>}
                 </div>
               ))}
               {data.courses.map((c, i) => (
@@ -563,7 +569,7 @@ export function SagePreview({ data }: { data: CVData }) {
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secHead("Experiență")}
+              {secHead(L.experienceShort)}
               {data.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: pt(8) }}>
                   <div style={eName}>{exp.company}</div>
@@ -580,7 +586,7 @@ export function SagePreview({ data }: { data: CVData }) {
           )}
           {data.languages.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secHead("Limbi străine")}
+              {secHead(L.languages)}
               {data.languages.map((l, i) => (
                 <div key={i} style={eText}>{l.name} — {l.level}</div>
               ))}
@@ -588,7 +594,7 @@ export function SagePreview({ data }: { data: CVData }) {
           )}
           {data.skills.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secHead("Competențe")}
+              {secHead(L.skills)}
               <div style={eText}>{data.skills.map((sk) => sk.name).join(" · ")}</div>
             </div>
           )}
@@ -603,9 +609,10 @@ const TC = { blue: "#3f6ad8", ink: "#23272f", text: "#3d4451", muted: "#6b7280",
 const T_LEFT = 172;
 
 export function SterlingPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const lSecTitle: React.CSSProperties = { fontSize: pt(8.5), fontWeight: 900, color: TC.blue, textTransform: "uppercase", letterSpacing: pt(1.4), marginTop: pt(12), marginBottom: pt(4) };
   const lText: React.CSSProperties = { fontSize: pt(8.4), color: TC.text, lineHeight: 1.5, marginBottom: pt(2.5), wordBreak: "break-word" };
   const secTitle = (label: string) => (
@@ -624,7 +631,7 @@ export function SterlingPreview({ data }: { data: CVData }) {
       <Row>
         <div style={{ width: pt(T_LEFT), flexShrink: 0, padding: `${pt(22)}px ${pt(16)}px 0`, boxSizing: "border-box", position: "relative" }}>
           {photo && <img src={photo} alt="" style={{ width: pt(T_LEFT - 32), height: pt(150), objectFit: "cover", marginBottom: pt(12) }} />}
-          <div style={lSecTitle}>Contact</div>
+          <div style={lSecTitle}>{L.contact}</div>
           {p?.phone && <div style={lText}>{p.phone}</div>}
           {p?.email && <div style={lText}>{p.email}</div>}
           {(streetOf(data) || localityOf(data)) && <div style={lText}>{[streetOf(data), localityOf(data)].filter(Boolean).join(", ")}</div>}
@@ -632,7 +639,7 @@ export function SterlingPreview({ data }: { data: CVData }) {
 
           {data.languages.length > 0 && (
             <>
-              <div style={lSecTitle}>Limbi străine</div>
+              <div style={lSecTitle}>{L.languages}</div>
               {data.languages.map((l, i) => (
                 <div key={i} style={lText}>{l.name} — {l.level}</div>
               ))}
@@ -640,14 +647,14 @@ export function SterlingPreview({ data }: { data: CVData }) {
           )}
           {(licenseText || data.qualifications?.trim()) && (
             <>
-              <div style={lSecTitle}>Calificări</div>
+              <div style={lSecTitle}>{L.qualifications}</div>
               {licenseText && <div style={lText}>{licenseText}</div>}
               {data.qualifications?.trim() && <div style={lText}>{data.qualifications.trim()}</div>}
             </>
           )}
           {data.hobbies.length > 0 && (
             <>
-              <div style={lSecTitle}>Hobby-uri</div>
+              <div style={lSecTitle}>{L.hobbies}</div>
               {data.hobbies.map((h, i) => (
                 <div key={i} style={lText}>{h}</div>
               ))}
@@ -656,19 +663,19 @@ export function SterlingPreview({ data }: { data: CVData }) {
         </div>
 
         <div style={{ flex: 1, minWidth: 0, paddingLeft: pt(24), paddingRight: pt(30), paddingTop: pt(26) }}>
-          <div style={{ fontSize: pt(22), fontWeight: 400, color: TC.ink, lineHeight: 1.1 }}>{firstNameOf(data) || "Prenume"}</div>
-          <div style={{ fontSize: pt(22), fontWeight: 900, color: TC.blue, lineHeight: 1.1 }}>{lastNameOf(data) || "Nume"}</div>
+          <div style={{ fontSize: pt(22), fontWeight: 400, color: TC.ink, lineHeight: 1.1 }}>{firstNameOf(data) || L.firstName}</div>
+          <div style={{ fontSize: pt(22), fontWeight: 900, color: TC.blue, lineHeight: 1.1 }}>{lastNameOf(data) || L.lastName}</div>
           {roleOf(data) && <div style={{ fontSize: pt(9.5), color: TC.muted, marginTop: pt(3), marginBottom: pt(12) }}>{roleOf(data)}</div>}
 
           {data.summary && (
             <div style={{ marginBottom: pt(13) }}>
-              {secTitle("Rezumat")}
+              {secTitle(L.summary)}
               <div style={{ fontSize: pt(9.2), lineHeight: 1.55 }}>{data.summary}</div>
             </div>
           )}
           {data.skills.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              {secTitle("Competențe")}
+              {secTitle(L.skills)}
               <div style={{ display: "flex", flexWrap: "wrap" }}>
                 {data.skills.map((sk, i) => (
                   <div key={i} style={{ width: "50%", display: "flex", gap: pt(5), marginBottom: pt(3), paddingRight: pt(8), boxSizing: "border-box" }}>
@@ -681,7 +688,7 @@ export function SterlingPreview({ data }: { data: CVData }) {
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              {secTitle("Experiență profesională")}
+              {secTitle(L.experience)}
               {data.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: pt(9) }}>
                   {entryHead(exp.title, exp.period)}
@@ -698,19 +705,19 @@ export function SterlingPreview({ data }: { data: CVData }) {
           )}
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              {secTitle("Educație")}
+              {secTitle(L.education)}
               {data.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: pt(9) }}>
                   {entryHead(<>{edu.level}{edu.field ? ` — ${edu.field}` : ""}</>, edu.years)}
                   <div style={{ fontSize: pt(9.2), color: TC.blue, fontWeight: 700, marginTop: pt(0.5), marginBottom: pt(3) }}>{edu.institution}</div>
-                  {(edu.grade || edu.thesis) && <div style={{ fontSize: pt(8.4), color: TC.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</div>}
+                  {(edu.grade || edu.thesis) && <div style={{ fontSize: pt(8.4), color: TC.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</div>}
                 </div>
               ))}
             </div>
           )}
           {data.courses.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              {secTitle("Certificări")}
+              {secTitle(L.certifications)}
               {data.courses.map((c, i) => (
                 <Bullet key={i} markColor={TC.blue} markSize={pt(9)} textStyle={{ fontSize: pt(8.8), lineHeight: 1.42 }}>
                   {c.name}

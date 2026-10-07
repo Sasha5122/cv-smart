@@ -2,6 +2,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { useMessages } from "@/lib/i18n/context";
+import { PHOTO_ADJUST_MESSAGES } from "@/lib/i18n/wizard/photo-adjust";
 
 /* ────────────────────────────────────────────────────────────────
    Ajustarea încadrării pozei — vizibilă DIRECT după încărcare, fără
@@ -32,6 +34,7 @@ interface View {
 }
 
 export function PhotoAdjust({ src, resetCrop, onCrop }: Props) {
+  const t = useMessages(PHOTO_ADJUST_MESSAGES);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [vp, setVp] = useState(0);
@@ -260,8 +263,7 @@ export function PhotoAdjust({ src, resetCrop, onCrop }: Props) {
       </div>
 
       <p style={{ fontSize: 14.5, color: "var(--muted-foreground)", textAlign: "center", lineHeight: 1.45, maxWidth: 340 }}>
-        Trage poza ca să o centrezi · zoom din slider, două degete sau scroll.
-        Se salvează automat.
+        {t.hint}
       </p>
 
       {/* zoom accesibil pe orice dispozitiv */}
@@ -274,7 +276,7 @@ export function PhotoAdjust({ src, resetCrop, onCrop }: Props) {
           step={0.05}
           value={effective.zoom}
           data-testid="photo-adjust-zoom"
-          aria-label="Zoom poză"
+          aria-label={t.zoomLabel}
           onChange={(e) => zoomAround(Number(e.target.value), vp / 2, vp / 2)}
           style={{ flex: 1, accentColor: "var(--primary)", cursor: "pointer", minHeight: 32 }}
         />
@@ -285,7 +287,7 @@ export function PhotoAdjust({ src, resetCrop, onCrop }: Props) {
           data-testid="photo-adjust-reset"
           icon={<RotateCcw className="w-4 h-4" />}
           style={{ flexShrink: 0, minHeight: 40 }}
-          aria-label="Resetează încadrarea"
+          aria-label={t.resetLabel}
         />
       </div>
     </div>

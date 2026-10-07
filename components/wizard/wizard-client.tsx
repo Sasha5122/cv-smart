@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { WizardLayout } from "./wizard-layout";
 import { useWizard } from "@/hooks/use-wizard";
+import { useMessages } from "@/lib/i18n/context";
+import { WIZARD_CLIENT_MESSAGES } from "@/lib/i18n/wizard/wizard-client";
 import type { WizardStep } from "@/lib/types/cv";
 
 import { Step01JobDescription } from "./steps/step-01-job-description";
@@ -24,6 +26,7 @@ const STORAGE_KEY = "cv-smart-progress";
 
 export function WizardClient({ sessionId }: WizardClientProps) {
   const wizard = useWizard(sessionId);
+  const t = useMessages(WIZARD_CLIENT_MESSAGES);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const lastResearchedJD = useRef<string>("");
   const hydratedRef = useRef(false);
@@ -59,10 +62,10 @@ export function WizardClient({ sessionId }: WizardClientProps) {
       // amânat puțin: în dev, StrictMode remontează <Toaster> imediat după
       // primul mount și ar înghiți un toast declanșat sincron aici
       setTimeout(() => {
-        toast.success("Ți-am restaurat progresul — continui de unde ai rămas.", {
+        toast.success(t.restored, {
           duration: 6000,
           action: {
-            label: "Începe de la zero",
+            label: t.startOver,
             onClick: () => {
               localStorage.removeItem(STORAGE_KEY);
               localStorage.removeItem("cv-smart-skills-cache");
@@ -81,7 +84,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
 
   // Persistare locală (refresh-proof), debounced
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       try {
         localStorage.setItem(
           STORAGE_KEY,
@@ -97,7 +100,7 @@ export function WizardClient({ sessionId }: WizardClientProps) {
         // storage plin/blocat — nu blocăm aplicația
       }
     }, 400);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [wizard.sessionId, wizard.currentStep, wizard.maxStep, wizard.cvData, wizard.jobDescription]);
 
   // Auto-save to DB debounced (folosește sesiunea activă, inclusiv cea restaurată)

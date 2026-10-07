@@ -7,9 +7,11 @@ import { PeriodPicker, EMPTY_PERIOD, buildPeriod, YEARS, MONTHS } from "../perio
 import { GraduationCap, Plus, Pencil, Trash2, X, ArrowRight, GripVertical } from "lucide-react";
 import type { Education, Course } from "@/lib/types/cv";
 import { toast } from "sonner";
+import { useLocale, useMessages } from "@/lib/i18n/context";
+import { STEP_EDUCATION_MESSAGES } from "@/lib/i18n/wizard/step-education";
 
 // ordinea reflectă publicul aplicației: nivelurile frecvente primele
-const LEVELS = ["Liceu", "Școală profesională", "Licență", "Master", "Doctorat", "Post-doctorat"];
+// (lista cu value/label stă în STEP_EDUCATION_MESSAGES — valoarea salvată rămâne în română)
 
 const EMPTY = {
   level: "", institution: "", field: "", location: "", thesis: "", grade: "",
@@ -52,6 +54,8 @@ interface Props {
 }
 
 export function Step08Education({ education, courses, onUpdate, onNext, onBack }: Props) {
+  const t = useMessages(STEP_EDUCATION_MESSAGES);
+  const locale = useLocale();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [form, setForm] = useState({ ...EMPTY });
@@ -94,15 +98,15 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
   };
 
   const handleSave = () => {
-    if (!form.level) { toast.error("Selectează nivelul de studii."); return; }
-    if (!form.institution.trim()) { toast.error("Numele instituției este obligatoriu."); return; }
-    if (!form.startYear) { toast.error("Alege anul de început al studiilor."); return; }
+    if (!form.level) { toast.error(t.toasts.levelRequired); return; }
+    if (!form.institution.trim()) { toast.error(t.toasts.institutionRequired); return; }
+    if (!form.startYear) { toast.error(t.toasts.startYearRequired); return; }
 
     const entry: Education = {
       level: form.level,
       institution: form.institution.trim(),
       field: form.field.trim(),
-      years: buildPeriod(form),
+      years: buildPeriod(form, locale),
       location: form.location.trim() || undefined,
       thesis: form.thesis.trim() || undefined,
       grade: form.grade.trim() || undefined,
@@ -112,24 +116,24 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
       const updated = [...education];
       updated[editIdx] = entry;
       onUpdate(updated, courses);
-      toast.success("Modificările au fost salvate.");
+      toast.success(t.toasts.saved);
     } else {
       onUpdate([...education, entry], courses);
-      toast.success("Educație adăugată.");
+      toast.success(t.toasts.added);
     }
     setDialogOpen(false);
   };
 
   const handleDelete = (i: number) => {
     onUpdate(education.filter((_, idx) => idx !== i), courses);
-    toast.success("Educație ștearsă.");
+    toast.success(t.toasts.deleted);
   };
 
   return (
     <>
       <StepCard
-        title="Educație"
-        subtitle="Adaugă studiile tale, de la cel mai înalt nivel în jos."
+        title={t.title}
+        subtitle={t.subtitle}
         icon={<GraduationCap className="w-5 h-5" />}
       >
         {/* Education list */}
@@ -151,9 +155,9 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                   </div>
                   {(e.grade || e.thesis) && (
                     <div style={{ fontSize: 12, color: "var(--faint)", marginTop: 2 }}>
-                      {e.grade && `Medie: ${e.grade}`}
+                      {e.grade && t.list.grade(e.grade)}
                       {e.grade && e.thesis && " · "}
-                      {e.thesis && `Lucrare: „${e.thesis}"`}
+                      {e.thesis && t.list.thesis(e.thesis)}
                     </div>
                   )}
                 </div>
@@ -187,7 +191,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
           }}
         >
           <Plus size={16} />
-          Adaugă educație
+          {t.addEducation}
         </button>
 
         {/* Cursuri & certificări — atestate, cursuri de calificare ANC etc. */}
@@ -200,12 +204,10 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
           }}
         >
           <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>
-            Cursuri & certificări <span style={{ color: "var(--faint)", fontWeight: 400 }}>(opțional)</span>
+            {t.courses.title} <span style={{ color: "var(--faint)", fontWeight: 400 }}>{t.courses.optional}</span>
           </p>
           <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginBottom: 12 }}>
-            Ai un atestat, un curs de calificare sau o autorizație? Scrie numele lui mai
-            jos și apasă „Adaugă cursul" — apare într-o secțiune separată în CV. Poți
-            adăuga oricâte, unul câte unul.
+            {t.courses.intro}
           </p>
 
           {courses.length > 0 && (
@@ -226,7 +228,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                   </span>
                   <button
                     onClick={() => onUpdate(education, courses.filter((_, idx) => idx !== i))}
-                    aria-label={`Șterge cursul ${c.name}`}
+                    aria-label={t.courses.deleteCourse(c.name)}
                     style={{ padding: 5, borderRadius: 6, border: "1px solid #FEE2E2", backgroundColor: "#FFF5F5", cursor: "pointer", display: "flex", flexShrink: 0 }}
                   >
                     <Trash2 size={13} color="#EF4444" />
@@ -240,20 +242,20 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
               nimeni nu mai ghicește ce se completează în fiecare căsuță */}
           <div className="course-form-grid">
             <Input
-              label="Numele cursului / atestatului"
-              placeholder="ex: Operator stivuitor ISCIR"
+              label={t.courses.nameLabel}
+              placeholder={t.courses.namePlaceholder}
               value={courseForm.name}
               onChange={(e) => setCourseForm((p) => ({ ...p, name: e.target.value }))}
             />
             <Input
-              label="Cine l-a emis (opțional)"
-              placeholder="ex: ANC, ISCIR, firmă"
+              label={t.courses.providerLabel}
+              placeholder={t.courses.providerPlaceholder}
               value={courseForm.provider}
               onChange={(e) => setCourseForm((p) => ({ ...p, provider: e.target.value }))}
             />
             <Input
-              label="Anul (opțional)"
-              placeholder="ex: 2021"
+              label={t.courses.yearLabel}
+              placeholder={t.courses.yearPlaceholder}
               inputMode="numeric"
               value={courseForm.year}
               onChange={(e) => setCourseForm((p) => ({ ...p, year: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
@@ -266,25 +268,25 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
             icon={<Plus className="w-4 h-4" />}
             style={{ width: "100%" }}
           >
-            Adaugă cursul
+            {t.courses.addCourse}
           </Button>
           {!courseForm.name.trim() && (
             <p style={{ fontSize: 12, color: "var(--faint)", marginTop: 8, textAlign: "center" }}>
-              Completează numele cursului ca să se activeze butonul.
+              {t.courses.addCourseHint}
             </p>
           )}
         </div>
 
         {education.length === 0 && (
           <p style={{ fontSize: 13, color: "var(--faint)", textAlign: "center", marginBottom: 4 }}>
-            Poți sări peste acest pas dacă nu dorești să adaugi studii.
+            {t.skipHint}
           </p>
         )}
 
         <div style={{ display: "flex", gap: 12 }}>
-          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>{t.back}</Button>
           <Button onClick={onNext} style={{ flex: 2 }}>
-            {education.length > 0 || courses.length > 0 ? "Continuă" : "Sari peste"} <ArrowRight size={16} />
+            {education.length > 0 || courses.length > 0 ? t.continue : t.skip} <ArrowRight size={16} />
           </Button>
         </div>
       </StepCard>
@@ -309,7 +311,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
             {/* Dialog header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--ink-strong)", margin: 0 }}>
-                {editIdx !== null ? "Editează educație" : "Adaugă educație"}
+                {editIdx !== null ? t.dialog.editTitle : t.dialog.addTitle}
               </h2>
               <button
                 onClick={() => setDialogOpen(false)}
@@ -321,7 +323,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
 
             {/* Level dropdown */}
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Nivel de studii *</label>
+              <label style={labelStyle}>{t.dialog.levelLabel}</label>
               <div style={{ position: "relative" }}>
                 <select
                   value={form.level}
@@ -333,8 +335,8 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                     outline: "none", appearance: "none", cursor: "pointer",
                   }}
                 >
-                  <option value="" disabled>Selectează nivelul de studii</option>
-                  {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                  <option value="" disabled>{t.dialog.levelPlaceholder}</option>
+                  {t.levels.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
                 </select>
                 <svg style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted-foreground)" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
               </div>
@@ -342,30 +344,30 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
 
             {/* Field of study */}
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Domeniu / specializare</label>
+              <label style={labelStyle}>{t.dialog.fieldLabel}</label>
               <Input
                 value={form.field}
                 onChange={(e) => set("field", e.target.value)}
-                placeholder="ex: Informatică, Medicină, Drept..."
+                placeholder={t.dialog.fieldPlaceholder}
               />
             </div>
 
             {/* Institution + Location */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
               <div>
-                <label style={labelStyle}>Instituție *</label>
+                <label style={labelStyle}>{t.dialog.institutionLabel}</label>
                 <Input
                   value={form.institution}
                   onChange={(e) => set("institution", e.target.value)}
-                  placeholder="ex: Universitatea Babeș-Bolyai"
+                  placeholder={t.dialog.institutionPlaceholder}
                 />
               </div>
               <div>
-                <label style={labelStyle}>Localitate</label>
+                <label style={labelStyle}>{t.dialog.locationLabel}</label>
                 <Input
                   value={form.location}
                   onChange={(e) => set("location", e.target.value)}
-                  placeholder="ex: Cluj-Napoca"
+                  placeholder={t.dialog.locationPlaceholder}
                 />
               </div>
             </div>
@@ -374,32 +376,32 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
             <PeriodPicker
               value={form}
               onChange={set}
-              fromLabel="De când *"
-              toLabel="Până când"
+              fromLabel={t.dialog.fromLabel}
+              toLabel={t.dialog.toLabel}
             />
 
             {/* Thesis + Grade */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
               <div>
                 <label style={labelStyle}>
-                  Titlu lucrare finală{" "}
-                  <span style={{ color: "var(--faint)", fontWeight: 400 }}>(opțional)</span>
+                  {t.dialog.thesisLabel}{" "}
+                  <span style={{ color: "var(--faint)", fontWeight: 400 }}>{t.dialog.optional}</span>
                 </label>
                 <Input
                   value={form.thesis}
                   onChange={(e) => set("thesis", e.target.value)}
-                  placeholder="Titlul lucrării de licență..."
+                  placeholder={t.dialog.thesisPlaceholder}
                 />
               </div>
               <div>
                 <label style={labelStyle}>
-                  Medie absolvire{" "}
-                  <span style={{ color: "var(--faint)", fontWeight: 400 }}>(opțional)</span>
+                  {t.dialog.gradeLabel}{" "}
+                  <span style={{ color: "var(--faint)", fontWeight: 400 }}>{t.dialog.optional}</span>
                 </label>
                 <Input
                   value={form.grade}
                   onChange={(e) => set("grade", e.target.value)}
-                  placeholder="ex: 9.50"
+                  placeholder={t.dialog.gradePlaceholder}
                 />
               </div>
             </div>
@@ -414,7 +416,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                   fontSize: 14, fontWeight: 500, color: "var(--muted-foreground)", cursor: "pointer",
                 }}
               >
-                Anulează
+                {t.dialog.cancel}
               </button>
               <button
                 onClick={handleSave}
@@ -425,7 +427,7 @@ export function Step08Education({ education, courses, onUpdate, onNext, onBack }
                   fontSize: 14, fontWeight: 600, color: "#fff", cursor: "pointer",
                 }}
               >
-                {editIdx !== null ? "Salvează modificările" : "Adaugă"}
+                {editIdx !== null ? t.dialog.saveChanges : t.dialog.add}
               </button>
             </div>
           </div>

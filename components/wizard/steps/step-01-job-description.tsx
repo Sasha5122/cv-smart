@@ -3,6 +3,8 @@ import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Target, ArrowRight, Sparkles } from "lucide-react";
+import { useMessages } from "@/lib/i18n/context";
+import { STEP_JOB_DESCRIPTION_MESSAGES } from "@/lib/i18n/wizard/step-job-description";
 
 interface Props {
   value: string;
@@ -14,18 +16,19 @@ interface Props {
 }
 
 export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }: Props) {
+  const t = useMessages(STEP_JOB_DESCRIPTION_MESSAGES);
   return (
     <StepCard
-      title="Ce job vrei să obții?"
-      subtitle="Fă copy-paste la descrierea jobului pentru care vrei să aplici. CV-ul tău va fi personalizat exact pentru acel job ca să ai șanse maxime pentru interviu și angajare."
+      title={t.title}
+      subtitle={t.subtitle}
       icon={<Target className="w-5 h-5" />}
     >
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Fă copy-paste la descrierea jobului de pe eJobs, BestJobs, LinkedIn... sau scrie jobul dorit (ex: Vânzător la Lidl)"
+        placeholder={t.placeholder}
         rows={7}
-        hint="Cu cât descrierea e mai completă, cu atât CV-ul va fi mai bine adaptat pentru acel job"
+        hint={t.hint}
       />
 
       {value && (
@@ -41,7 +44,7 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
         >
           <Sparkles className="w-4 h-4 shrink-0" style={{ color: "var(--green)" }} />
           <p style={{ fontSize: 13.5, color: "#065f46", fontWeight: 600 }}>
-            CV-ul va fi ancorat pe acest anunț — vocabular, cerințe, ordine.
+            {t.anchored}
           </p>
         </div>
       )}
@@ -50,7 +53,7 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
         <div className="flex gap-3">
           {onBack && (
             <Button variant="outline" onClick={onBack} className="flex-1">
-              ← Înapoi
+              {t.back}
             </Button>
           )}
           <Button
@@ -59,7 +62,7 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
             className={onBack ? "flex-[2]" : "w-full"}
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
-            Continuă
+            {t.continue}
           </Button>
         </div>
         <button
@@ -78,7 +81,7 @@ export function Step01JobDescription({ value, onChange, onNext, onSkip, onBack }
             textUnderlineOffset: 4,
           }}
         >
-          Nu am un anunț — continuă cu un CV general
+          {t.skip}
         </button>
       </div>
     </StepCard>

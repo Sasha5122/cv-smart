@@ -1,6 +1,8 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import type { CVData } from "@/lib/types/cv";
+import { useMessages } from "@/lib/i18n/context";
+import { PREVIEW_LABELS } from "@/lib/i18n/wizard/preview-labels";
 import {
   Sheet, Row, Bullet, pt, DISPLAY,
   fullNameOf, roleOf, localityOf, streetOf, licenseTextOf, eduMetaOf, photoOf, splitPeriod,
@@ -17,9 +19,10 @@ const C_SIDE = 225;
 const C_PHOTO = 118;
 
 export function CobaltPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const sidePill = (label: string) => (
     <div style={{ backgroundColor: CC.blueDark, borderRadius: pt(12), padding: `${pt(5)}px ${pt(14)}px`, alignSelf: "flex-start", display: "inline-block", margin: `${pt(8)}px 0` }}>
       <span style={{ fontSize: pt(9.5), fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: pt(1) }}>{label}</span>
@@ -45,34 +48,34 @@ export function CobaltPreview({ data }: { data: CVData }) {
           )}
           <div style={{ backgroundColor: CC.blueDark, borderRadius: pt(14), padding: `${pt(7)}px ${pt(14)}px`, margin: `${pt(14)}px auto 0`, width: "fit-content", maxWidth: "100%" }}>
             <div style={{ fontSize: pt(14), fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: pt(0.5), textAlign: "center" }}>
-              {fullNameOf(data) || "Prenume Nume"}
+              {fullNameOf(data) || L.fullName}
             </div>
           </div>
           {roleOf(data) && <div style={{ fontSize: pt(9.5), color: "#d8e0f8", textAlign: "center", marginTop: pt(5), marginBottom: pt(14) }}>{roleOf(data)}</div>}
 
-          {sidePill("Contact")}
+          {sidePill(L.contact)}
           {(streetOf(data) || localityOf(data)) && (
             <>
-              <div style={cLabel}>Adresă</div>
+              <div style={cLabel}>{L.address}</div>
               <div style={cValue}>{[streetOf(data), localityOf(data)].filter(Boolean).join(", ")}</div>
             </>
           )}
           {p?.phone && (
             <>
-              <div style={cLabel}>Telefon</div>
+              <div style={cLabel}>{L.phone}</div>
               <div style={cValue}>{p.phone}</div>
             </>
           )}
           {p?.email && (
             <>
-              <div style={cLabel}>Email</div>
+              <div style={cLabel}>{L.email}</div>
               <div style={cValue}>{p.email}</div>
             </>
           )}
 
           {data.skills.length > 0 && (
             <>
-              {sidePill("Competențe")}
+              {sidePill(L.skills)}
               {data.skills.map((sk, i) => (
                 <Bullet key={i} markColor="#c9d4f5" markSize={pt(9)} gap={pt(6)} mb={pt(3.5)} textStyle={{ fontSize: pt(8.8), color: "#fff", lineHeight: 1.4 }}>
                   {sk.name}
@@ -83,7 +86,7 @@ export function CobaltPreview({ data }: { data: CVData }) {
 
           {data.languages.length > 0 && (
             <>
-              {sidePill("Limbi")}
+              {sidePill(L.languagesShort)}
               {data.languages.map((l, i) => (
                 <div key={i}>
                   <div style={cLabel}>{l.name}</div>
@@ -97,13 +100,13 @@ export function CobaltPreview({ data }: { data: CVData }) {
         <div style={{ flex: 1, minWidth: 0, padding: `${pt(30)}px ${pt(30)}px 0 ${pt(24)}px` }}>
           {data.summary && (
             <div style={{ marginBottom: pt(14) }}>
-              {mainPill("Despre mine")}
+              {mainPill(L.about)}
               <div style={{ fontSize: pt(9.4), lineHeight: 1.55 }}>{data.summary}</div>
             </div>
           )}
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {mainPill("Educație")}
+              {mainPill(L.education)}
               {data.education.map((edu, i) => (
                 <Row key={i} gap={pt(9)} style={{ marginBottom: pt(8) }}>
                   <div style={{ width: pt(10), flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -113,12 +116,12 @@ export function CobaltPreview({ data }: { data: CVData }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: pt(10), fontWeight: 700, color: CC.ink }}>
                       {edu.level}
-                      {edu.field ? ` în ${edu.field}` : ""}
+                      {edu.field ? L.inField(edu.field) : ""}
                     </div>
                     <div style={{ fontSize: pt(9), color: CC.blue, fontWeight: 700 }}>{edu.institution}</div>
                     <div style={{ fontSize: pt(8.2), color: CC.muted }}>{edu.years}</div>
                     {(edu.grade || edu.thesis) && (
-                      <div style={{ fontSize: pt(8), color: CC.muted, fontStyle: "italic", marginTop: pt(1) }}>{eduMetaOf(edu)}</div>
+                      <div style={{ fontSize: pt(8), color: CC.muted, fontStyle: "italic", marginTop: pt(1) }}>{eduMetaOf(edu, L)}</div>
                     )}
                   </div>
                 </Row>
@@ -127,7 +130,7 @@ export function CobaltPreview({ data }: { data: CVData }) {
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {mainPill("Experiență")}
+              {mainPill(L.experienceShort)}
               {data.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: pt(9) }}>
                   <div style={{ fontSize: pt(10.5), fontWeight: 900, color: CC.ink }}>
@@ -146,7 +149,7 @@ export function CobaltPreview({ data }: { data: CVData }) {
           )}
           {(data.courses.length > 0 || licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
             <div style={{ marginBottom: pt(14) }}>
-              {mainPill("Extra")}
+              {mainPill(L.extra)}
               {data.courses.map((c, i) => (
                 <Bullet key={i} markColor={CC.blue} markSize={pt(9)} textStyle={{ fontSize: pt(8.8), lineHeight: 1.42 }}>
                   {c.name}
@@ -160,7 +163,7 @@ export function CobaltPreview({ data }: { data: CVData }) {
               )}
               {data.hobbies.length > 0 && (
                 <Bullet markColor={CC.blue} markSize={pt(9)} textStyle={{ fontSize: pt(8.8), lineHeight: 1.42 }}>
-                  Hobby-uri: {data.hobbies.join(", ")}
+                  {L.hobbiesLabel} {data.hobbies.join(", ")}
                 </Bullet>
               )}
             </div>
@@ -177,9 +180,10 @@ const A_SIDE = 210;
 const A_PHOTO = 108;
 
 export function AmberPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const sideHead = (icon: React.ReactNode, label: string) => (
     <>
       <div style={{ display: "flex", alignItems: "center", gap: pt(7), marginBottom: pt(3), marginTop: pt(12) }}>
@@ -216,39 +220,39 @@ export function AmberPreview({ data }: { data: CVData }) {
             </div>
           )}
           <div style={{ fontSize: pt(19), fontWeight: 900, color: AM.yellow, textAlign: "center", lineHeight: 1.15 }}>
-            {fullNameOf(data) || "Prenume Nume"}
+            {fullNameOf(data) || L.fullName}
           </div>
           {roleOf(data) && <div style={{ fontSize: pt(9.5), color: AM.sideText, textAlign: "center", marginTop: pt(3), marginBottom: pt(16) }}>{roleOf(data)}</div>}
 
-          {sideHead(<IPhone color={AM.charcoal} size={pt(9)} />, "Contact")}
+          {sideHead(<IPhone color={AM.charcoal} size={pt(9)} />, L.contact)}
           {p?.email && (
             <>
-              <div style={cLabel}>Email</div>
+              <div style={cLabel}>{L.email}</div>
               <div style={cValue}>{p.email}</div>
             </>
           )}
           {p?.phone && (
             <>
-              <div style={cLabel}>Telefon</div>
+              <div style={cLabel}>{L.phone}</div>
               <div style={cValue}>{p.phone}</div>
             </>
           )}
           {localityOf(data) && (
             <>
-              <div style={cLabel}>Oraș</div>
+              <div style={cLabel}>{L.city}</div>
               <div style={cValue}>{localityOf(data)}</div>
             </>
           )}
           {p?.linkedin && (
             <>
-              <div style={cLabel}>LinkedIn</div>
+              <div style={cLabel}>{L.linkedin}</div>
               <div style={cValue}>{p.linkedin}</div>
             </>
           )}
 
           {data.skills.length > 0 && (
             <>
-              {sideHead(<IStar color={AM.charcoal} size={pt(9)} />, "Competențe")}
+              {sideHead(<IStar color={AM.charcoal} size={pt(9)} />, L.skills)}
               {data.skills.map((sk, i) => (
                 <Bullet key={i} markColor={AM.yellow} markSize={pt(9)} gap={pt(6)} mb={pt(3.5)} textStyle={{ fontSize: pt(8.6), color: AM.sideText, lineHeight: 1.4 }}>
                   {sk.name}
@@ -259,7 +263,7 @@ export function AmberPreview({ data }: { data: CVData }) {
 
           {(data.hobbies.length > 0 || data.languages.length > 0) && (
             <>
-              {sideHead(<IUser color={AM.charcoal} size={pt(9)} />, "Interese & Limbi")}
+              {sideHead(<IUser color={AM.charcoal} size={pt(9)} />, L.interestsLanguages)}
               {data.languages.map((l, i) => (
                 <div key={`l${i}`} style={{ fontSize: pt(8.6), color: AM.sideText, marginBottom: pt(3) }}>
                   {l.name} — {l.level}
@@ -275,13 +279,13 @@ export function AmberPreview({ data }: { data: CVData }) {
         <div style={{ flex: 1, minWidth: 0, padding: `${pt(30)}px ${pt(30)}px 0 ${pt(26)}px` }}>
           {data.summary && (
             <div style={{ marginBottom: pt(14) }}>
-              {mainHead(<IUser color={AM.charcoal} size={pt(10)} />, "Profil")}
+              {mainHead(<IUser color={AM.charcoal} size={pt(10)} />, L.profile)}
               <div style={{ fontSize: pt(9.4), lineHeight: 1.55 }}>{data.summary}</div>
             </div>
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {mainHead(<IBriefcase color={AM.charcoal} size={pt(10)} />, "Experiență")}
+              {mainHead(<IBriefcase color={AM.charcoal} size={pt(10)} />, L.experienceShort)}
               {data.experience.map((exp, i) => (
                 <Row key={i} gap={pt(9)} style={{ marginBottom: pt(9) }}>
                   <div style={{ width: pt(10), flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -304,7 +308,7 @@ export function AmberPreview({ data }: { data: CVData }) {
           )}
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {mainHead(<ICap color={AM.charcoal} size={pt(10)} />, "Educație")}
+              {mainHead(<ICap color={AM.charcoal} size={pt(10)} />, L.education)}
               {data.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: pt(6) }}>
                   <div style={{ fontSize: pt(10.5), fontWeight: 900, color: AM.ink }}>
@@ -315,7 +319,7 @@ export function AmberPreview({ data }: { data: CVData }) {
                     {edu.institution} | {edu.years}
                   </div>
                   {(edu.grade || edu.thesis) && (
-                    <div style={{ fontSize: pt(8.2), color: AM.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</div>
+                    <div style={{ fontSize: pt(8.2), color: AM.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</div>
                   )}
                 </div>
               ))}
@@ -323,7 +327,7 @@ export function AmberPreview({ data }: { data: CVData }) {
           )}
           {(data.courses.length > 0 || licenseText || data.qualifications?.trim()) && (
             <div style={{ marginBottom: pt(14) }}>
-              {mainHead(<IStar color={AM.charcoal} size={pt(10)} />, "Certificări & Calificări")}
+              {mainHead(<IStar color={AM.charcoal} size={pt(10)} />, L.certificationsQualifications)}
               {data.courses.map((c, i) => (
                 <Bullet key={i} markColor={AM.yellow} markSize={pt(10)} textStyle={{ fontSize: pt(8.8), lineHeight: 1.42 }}>
                   {c.name}
@@ -350,9 +354,10 @@ const V_PHOTO = 92;
 const V_BAND_TOP = 34;
 
 export function VelvetPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const sideSecTitle: React.CSSProperties = { fontSize: pt(9.5), fontWeight: 900, color: VC.mauve, textTransform: "uppercase", letterSpacing: pt(1.4), marginTop: pt(16), marginBottom: pt(6) };
   const sideRule = <div style={{ height: 0.75, backgroundColor: "#3c3b63", marginBottom: pt(7) }} />;
   const sYears: React.CSSProperties = { fontSize: pt(7.8), color: "#9a99b8", marginBottom: pt(0.5) };
@@ -369,7 +374,7 @@ export function VelvetPreview({ data }: { data: CVData }) {
       <div style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: pt(V_SIDE), backgroundColor: VC.plum }} />
       {/* banda cu numele + strip-ul cu rolul */}
       <div style={{ position: "absolute", top: pt(V_BAND_TOP), left: pt(V_SIDE - 14), right: 0, height: pt(46), backgroundColor: VC.mauve, display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: pt(20), boxSizing: "border-box" }}>
-        <span style={{ fontSize: pt(21), color: "#fff", letterSpacing: pt(1), textAlign: "right" }}>{fullNameOf(data) || "Prenume Nume"}</span>
+        <span style={{ fontSize: pt(21), color: "#fff", letterSpacing: pt(1), textAlign: "right" }}>{fullNameOf(data) || L.fullName}</span>
       </div>
       {roleOf(data) && (
         <div style={{ position: "absolute", top: pt(V_BAND_TOP + 46), left: pt(V_SIDE - 14), right: 0, height: pt(20), backgroundColor: VC.plumDark, display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: pt(20), boxSizing: "border-box" }}>
@@ -404,7 +409,7 @@ export function VelvetPreview({ data }: { data: CVData }) {
 
           {data.education.length > 0 && (
             <>
-              <div style={sideSecTitle}>Educație</div>
+              <div style={sideSecTitle}>{L.education}</div>
               {sideRule}
               {data.education.map((edu, i) => (
                 <div key={i}>
@@ -421,7 +426,7 @@ export function VelvetPreview({ data }: { data: CVData }) {
 
           {(data.courses.length > 0 || data.qualifications?.trim() || licenseText) && (
             <>
-              <div style={sideSecTitle}>Certificări</div>
+              <div style={sideSecTitle}>{L.certifications}</div>
               {sideRule}
               {data.courses.map((c, i) => (
                 <div key={i}>
@@ -437,7 +442,7 @@ export function VelvetPreview({ data }: { data: CVData }) {
 
           {data.languages.length > 0 && (
             <>
-              <div style={sideSecTitle}>Limbi străine</div>
+              <div style={sideSecTitle}>{L.languages}</div>
               {sideRule}
               {data.languages.map((l, i) => (
                 <div key={i}>
@@ -450,7 +455,7 @@ export function VelvetPreview({ data }: { data: CVData }) {
 
           {data.hobbies.length > 0 && (
             <>
-              <div style={sideSecTitle}>Hobby-uri</div>
+              <div style={sideSecTitle}>{L.hobbies}</div>
               {sideRule}
               {data.hobbies.map((h, i) => (
                 <div key={i} style={{ ...sTitle, marginBottom: pt(3) }}>{h}</div>
@@ -462,21 +467,21 @@ export function VelvetPreview({ data }: { data: CVData }) {
         <div style={{ flex: 1, minWidth: 0, padding: `${pt(118)}px ${pt(30)}px 0 ${pt(26)}px` }}>
           {data.summary && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Profil")}
+              {secTitle(L.profile)}
               <div style={{ fontSize: pt(9.4), lineHeight: 1.55 }}>{data.summary}</div>
             </div>
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Experiență profesională")}
+              {secTitle(L.experience)}
               {data.experience.map((exp, i) => {
                 const { from, to } = splitPeriod(exp.period);
                 return (
                   <Row key={i} gap={pt(12)} style={{ marginBottom: pt(10) }}>
                     <div style={{ width: pt(62), flexShrink: 0 }}>
-                      <div style={{ fontSize: pt(7.6), color: "#9aa0ab", textTransform: "uppercase", letterSpacing: pt(0.5) }}>De la:</div>
+                      <div style={{ fontSize: pt(7.6), color: "#9aa0ab", textTransform: "uppercase", letterSpacing: pt(0.5) }}>{L.from}</div>
                       <div style={{ fontSize: pt(8.2), color: VC.muted, marginBottom: pt(4) }}>{from}</div>
-                      <div style={{ fontSize: pt(7.6), color: "#9aa0ab", textTransform: "uppercase", letterSpacing: pt(0.5) }}>Până la:</div>
+                      <div style={{ fontSize: pt(7.6), color: "#9aa0ab", textTransform: "uppercase", letterSpacing: pt(0.5) }}>{L.to}</div>
                       <div style={{ fontSize: pt(8.2), color: VC.muted, marginBottom: pt(4) }}>{to || "—"}</div>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -496,7 +501,7 @@ export function VelvetPreview({ data }: { data: CVData }) {
           )}
           {data.skills.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Competențe")}
+              {secTitle(L.skills)}
               <div style={{ fontSize: pt(9.2), lineHeight: 1.7, color: VC.text }}>{data.skills.map((sk) => sk.name).join("  •  ")}</div>
             </div>
           )}
@@ -512,9 +517,10 @@ const S_SIDE = 200;
 const S_PHOTO_H = 190;
 
 export function SapphirePreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const softwareSkills = data.skills.filter((sk) => sk.category === "software");
   const otherSkills = data.skills.filter((sk) => sk.category !== "software");
   const sideSecTitle: React.CSSProperties = { fontSize: pt(10.5), fontWeight: 900, color: SC.yellow, textTransform: "uppercase", letterSpacing: pt(1.2), marginTop: pt(14), marginBottom: pt(8) };
@@ -561,7 +567,7 @@ export function SapphirePreview({ data }: { data: CVData }) {
             <div style={{ width: pt(S_SIDE), height: pt(S_PHOTO_H) }} />
           )}
           <div style={{ padding: `${pt(16)}px ${pt(18)}px 0` }}>
-            <div style={sideSecTitle}>Contact</div>
+            <div style={sideSecTitle}>{L.contact}</div>
             {p?.phone && cRow(<IPhone color={SC.navy} size={pt(8)} />, p.phone, "ph")}
             {p?.email && cRow(<IMail color={SC.navy} size={pt(8)} />, p.email, "em")}
             {p?.linkedin && cRow(<IGlobe color={SC.navy} size={pt(8)} />, p.linkedin, "li")}
@@ -569,7 +575,7 @@ export function SapphirePreview({ data }: { data: CVData }) {
 
             {otherSkills.length > 0 && (
               <>
-                <div style={sideSecTitle}>Competențe</div>
+                <div style={sideSecTitle}>{L.skills}</div>
                 {otherSkills.map((sk, i) => (
                   <Bullet key={i} markColor={SC.yellow} markSize={pt(9)} gap={pt(6)} mb={pt(3.5)} textStyle={{ fontSize: pt(8.6), color: SC.sideText, lineHeight: 1.4 }}>
                     {sk.name}
@@ -580,7 +586,7 @@ export function SapphirePreview({ data }: { data: CVData }) {
 
             {data.hobbies.length > 0 && (
               <>
-                <div style={sideSecTitle}>Interese</div>
+                <div style={sideSecTitle}>{L.interests}</div>
                 <div style={{ display: "flex", flexWrap: "wrap" }}>
                   {data.hobbies.map((h, i) => (
                     <div key={i} style={{ width: "50%", display: "flex", gap: pt(5), marginBottom: pt(4), paddingRight: pt(4), boxSizing: "border-box" }}>
@@ -594,7 +600,7 @@ export function SapphirePreview({ data }: { data: CVData }) {
 
             {data.languages.length > 0 && (
               <>
-                <div style={sideSecTitle}>Limbi</div>
+                <div style={sideSecTitle}>{L.languagesShort}</div>
                 <div style={{ display: "flex", flexWrap: "wrap" }}>
                   {data.languages.map((l, i) => (
                     <div key={i} style={{ width: "50%", display: "flex", gap: pt(5), marginBottom: pt(4), paddingRight: pt(4), boxSizing: "border-box" }}>
@@ -610,7 +616,7 @@ export function SapphirePreview({ data }: { data: CVData }) {
 
             {(licenseText || data.qualifications?.trim()) && (
               <>
-                <div style={sideSecTitle}>Calificări</div>
+                <div style={sideSecTitle}>{L.qualifications}</div>
                 {licenseText && (
                   <Bullet markColor={SC.yellow} markSize={pt(9)} gap={pt(6)} mb={pt(4)} textStyle={{ fontSize: pt(8.2), color: SC.sideText, lineHeight: 1.35 }}>
                     {licenseText}
@@ -628,7 +634,7 @@ export function SapphirePreview({ data }: { data: CVData }) {
 
         <div style={{ flex: 1, minWidth: 0, padding: `${pt(34)}px ${pt(30)}px 0 ${pt(26)}px` }}>
           <div style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: pt(26), color: SC.navy, textTransform: "uppercase", lineHeight: 1.1 }}>
-            {fullNameOf(data) || "Prenume Nume"}
+            {fullNameOf(data) || L.fullName}
           </div>
           {roleOf(data) && (
             <div style={{ fontSize: pt(10), color: SC.muted, textTransform: "uppercase", letterSpacing: pt(2.4), marginTop: pt(4) }}>{roleOf(data)}</div>
@@ -637,14 +643,14 @@ export function SapphirePreview({ data }: { data: CVData }) {
 
           {data.summary && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Despre mine")}
+              {secTitle(L.about)}
               <div style={{ fontSize: pt(9.4), lineHeight: 1.55 }}>{data.summary}</div>
             </div>
           )}
 
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Experiență profesională")}
+              {secTitle(L.experience)}
               {data.experience.map((exp, i) =>
                 tlEntry(
                   exp.company,
@@ -662,28 +668,28 @@ export function SapphirePreview({ data }: { data: CVData }) {
 
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Educație")}
+              {secTitle(L.education)}
               {data.education.map((edu, i) =>
                 tlEntry(
                   edu.institution,
                   edu.years,
                   `${edu.level}${edu.field ? ` — ${edu.field}` : ""}`,
                   (edu.grade || edu.thesis) ? (
-                    <div style={{ fontSize: pt(8.4), color: SC.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</div>
+                    <div style={{ fontSize: pt(8.4), color: SC.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</div>
                   ) : null,
                   i,
                   i === data.education.length - 1 && data.courses.length === 0
                 )
               )}
               {data.courses.map((c, i) =>
-                tlEntry(c.provider ?? "Certificare", c.year ?? "", c.name, null, `c${i}`, true)
+                tlEntry(c.provider ?? L.certification, c.year ?? "", c.name, null, `c${i}`, true)
               )}
             </div>
           )}
 
           {softwareSkills.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Software")}
+              {secTitle(L.software)}
               <div style={{ display: "flex", flexWrap: "wrap", columnGap: pt(24) }}>
                 {softwareSkills.map((sk, i) => (
                   <div key={i} style={{ width: "45%", display: "flex", gap: pt(6), marginBottom: pt(4) }}>
@@ -705,9 +711,10 @@ const GC = { slate: "#5d7386", slateDark: "#3e5468", ink: "#2b3138", text: "#3d4
 const G_LEFT = 218;
 
 export function GraphitePreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const lSecTitle = (label: string) => (
     <div style={{ display: "inline-block", fontSize: pt(9.5), fontWeight: 900, color: GC.ink, textTransform: "uppercase", letterSpacing: pt(1.4), marginTop: pt(12), marginBottom: pt(5), paddingBottom: pt(2.5), borderBottom: `1.5px solid ${GC.slate}` }}>
       {label}
@@ -727,14 +734,14 @@ export function GraphitePreview({ data }: { data: CVData }) {
         <div style={{ width: pt(G_LEFT), flexShrink: 0, padding: `${pt(26)}px ${pt(18)}px 0 ${pt(26)}px`, boxSizing: "border-box", position: "relative" }}>
           {photo && <img src={photo} alt="" style={{ width: pt(G_LEFT - 44), height: pt(168), objectFit: "cover", marginBottom: pt(14) }} />}
           <div style={{ fontSize: pt(17), fontWeight: 900, color: GC.ink, textTransform: "uppercase", letterSpacing: pt(1.2), lineHeight: 1.2 }}>
-            {fullNameOf(data) || "Prenume Nume"}
+            {fullNameOf(data) || L.fullName}
           </div>
           {roleOf(data) && (
             <div style={{ fontSize: pt(9), color: GC.slate, fontWeight: 700, textTransform: "uppercase", letterSpacing: pt(1), marginTop: pt(2), marginBottom: pt(12) }}>
               {roleOf(data)}
             </div>
           )}
-          <div>{lSecTitle("Contact")}</div>
+          <div>{lSecTitle(L.contact)}</div>
           {p?.email && <div style={lText}>{p.email}</div>}
           {p?.phone && <div style={lText}>{p.phone}</div>}
           {p?.linkedin && <div style={lText}>{p.linkedin}</div>}
@@ -742,7 +749,7 @@ export function GraphitePreview({ data }: { data: CVData }) {
 
           {data.skills.length > 0 && (
             <>
-              <div>{lSecTitle("Competențe")}</div>
+              <div>{lSecTitle(L.skills)}</div>
               {data.skills.map((sk, i) => (
                 <Bullet key={i} markColor={GC.slate} markSize={pt(9)} mb={pt(2.5)} textStyle={{ fontSize: pt(8.6), color: GC.text, lineHeight: 1.4 }}>{sk.name}</Bullet>
               ))}
@@ -751,7 +758,7 @@ export function GraphitePreview({ data }: { data: CVData }) {
 
           {data.languages.length > 0 && (
             <>
-              <div>{lSecTitle("Limbi străine")}</div>
+              <div>{lSecTitle(L.languages)}</div>
               {data.languages.map((l, i) => (
                 <Bullet key={i} markColor={GC.slate} markSize={pt(9)} mb={pt(2.5)} textStyle={{ fontSize: pt(8.6), color: GC.text, lineHeight: 1.4 }}>
                   {l.name} — {l.level}
@@ -762,14 +769,14 @@ export function GraphitePreview({ data }: { data: CVData }) {
 
           {(licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
             <>
-              <div>{lSecTitle("Extra")}</div>
+              <div>{lSecTitle(L.extra)}</div>
               {licenseText && <Bullet markColor={GC.slate} markSize={pt(9)} mb={pt(2.5)} textStyle={{ fontSize: pt(8.6), color: GC.text, lineHeight: 1.4 }}>{licenseText}</Bullet>}
               {data.qualifications?.trim() && (
                 <Bullet markColor={GC.slate} markSize={pt(9)} mb={pt(2.5)} textStyle={{ fontSize: pt(8.6), color: GC.text, lineHeight: 1.4 }}>{data.qualifications.trim()}</Bullet>
               )}
               {data.hobbies.length > 0 && (
                 <Bullet markColor={GC.slate} markSize={pt(9)} mb={pt(2.5)} textStyle={{ fontSize: pt(8.6), color: GC.text, lineHeight: 1.4 }}>
-                  Hobby-uri: {data.hobbies.join(", ")}
+                  {L.hobbiesLabel} {data.hobbies.join(", ")}
                 </Bullet>
               )}
             </>
@@ -779,13 +786,13 @@ export function GraphitePreview({ data }: { data: CVData }) {
         <div style={{ flex: 1, minWidth: 0, padding: `${pt(26)}px ${pt(26)}px 0 ${pt(20)}px`, position: "relative" }}>
           {(roleOf(data) || data.summary) && (
             <>
-              {titleBar(roleOf(data) || "Profil")}
+              {titleBar(roleOf(data) || L.profile)}
               {data.summary && <div style={{ fontSize: pt(8.9), color: GC.white, lineHeight: 1.5 }}>{data.summary}</div>}
             </>
           )}
           {data.experience.length > 0 && (
             <>
-              {titleBar("Experiență profesională", pt(16))}
+              {titleBar(L.experience, pt(16))}
               {data.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: pt(10) }}>
                   <div style={{ fontSize: pt(10), fontWeight: 900, color: "#fff" }}>
@@ -804,7 +811,7 @@ export function GraphitePreview({ data }: { data: CVData }) {
           )}
           {data.education.length > 0 && (
             <>
-              {titleBar("Educație", pt(16))}
+              {titleBar(L.education, pt(16))}
               {data.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: pt(10) }}>
                   <div style={{ fontSize: pt(10), fontWeight: 900, color: "#fff" }}>
@@ -814,14 +821,14 @@ export function GraphitePreview({ data }: { data: CVData }) {
                   <div style={{ fontSize: pt(8.4), color: "#c6d2dc", fontStyle: "italic", marginTop: pt(0.5), marginBottom: pt(3) }}>
                     {edu.institution} · {edu.years}
                   </div>
-                  {(edu.grade || edu.thesis) && <div style={{ fontSize: pt(8.9), color: GC.white, lineHeight: 1.5 }}>{eduMetaOf(edu)}</div>}
+                  {(edu.grade || edu.thesis) && <div style={{ fontSize: pt(8.9), color: GC.white, lineHeight: 1.5 }}>{eduMetaOf(edu, L)}</div>}
                 </div>
               ))}
             </>
           )}
           {data.courses.length > 0 && (
             <>
-              {titleBar("Certificări", pt(16))}
+              {titleBar(L.certifications, pt(16))}
               {data.courses.map((c, i) => (
                 <Bullet key={i} mark="–" markColor="#c6d2dc" markSize={pt(8.5)} textStyle={{ fontSize: pt(8.7), color: GC.white, lineHeight: 1.45 }}>
                   {c.name}

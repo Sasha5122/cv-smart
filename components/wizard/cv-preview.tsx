@@ -2,6 +2,8 @@
 import type { CVData, TemplateId } from "@/lib/types/cv";
 import { User } from "lucide-react";
 import { MODEL_PREVIEWS } from "./preview-models";
+import { useMessages } from "@/lib/i18n/context";
+import { PREVIEW_LABELS } from "@/lib/i18n/wizard/preview-labels";
 
 interface CVPreviewProps {
   cvData: CVData;
@@ -140,6 +142,7 @@ const THEMES: Record<TemplateId, Theme> = {
 };
 
 export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
+  const L = useMessages(PREVIEW_LABELS);
   // cele 14 modele noi au preview-uri dedicate care oglindesc fidel PDF-ul
   const ModelPreview = MODEL_PREVIEWS[template];
   if (ModelPreview) return <ModelPreview data={cvData} />;
@@ -198,7 +201,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
   const ExperienceSection = () =>
     experience.length > 0 ? (
       <div>
-        <SectionHeader title={template === "minimal" ? "Experiență" : "Experiență profesională"} />
+        <SectionHeader title={template === "minimal" ? L.experienceShort : L.experience} />
         <div style={{ display: "flex", flexDirection: "column", gap: compact ? 7 : 10, marginTop: 6 }}>
           {experience.map((exp, i) => (
             <div key={i}>
@@ -228,7 +231,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
   const EducationSection = () =>
     education.length > 0 ? (
       <div>
-        <SectionHeader title="Educație" />
+        <SectionHeader title={L.education} />
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
           {education.map((edu, i) => (
             <div key={i}>
@@ -245,7 +248,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
               </p>
               {(edu.grade || edu.thesis) && (
                 <p style={{ color: t.muted, fontSize: 10.5, margin: "2px 0 0", fontStyle: "italic" }}>
-                  {[edu.grade ? `Medie: ${edu.grade}` : "", edu.thesis ? `Lucrare: „${edu.thesis}"` : ""]
+                  {[edu.grade ? L.gradeLine(edu.grade) : "", edu.thesis ? L.thesisLine(edu.thesis) : ""]
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
@@ -259,7 +262,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
   const CoursesSection = () =>
     courses.length > 0 ? (
       <div>
-        <SectionHeader title="Cursuri & certificări" />
+        <SectionHeader title={L.courses} />
         <ul style={{ margin: "6px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 3 }}>
           {courses.map((c, i) => (
             <Bullet key={i}>
@@ -275,7 +278,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
   const SkillsSection = () =>
     skills.length > 0 ? (
       <div>
-        <SectionHeader title="Competențe" />
+        <SectionHeader title={L.skills} />
         {t.skills === "chips" ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 6px", marginTop: 7 }}>
             {skills.map((sk, i) => (
@@ -295,7 +298,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
   const LanguagesSection = () =>
     languages.length > 0 ? (
       <div>
-        <SectionHeader title="Limbi străine" />
+        <SectionHeader title={L.languages} />
         <p style={{ color: t.text, fontSize: 11.5, margin: "6px 0 0", lineHeight: 1.7, textAlign: t.secAlign }}>
           {languages.map((l, i) => (
             <span key={i}>
@@ -310,11 +313,11 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
   const LicenseSection = () =>
     hasLicenseInfo ? (
       <div>
-        <SectionHeader title="Permis & Calificări" />
+        <SectionHeader title={L.licenseQualifications} />
         <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 6, textAlign: t.secAlign }}>
           {license?.hasLicense && license.categories.length > 0 && (
             <p style={{ color: t.text, fontSize: 11.5, margin: 0 }}>
-              Permis de conducere: categoria {license.categories.join(", ")}
+              {L.licenseLine(license.categories.join(", "))}
             </p>
           )}
           {qualifications?.trim() && (
@@ -327,7 +330,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
   const HobbiesSection = () =>
     hobbies.length > 0 ? (
       <div>
-        <SectionHeader title="Hobby-uri" />
+        <SectionHeader title={L.hobbies} />
         <p style={{ color: t.text, fontSize: 11.5, margin: "5px 0 0", textAlign: t.secAlign }}>
           {hobbies.join(template === "minimal" ? "    /    " : ", ")}
         </p>
@@ -337,7 +340,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
   const SummarySection = () =>
     cvData.summary ? (
       <div>
-        <SectionHeader title={template === "elegant" ? "Profil" : "Rezumat"} />
+        <SectionHeader title={template === "elegant" ? L.profile : L.summary} />
         <p style={{ color: t.text, margin: "5px 0 0", fontSize: 11.5, lineHeight: 1.6, textAlign: t.secAlign, fontStyle: template === "elegant" ? "italic" : undefined }}>
           {cvData.summary}
         </p>
@@ -348,10 +351,10 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
     !hasName && experience.length === 0 && education.length === 0 ? (
       <div style={{ padding: "28px 0 20px", textAlign: "center" }}>
         <p style={{ fontFamily: "var(--font-display), sans-serif", fontSize: 13, color: "var(--faint)", margin: 0 }}>
-          Foaia ta e încă albă.
+          {L.emptyTitle}
         </p>
         <p style={{ fontSize: 11, color: "var(--faint)", margin: "5px 0 0" }}>
-          Se completează pe măsură ce răspunzi.
+          {L.emptySubtitle}
         </p>
       </div>
     ) : null;
@@ -361,7 +364,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={personal.photoUrl}
-        alt="Foto"
+        alt={L.photoAlt}
         style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: `1px solid ${t.hairline}`, flexShrink: 0 }}
       />
     ) : null;
@@ -381,12 +384,12 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
           {personal?.photoUrl ? (
             <div style={{ alignSelf: "center" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={personal.photoUrl} alt="Foto" style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", border: "2px solid #334155" }} />
+              <img src={personal.photoUrl} alt={L.photoAlt} style={{ width: 62, height: 62, borderRadius: "50%", objectFit: "cover", border: "2px solid #334155" }} />
             </div>
           ) : null}
           {contactItems.length > 0 && (
             <div>
-              <SideTitle>Contact</SideTitle>
+              <SideTitle>{L.contact}</SideTitle>
               {contactItems.map((item, i) => (
                 <p key={i} style={{ fontSize: 9.5, margin: "0 0 3px", lineHeight: 1.5, wordBreak: "break-word" }}>{item}</p>
               ))}
@@ -394,7 +397,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
           )}
           {skills.length > 0 && (
             <div>
-              <SideTitle>Competențe</SideTitle>
+              <SideTitle>{L.skills}</SideTitle>
               {skills.map((sk, i) => (
                 <p key={i} style={{ fontSize: 9.5, margin: "0 0 2.5px" }}>•  {sk.name}</p>
               ))}
@@ -402,7 +405,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
           )}
           {languages.length > 0 && (
             <div>
-              <SideTitle>Limbi străine</SideTitle>
+              <SideTitle>{L.languages}</SideTitle>
               {languages.map((l, i) => (
                 <p key={i} style={{ fontSize: 9.5, margin: "0 0 2.5px" }}>{l.name} ({l.level})</p>
               ))}
@@ -410,16 +413,16 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
           )}
           {hasLicenseInfo && (
             <div>
-              <SideTitle>Permis & Calificări</SideTitle>
+              <SideTitle>{L.licenseQualifications}</SideTitle>
               {license?.hasLicense && license.categories.length > 0 && (
-                <p style={{ fontSize: 9.5, margin: "0 0 3px" }}>Permis categoria {license.categories.join(", ")}</p>
+                <p style={{ fontSize: 9.5, margin: "0 0 3px" }}>{L.licenseShortLine(license.categories.join(", "))}</p>
               )}
               {qualifications?.trim() && <p style={{ fontSize: 9.5, margin: 0 }}>{qualifications.trim()}</p>}
             </div>
           )}
           {hobbies.length > 0 && (
             <div>
-              <SideTitle>Hobby-uri</SideTitle>
+              <SideTitle>{L.hobbies}</SideTitle>
               <p style={{ fontSize: 9.5, margin: 0 }}>{hobbies.join(", ")}</p>
             </div>
           )}
@@ -428,7 +431,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
         <div style={{ flex: 1, padding: "22px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
             <h1 style={{ fontFamily: "var(--font-display), sans-serif", fontSize: 21, fontWeight: 700, color: hasName ? t.ink : t.faint, lineHeight: 1.15, margin: 0, letterSpacing: "-0.01em" }}>
-              {hasName ? `${personal?.firstName ?? ""} ${personal?.lastName ?? ""}`.trim() : "Prenume Nume"}
+              {hasName ? `${personal?.firstName ?? ""} ${personal?.lastName ?? ""}`.trim() : L.fullName}
             </h1>
             <div style={{ width: 40, height: 4, backgroundColor: t.accent, borderRadius: 2, marginTop: 8 }} />
           </div>
@@ -467,7 +470,7 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
                 textTransform: t.nameTransform,
               }}
             >
-              {hasName ? `${personal?.firstName ?? ""} ${personal?.lastName ?? ""}`.trim() : "Prenume Nume"}
+              {hasName ? `${personal?.firstName ?? ""} ${personal?.lastName ?? ""}`.trim() : L.fullName}
             </h1>
             <div
               style={{
@@ -513,29 +516,29 @@ export function CVPreview({ cvData, template = "classic" }: CVPreviewProps) {
           /* Compact grupează totul sub „Alte informații" — identic cu PDF-ul */
           (languages.length > 0 || hasLicenseInfo || hobbies.length > 0) && (
             <div>
-              <SectionHeader title="Alte informații" />
+              <SectionHeader title={L.otherInfo} />
               <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 6 }}>
                 {languages.length > 0 && (
                   <p style={{ color: t.text, fontSize: 11, margin: 0 }}>
-                    <span style={{ fontWeight: 700, color: t.ink }}>Limbi străine:  </span>
+                    <span style={{ fontWeight: 700, color: t.ink }}>{L.languages}:  </span>
                     {languages.map((l) => `${l.name} (${l.level})`).join("  ·  ")}
                   </p>
                 )}
                 {license?.hasLicense && license.categories.length > 0 && (
                   <p style={{ color: t.text, fontSize: 11, margin: 0 }}>
-                    <span style={{ fontWeight: 700, color: t.ink }}>Permis de conducere:  </span>
-                    categoria {license.categories.join(", ")}
+                    <span style={{ fontWeight: 700, color: t.ink }}>{L.license}:  </span>
+                    {L.category} {license.categories.join(", ")}
                   </p>
                 )}
                 {qualifications?.trim() && (
                   <p style={{ color: t.text, fontSize: 11, margin: 0 }}>
-                    <span style={{ fontWeight: 700, color: t.ink }}>Calificări:  </span>
+                    <span style={{ fontWeight: 700, color: t.ink }}>{L.qualifications}:  </span>
                     {qualifications.trim()}
                   </p>
                 )}
                 {hobbies.length > 0 && (
                   <p style={{ color: t.text, fontSize: 11, margin: 0 }}>
-                    <span style={{ fontWeight: 700, color: t.ink }}>Hobby-uri:  </span>
+                    <span style={{ fontWeight: 700, color: t.ink }}>{L.hobbies}:  </span>
                     {hobbies.join(", ")}
                   </p>
                 )}

@@ -59,3 +59,29 @@ test.describe("Limbă — RO implicit, EN ca opțiune", () => {
     await expect(page.getByTestId("hero-cta")).toHaveText("Începe acum →");
   });
 });
+
+test.describe("Wizard în engleză (nivel demo)", () => {
+  test("sidebar-ul, pasul 1 și pasul 2 sunt în engleză; româna rămâne implicită", async ({ page }) => {
+    await page.goto("/creare-cv");
+    await expect(page.getByRole("heading", { name: "Date de contact" })).toBeVisible();
+
+    await page.goto("/en");
+    await page.goto("/creare-cv");
+    await expect(page.getByRole("heading", { name: "Contact details" })).toBeVisible();
+    await expect(page.getByTestId("sidebar-step-4")).toContainText("Experience");
+    await expect(page.getByTestId("sidebar-step-10")).toContainText("Finish");
+    await expect(page.locator("aside").getByTestId("lang-switch")).toBeVisible();
+
+    // completăm pasul 1 ca să ajungem la pasul 2 (Poză) în engleză
+    await page.getByLabel(/First name/i).fill("Ana");
+    await page.getByLabel(/^Last name/i).fill("Pop");
+    await page.getByLabel(/E-?mail/i).fill("ana@example.com");
+    await page.getByLabel(/Phone/i).fill("0721234567");
+    await page.getByRole("button", { name: /Continue/ }).click();
+    await expect(page.getByRole("heading", { name: /photo/i })).toBeVisible();
+
+    await page.goto("/ro");
+    await page.goto("/creare-cv");
+    await expect(page.getByTestId("sidebar-step-4")).toContainText("Experiență");
+  });
+});

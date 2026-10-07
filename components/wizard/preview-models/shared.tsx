@@ -1,5 +1,6 @@
 "use client";
 import type { CVData } from "@/lib/types/cv";
+import type { PreviewLabels } from "@/lib/i18n/wizard/preview-labels";
 
 /* ────────────────────────────────────────────────────────────────
    Baza comună a preview-urilor HTML pentru cele 14 modele: preview-ul
@@ -49,16 +50,16 @@ export function streetOf(d: CVData): string {
     .filter(Boolean)
     .join(", ");
 }
-export function licenseTextOf(d: CVData): string {
+export function licenseTextOf(d: CVData, L: PreviewLabels): string {
   if (d.license?.hasLicense && d.license.categories.length > 0) {
-    return `Permis categoria ${d.license.categories.join(", ")}`;
+    return L.licenseShortLine(d.license.categories.join(", "));
   }
   return "";
 }
-export function eduMetaOf(edu: { grade?: string; thesis?: string }): string {
+export function eduMetaOf(edu: { grade?: string; thesis?: string }, L: PreviewLabels): string {
   return [
-    edu.grade ? `Medie: ${edu.grade}` : "",
-    edu.thesis ? `Lucrare: „${edu.thesis}"` : "",
+    edu.grade ? L.gradeLine(edu.grade) : "",
+    edu.thesis ? L.thesisLine(edu.thesis) : "",
   ]
     .filter(Boolean)
     .join("  ·  ");

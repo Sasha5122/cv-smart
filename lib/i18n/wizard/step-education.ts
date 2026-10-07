@@ -1,0 +1,143 @@
+import type { Locale } from "@/lib/i18n/locale";
+
+/**
+ * Textele pasului „Educație". Nivelurile de studii se SALVEAZĂ în cvData cu
+ * eticheta românească (apar în PDF), deci `value` e identic în ambele limbi —
+ * doar `label` (ce vede utilizatorul în dropdown) se traduce.
+ */
+const ro = {
+  title: "Educație",
+  subtitle: "Adaugă studiile tale, de la cel mai înalt nivel în jos.",
+  // ordinea reflectă publicul aplicației: nivelurile frecvente primele
+  levels: [
+    { value: "Liceu", label: "Liceu" },
+    { value: "Școală profesională", label: "Școală profesională" },
+    { value: "Licență", label: "Licență" },
+    { value: "Master", label: "Master" },
+    { value: "Doctorat", label: "Doctorat" },
+    { value: "Post-doctorat", label: "Post-doctorat" },
+  ],
+  list: {
+    grade: (grade: string) => `Medie: ${grade}`,
+    thesis: (thesis: string) => `Lucrare: „${thesis}"`,
+  },
+  addEducation: "Adaugă educație",
+  courses: {
+    title: "Cursuri & certificări",
+    optional: "(opțional)",
+    intro:
+      "Ai un atestat, un curs de calificare sau o autorizație? Scrie numele lui mai jos și apasă „Adaugă cursul\" — apare într-o secțiune separată în CV. Poți adăuga oricâte, unul câte unul.",
+    deleteCourse: (name: string) => `Șterge cursul ${name}`,
+    nameLabel: "Numele cursului / atestatului",
+    namePlaceholder: "ex: Operator stivuitor ISCIR",
+    providerLabel: "Cine l-a emis (opțional)",
+    providerPlaceholder: "ex: ANC, ISCIR, firmă",
+    yearLabel: "Anul (opțional)",
+    yearPlaceholder: "ex: 2021",
+    addCourse: "Adaugă cursul",
+    addCourseHint: "Completează numele cursului ca să se activeze butonul.",
+  },
+  skipHint: "Poți sări peste acest pas dacă nu dorești să adaugi studii.",
+  back: "← Înapoi",
+  continue: "Continuă",
+  skip: "Sari peste",
+  dialog: {
+    editTitle: "Editează educație",
+    addTitle: "Adaugă educație",
+    levelLabel: "Nivel de studii *",
+    levelPlaceholder: "Selectează nivelul de studii",
+    fieldLabel: "Domeniu / specializare",
+    fieldPlaceholder: "ex: Informatică, Medicină, Drept...",
+    institutionLabel: "Instituție *",
+    institutionPlaceholder: "ex: Universitatea Babeș-Bolyai",
+    locationLabel: "Localitate",
+    locationPlaceholder: "ex: Cluj-Napoca",
+    fromLabel: "De când *",
+    toLabel: "Până când",
+    thesisLabel: "Titlu lucrare finală",
+    thesisPlaceholder: "Titlul lucrării de licență...",
+    gradeLabel: "Medie absolvire",
+    gradePlaceholder: "ex: 9.50",
+    optional: "(opțional)",
+    cancel: "Anulează",
+    saveChanges: "Salvează modificările",
+    add: "Adaugă",
+  },
+  toasts: {
+    levelRequired: "Selectează nivelul de studii.",
+    institutionRequired: "Numele instituției este obligatoriu.",
+    startYearRequired: "Alege anul de început al studiilor.",
+    saved: "Modificările au fost salvate.",
+    added: "Educație adăugată.",
+    deleted: "Educație ștearsă.",
+  },
+};
+
+const en: typeof ro = {
+  title: "Education",
+  subtitle: "Add your studies, from the highest level down.",
+  levels: [
+    { value: "Liceu", label: "High school" },
+    { value: "Școală profesională", label: "Vocational school" },
+    { value: "Licență", label: "Bachelor's degree" },
+    { value: "Master", label: "Master's degree" },
+    { value: "Doctorat", label: "PhD" },
+    { value: "Post-doctorat", label: "Postdoctoral" },
+  ],
+  list: {
+    grade: (grade: string) => `GPA: ${grade}`,
+    thesis: (thesis: string) => `Thesis: “${thesis}”`,
+  },
+  addEducation: "Add education",
+  courses: {
+    title: "Courses & certifications",
+    optional: "(optional)",
+    intro:
+      "Do you have a certificate, a qualification course or a licence? Type its name below and press “Add course” — it appears in a separate CV section. Add as many as you like, one at a time.",
+    deleteCourse: (name: string) => `Remove course ${name}`,
+    nameLabel: "Course / certificate name",
+    namePlaceholder: "e.g. ISCIR forklift operator",
+    providerLabel: "Issued by (optional)",
+    providerPlaceholder: "e.g. ANC, ISCIR, company",
+    yearLabel: "Year (optional)",
+    yearPlaceholder: "e.g. 2021",
+    addCourse: "Add course",
+    addCourseHint: "Fill in the course name to enable the button.",
+  },
+  skipHint: "You can skip this step if you don't want to add any studies.",
+  back: "← Back",
+  continue: "Continue",
+  skip: "Skip",
+  dialog: {
+    editTitle: "Edit education",
+    addTitle: "Add education",
+    levelLabel: "Level of study *",
+    levelPlaceholder: "Select the level of study",
+    fieldLabel: "Field / specialisation",
+    fieldPlaceholder: "e.g. Computer Science, Medicine, Law...",
+    institutionLabel: "Institution *",
+    institutionPlaceholder: "e.g. Babeș-Bolyai University",
+    locationLabel: "City",
+    locationPlaceholder: "e.g. Cluj-Napoca",
+    fromLabel: "From *",
+    toLabel: "Until",
+    thesisLabel: "Final thesis title",
+    thesisPlaceholder: "Title of your thesis...",
+    gradeLabel: "Graduation grade",
+    gradePlaceholder: "e.g. 9.50",
+    optional: "(optional)",
+    cancel: "Cancel",
+    saveChanges: "Save changes",
+    add: "Add",
+  },
+  toasts: {
+    levelRequired: "Select the level of study.",
+    institutionRequired: "The institution name is required.",
+    startYearRequired: "Choose the year your studies started.",
+    saved: "Changes saved.",
+    added: "Education added.",
+    deleted: "Education removed.",
+  },
+};
+
+export const STEP_EDUCATION_MESSAGES: Record<Locale, typeof ro> = { ro, en };

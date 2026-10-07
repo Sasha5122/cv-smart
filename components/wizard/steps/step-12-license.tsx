@@ -6,6 +6,8 @@ import { Car, ArrowRight, Plus, X, Loader2 } from "lucide-react";
 import type { DrivingLicense } from "@/lib/types/cv";
 import { cn } from "@/lib/utils";
 import { correctText } from "@/lib/correct-text";
+import { useMessages } from "@/lib/i18n/context";
+import { STEP_LICENSE_MESSAGES } from "@/lib/i18n/wizard/step-license";
 
 /** Calificările sunt stocate ca string (compatibil cu preview/PDF) —
  *  UI-ul le tratează ca listă, separate prin virgulă. */
@@ -25,6 +27,7 @@ interface Props {
 }
 
 export function Step12License({ license, qualifications, onUpdateLicense, onUpdateQualifications, onNext, onBack }: Props) {
+  const t = useMessages(STEP_LICENSE_MESSAGES);
   const [qualInput, setQualInput] = useState("");
   const [isCorrecting, setIsCorrecting] = useState(false);
   const qualList = splitQualifications(qualifications);
@@ -54,14 +57,14 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
 
   return (
     <StepCard
-      title="Permis & Calificări"
-      subtitle="Adaugă permisul de conducere și calificările profesionale."
+      title={t.title}
+      subtitle={t.subtitle}
       icon={<Car className="w-5 h-5" />}
     >
       {/* License toggle */}
       <div style={{ marginBottom: 28 }}>
         <p className="text-lg font-medium text-[var(--foreground)]" style={{ marginBottom: 12 }}>
-          Ai permis de conducere?
+          {t.license.question}
         </p>
         <div className="flex" style={{ gap: 12 }}>
           <button
@@ -73,7 +76,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
                 : "border-[var(--hairline)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--input-border)]"
             )}
           >
-            ✅ Da
+            {t.license.yes}
           </button>
           <button
             onClick={() => onUpdateLicense({ hasLicense: false, categories: [] })}
@@ -84,7 +87,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
                 : "border-[var(--hairline)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--input-border)]"
             )}
           >
-            ❌ Nu
+            {t.license.no}
           </button>
         </div>
       </div>
@@ -93,7 +96,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
       {license.hasLicense && (
         <div style={{ marginBottom: 28 }}>
           <p className="text-lg font-medium text-[var(--foreground)]" style={{ marginBottom: 12 }}>
-            Categorii permis:
+            {t.license.categories}
           </p>
           <div className="flex flex-wrap" style={{ gap: 10 }}>
             {CATEGORIES.map((cat) => {
@@ -141,7 +144,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
           htmlFor="qualification-input"
           style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}
         >
-          Calificări profesionale (opțional)
+          {t.qualifications.label}
         </label>
         <div style={{ display: "flex", gap: 10 }}>
           <input
@@ -149,7 +152,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
             data-testid="qualification-input"
             value={qualInput}
             onChange={(e) => setQualInput(e.target.value)}
-            placeholder="ex: operator stivuitor, electrician ANRE…"
+            placeholder={t.qualifications.placeholder}
             onKeyDown={(e) => e.key === "Enter" && addQualification()}
             disabled={isCorrecting}
             style={{ flex: 1, padding: "13px 16px", minWidth: 0 }}
@@ -167,11 +170,11 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
               )
             }
           >
-            {isCorrecting ? "Corectăm…" : "Adaugă"}
+            {isCorrecting ? t.qualifications.correcting : t.qualifications.add}
           </Button>
         </div>
         <p style={{ fontSize: 12.5, color: "var(--faint)", marginTop: 10 }}>
-          Autorizații, atestări, certificate recunoscute oficial — corectăm noi scrierea.
+          {t.qualifications.hint}
         </p>
 
         {qualList.length > 0 && (
@@ -195,7 +198,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
                 {q}
                 <button
                   onClick={() => removeQualification(i)}
-                  aria-label={`Șterge ${q}`}
+                  aria-label={t.qualifications.remove(q)}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -216,9 +219,9 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
       </div>
 
       <div className="flex gap-3" style={{ marginTop: 32 }}>
-        <Button variant="outline" onClick={onBack} className="flex-1">← Înapoi</Button>
+        <Button variant="outline" onClick={onBack} className="flex-1">{t.back}</Button>
         <Button onClick={onNext} className="flex-[2]" iconRight={<ArrowRight className="w-4 h-4" />}>
-          Continuă
+          {t.next}
         </Button>
       </div>
     </StepCard>

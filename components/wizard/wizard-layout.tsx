@@ -2,20 +2,23 @@
 import Link from "next/link";
 import { PreviewWithPageMarks } from "./paginated-preview";
 import { LogoMark } from "@/components/ui/logo";
+import { LanguageSwitch } from "@/components/i18n/language-switch";
+import { useMessages } from "@/lib/i18n/context";
+import { WIZARD_LAYOUT_MESSAGES } from "@/lib/i18n/wizard/wizard-layout";
 import type { WizardStep, CVData } from "@/lib/types/cv";
 
 // Maparea intrărilor din sidebar la pașii interni (1-la-1, ordinea nouă)
 const SIDEBAR_STEPS = [
-  { label: "Contact", steps: [1] },
-  { label: "Poză", steps: [2] },
-  { label: "Unde aplici", steps: [3] },
-  { label: "Experiență", steps: [4] },
-  { label: "Educație", steps: [5] },
-  { label: "Abilități", steps: [6] },
-  { label: "Limbi", steps: [7] },
-  { label: "Permis", steps: [8] },
-  { label: "Hobby-uri", steps: [9] },
-  { label: "Finalizare", steps: [10] },
+  { steps: [1] },
+  { steps: [2] },
+  { steps: [3] },
+  { steps: [4] },
+  { steps: [5] },
+  { steps: [6] },
+  { steps: [7] },
+  { steps: [8] },
+  { steps: [9] },
+  { steps: [10] },
 ];
 
 type StepStatus = "done" | "current" | "future";
@@ -39,8 +42,9 @@ interface WizardLayoutProps {
 }
 
 export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNavigate, children }: WizardLayoutProps) {
+  const t = useMessages(WIZARD_LAYOUT_MESSAGES);
   const sidebarIdx = SIDEBAR_STEPS.findIndex((s) => s.steps.includes(currentStep));
-  const currentItem = SIDEBAR_STEPS[sidebarIdx];
+  const currentLabel = t.steps[sidebarIdx];
   const progressPct = Math.round(((sidebarIdx + 1) / SIDEBAR_STEPS.length) * 100);
   // pe Finalizare, preview-ul lateral dispare — pasul afișează el însuși CV-ul mare
   const isFinalStep = currentStep === 10;
@@ -93,7 +97,7 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
           className="folio"
           style={{ padding: "20px 26px 12px", fontSize: 10.5, color: "var(--sidebar-muted)" }}
         >
-          Pașii tăi
+          {t.yourSteps}
         </div>
 
         {/* Pași — cei parcurși sunt clicabili: salt direct pentru editare */}
@@ -103,6 +107,7 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
             const isCurrent = status === "current";
             const isDone = status === "done";
             const stepNo = item.steps[0] as WizardStep;
+            const label = t.steps[idx];
             const clickable = Boolean(onNavigate) && stepNo <= maxStep && !isCurrent;
             return (
               <button
@@ -112,7 +117,7 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
                 className={clickable ? "sidebar-step-clickable" : undefined}
                 disabled={!clickable}
                 onClick={clickable ? () => onNavigate?.(stepNo) : undefined}
-                title={clickable ? `Mergi la pasul ${stepNo} — ${item.label}` : undefined}
+                title={clickable ? t.goToStep(stepNo, label) : undefined}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -170,7 +175,7 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
                     lineHeight: 1.3,
                   }}
                 >
-                  {item.label}
+                  {label}
                 </span>
               </button>
             );
@@ -187,6 +192,9 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
             borderTop: "1px solid var(--sidebar-line)",
           }}
         >
+          <div style={{ marginBottom: 10 }}>
+            <LanguageSwitch on="dark" compact />
+          </div>
           <div
             style={{
               fontSize: 12,
@@ -195,9 +203,9 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
               fontWeight: 500,
             }}
           >
-            Fără cont · Fără plată
+            {t.footerLine1}
             <br />
-            PDF direct, în română
+            {t.footerLine2}
           </div>
         </div>
       </aside>
@@ -230,6 +238,7 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
               CVexpres
             </span>
           </Link>
+          <LanguageSwitch on="dark" compact />
           <span style={{ fontSize: 12, fontWeight: 700, color: "var(--sidebar-muted)", fontVariantNumeric: "tabular-nums" }}>
             {sidebarIdx + 1} / {SIDEBAR_STEPS.length}
           </span>
@@ -257,10 +266,10 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
                 padding: "4px 10px",
               }}
             >
-              Pasul {sidebarIdx + 1} din {SIDEBAR_STEPS.length}
+              {t.stepOf(sidebarIdx + 1, SIDEBAR_STEPS.length)}
             </span>
             <span style={{ fontSize: 14.5, fontWeight: 600, color: "var(--ink)" }}>
-              {currentItem?.label}
+              {currentLabel}
             </span>
             <span style={{ flex: 1 }} />
             <span
@@ -316,7 +325,7 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
                 marginBottom: 12,
               }}
             >
-              <span className="folio">Preview CV</span>
+              <span className="folio">{t.preview}</span>
               <span
                 style={{
                   display: "inline-flex",
@@ -337,7 +346,7 @@ export function WizardLayout({ currentStep, maxStep = currentStep, cvData, onNav
                     boxShadow: "0 0 0 3px rgba(5,150,105,0.2)",
                   }}
                 />
-                LIVE
+                {t.live}
               </span>
             </div>
             {/* biroul — foile A4 paginate ca PDF-ul, fără scrollbar intern */}

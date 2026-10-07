@@ -2,6 +2,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Check, Search } from "lucide-react";
+import { useMessages } from "@/lib/i18n/context";
+import { SELECT_MESSAGES } from "@/lib/i18n/wizard/select";
 
 export interface SelectOption {
   value: string;
@@ -44,7 +46,7 @@ export function Select({
   value,
   onChange,
   options,
-  placeholder = "alege...",
+  placeholder,
   label,
   error,
   searchable = false,
@@ -52,6 +54,8 @@ export function Select({
   id,
   className,
 }: SelectProps) {
+  const t = useMessages(SELECT_MESSAGES);
+  const placeholderText = placeholder ?? t.placeholder;
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [highlight, setHighlight] = React.useState(-1);
@@ -171,7 +175,7 @@ export function Select({
             className
           )}
         >
-          <span className="block truncate">{selected ? selected.label : placeholder}</span>
+          <span className="block truncate">{selected ? selected.label : placeholderText}</span>
           <ChevronDown
             className={cn(
               "w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-[var(--faint)] transition-transform",
@@ -197,7 +201,7 @@ export function Select({
                     setQuery(e.target.value);
                     setHighlight(0);
                   }}
-                  placeholder="Caută..."
+                  placeholder={t.searchPlaceholder}
                   className="w-full text-[14.5px] text-[var(--ink)] placeholder:text-[var(--faint)] focus:outline-none bg-transparent"
                 />
               </div>
@@ -209,7 +213,7 @@ export function Select({
             >
               {filtered.length === 0 && (
                 <div className="text-[14px] text-[var(--faint)]" style={{ padding: "12px 16px" }}>
-                  Niciun rezultat
+                  {t.noResults}
                 </div>
               )}
               {filtered.map((it, idx) => {
