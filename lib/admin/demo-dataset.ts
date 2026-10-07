@@ -187,6 +187,7 @@ const ERROR_CATALOG: { route: string; status: number; message: string; weight: n
   { route: "/api/pdf", status: 500, message: "Error: ENOENT fonts/Montserrat-SemiBold.ttf (bundle without outputFileTracingIncludes)", weight: 1 },
 ];
 
+const DEMO_MESSAGE_COUNT = 0;
 const CONTACT_MESSAGES = [
   "Bună ziua, am plătit CV-ul dar nu am primit emailul. Am verificat și în spam. Puteți verifica, vă rog?",
   "Salut! Se poate adăuga și un câmp pentru certificări profesionale (ANRE, ISCIR)? Ar ajuta mult la joburile tehnice.",
@@ -327,7 +328,9 @@ export function buildDemoDataset(nowMs: number = Date.now(), seed = 20260712): A
     });
   }
 
-  const messages: AdminMessage[] = CONTACT_MESSAGES.map((text) => {
+  // Setul demo nu conține mesaje de contact (DEMO_MESSAGE_COUNT = 0); textele
+  // rămân în cod pentru teste locale.
+  const messages: AdminMessage[] = CONTACT_MESSAGES.slice(0, DEMO_MESSAGE_COUNT).map((text) => {
     const s = rng.pick(activeSessions);
     return {
       id: rng.uuid(),

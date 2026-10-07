@@ -19,6 +19,8 @@ test.describe("Admin demo — /demo/admin", () => {
     // 23 CV-uri generate (8 plătite + 15 neplătite), 120 fără CV
     await expect(page.getByTestId("admin-cvs").getByRole("heading")).toContainText("(23)");
     await expect(page.getByTestId("admin-sessions").getByRole("heading")).toContainText("(120)");
+    // fără mesaje de contact în setul demo
+    await expect(page.getByTestId("admin-messages").getByRole("heading")).toContainText("(0)");
   });
 
   test("nu afișează nicio adresă de email sau nume — doar „Utilizator #…”", async ({ page }) => {
