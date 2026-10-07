@@ -304,9 +304,11 @@ export function buildDemoDataset(nowMs: number = Date.now(), seed = 20260712): A
     if (lastStep >= 10) push("summary", 0.9);
   }
 
-  // erorile lunii: ~12, legate de sesiuni active unde are sens
+  // Setul demo nu conține erori: toate rândurile arată 0, iar secțiunea Erori
+  // din Evaluare rămâne goală. Catalogul de mai sus e păstrat pentru teste
+  // locale (errorCount > 0) și documentează erorile reale pe care le prinde codul.
   const activeSessions = sessions.filter((s) => (s.lastStep ?? 0) >= 3);
-  const errorCount = 12;
+  const errorCount = 0;
   for (let i = 0; i < errorCount; i++) {
     const e = rng.weighted(ERROR_CATALOG.map((c) => ({ value: c, weight: c.weight })));
     const withSession = e.route !== "/api/creem/webhook" && e.route !== "/api/pdf";

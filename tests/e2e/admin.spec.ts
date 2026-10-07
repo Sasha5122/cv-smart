@@ -75,7 +75,9 @@ test.describe("Admin demo — /demo/admin", () => {
     await expect(page.getByTestId("tile-paid")).toContainText("8");
     await expect(page.getByTestId("admin-eval-funnel")).toBeVisible();
     await expect(page.getByTestId("admin-eval-stages")).toContainText("Bullet-uri CV");
-    await expect(page.getByTestId("admin-eval-errors")).toContainText("/api/cv/generate-bullets");
+    // setul demo nu are erori: 0 peste tot
+    await expect(page.getByTestId("tile-errors")).toContainText("0");
+    await expect(page.getByTestId("admin-eval-errors")).toContainText("Nicio eroare");
     await expect(page.getByTestId("admin-eval-benchmark")).toContainText("PRODUCȚIE");
     await expect(page.getByTestId("admin-eval-heatmap")).toBeVisible();
 
