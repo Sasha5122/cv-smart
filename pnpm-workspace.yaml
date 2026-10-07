@@ -1,9 +1,12 @@
+# Pachete cu scripturi de build aprobate (pnpm 10+ le ignoră implicit; în CI
+# pnpm 11 tratează scripturile ignorate ca eroare → lista trebuie explicită).
 allowBuilds:
-  core-js: set this to true or false
-  esbuild: set this to true or false
-  msw: set this to true or false
-  protobufjs: set this to true or false
+  esbuild: true
+  sharp: true
+  "@tailwindcss/oxide": true
+  unrs-resolver: true
 onlyBuiltDependencies:
   - esbuild
   - sharp
   - "@tailwindcss/oxide"
+  - unrs-resolver
