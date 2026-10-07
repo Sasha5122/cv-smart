@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { computeCostUSD } from "@/lib/ai-pricing";
+import { recordAiCall } from "@/lib/telemetry";
 
 export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -42,15 +44,9 @@ export const PIPELINE_PROD_CONFIG: PipelineConfig = {
   call2: { model: "gpt-5.4" },
 };
 
-/** Prețuri de referință USD / 1M tokeni (din instrucțiunea de test).
- * Cached input ≈ 10% din prețul de input. Reasoning = output. */
-export const MODEL_PRICES: Record<string, { input: number; output: number }> = {
-  "gpt-5.5": { input: 5.0, output: 30.0 },
-  "gpt-5.4": { input: 2.5, output: 15.0 },
-  "gpt-5.4-mini": { input: 0.75, output: 4.5 },
-  "gpt-5.4-nano": { input: 0.2, output: 1.25 },
-  "gpt-5.1": { input: 1.25, output: 10.0 },
-};
+// Prețurile și calculul costului stau în lib/ai-pricing.ts (modul fără SDK),
+// ca să poată fi folosite de admin/demo fără a instanția clientul OpenAI.
+export { MODEL_PRICES, computeCostUSD } from "@/lib/ai-pricing";
 
 export interface CallUsage {
   stage: string;
@@ -64,20 +60,8 @@ export interface CallUsage {
   jsonRetries: number;
   /** modelul a respins parametrul reasoning_effort */
   effortRejected: boolean;
-}
-
-export function computeCostUSD(
-  model: string,
-  promptTokens: number,
-  cachedTokens: number,
-  completionTokens: number
-): number {
-  const p = MODEL_PRICES[model] ?? MODEL_PRICES["gpt-5.5"];
-  const uncached = Math.max(0, promptTokens - cachedTokens);
-  return (
-    (uncached * p.input + cachedTokens * p.input * 0.1 + completionTokens * p.output) /
-    1_000_000
-  );
+  /** durata apelului HTTP (ms), inclusiv reluarea fără reasoning_effort */
+  durationMs: number;
 }
 
 export interface StructuredCallOptions {
@@ -93,6 +77,9 @@ export interface StructuredCallOptions {
   maxCompletionTokens?: number;
   /** telemetrie per apel (usage + cost) */
   onUsage?: (usage: CallUsage) => void;
+  /** Dacă e prezent (chiar și null), apelul se înregistrează ca eveniment `ai_call`.
+   *  Scripturile de test nu îl trimit → nu poluează telemetria de producție. */
+  sessionId?: string | null;
 }
 
 export class StructuredCallError extends Error {
@@ -154,6 +141,7 @@ export async function callStructured<T>(opts: StructuredCallOptions): Promise<T>
         },
       });
 
+    const t0 = Date.now();
     let response;
     try {
       response = await doRequest();
@@ -177,6 +165,7 @@ export async function callStructured<T>(opts: StructuredCallOptions): Promise<T>
     const reasoningTokens =
       usage?.completion_tokens_details?.reasoning_tokens ?? 0;
     const costUSD = computeCostUSD(model, promptTokens, cachedTokens, completionTokens);
+    const durationMs = Date.now() - t0;
 
     console.log(
       `[cv-pipeline][${opts.stage}] model=${response.model} prompt=${promptTokens} (cached=${cachedTokens}) completion=${completionTokens} (reasoning=${reasoningTokens}) cost=$${costUSD.toFixed(4)}`
@@ -191,7 +180,23 @@ export async function callStructured<T>(opts: StructuredCallOptions): Promise<T>
       costUSD,
       jsonRetries,
       effortRejected,
+      durationMs,
     });
+    if (opts.sessionId !== undefined) {
+      await recordAiCall({
+        sessionId: opts.sessionId,
+        stage: opts.stage,
+        model,
+        promptTokens,
+        cachedTokens,
+        completionTokens,
+        reasoningTokens,
+        costUSD,
+        jsonRetries,
+        effortRejected,
+        durationMs,
+      });
+    }
 
     const choice = response.choices[0];
     if (choice.message.refusal) {

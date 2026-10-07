@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { runRecruiterQuestions } from "@/lib/cv-pipeline/stages";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
@@ -78,7 +79,7 @@ export async function POST(req: Request) {
     // 2) Apel #1 — întrebările recrutorului; salvăm rezultatul.
     const questions = await runRecruiterQuestions(
       { jobTitle, company, period, industry, yearsExperience, rawText, jobDescription },
-      { config: PIPELINE_PROD_CONFIG.call1 }
+      { config: PIPELINE_PROD_CONFIG.call1, sessionId: wizardSessionId }
     );
 
     await updatePipelineSession(sessionId, {
@@ -87,6 +88,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ sessionId, questions });
   } catch (e) {
+    await recordApiError("/api/cv/analyze", e instanceof StructuredCallError ? 502 : 500, e);
     if (e instanceof StructuredCallError) {
       return NextResponse.json(
         { error: "Analiza AI a eșuat momentan. Încearcă din nou." },

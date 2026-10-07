@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { supabaseAdmin } from "@/lib/db/supabase";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
+    await recordApiError("/api/contact", 500, err);
     console.error("contact:", err);
     return NextResponse.json(
       { error: "Mesajul nu a putut fi trimis. Încearcă din nou." },

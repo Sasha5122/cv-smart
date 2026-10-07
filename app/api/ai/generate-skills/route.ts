@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { extractJSON } from "@/lib/ai/client";
 import { getSession } from "@/lib/db/queries";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
@@ -57,6 +58,8 @@ export async function POST(req: NextRequest) {
       : "";
 
     const result = await extractJSON<SkillsResult | null>({
+      stage: "skills",
+      sessionId: sessionId || null,
       model: SKILLS_MODEL,
       system: `Ești un expert în resurse umane specializat în CV-uri profesionale pentru piața din România.
 
@@ -96,7 +99,8 @@ Răspunde EXCLUSIV cu JSON valid fără text adițional:
       );
     }
     return NextResponse.json(result);
-  } catch {
+  } catch (e) {
+    await recordApiError("/api/ai/generate-skills", 502, e);
     return NextResponse.json(
       { error: "Generarea abilităților a eșuat. Încearcă din nou." },
       { status: 502 }

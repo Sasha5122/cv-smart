@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { paywallEnabled, paymentProvider } from "@/lib/payments/server";
 import { createCreemCheckout } from "@/lib/creem/server";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
     const { checkoutUrl } = await createCreemCheckout({ sessionId, successUrl, email });
     return NextResponse.json({ url: checkoutUrl });
   } catch (e) {
+    await recordApiError("/api/checkout/create", 500, e);
     console.error("[checkout-create] eroare:", e);
     return NextResponse.json({ error: "Nu am putut porni plata." }, { status: 500 });
   }

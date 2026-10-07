@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordApiError } from "@/lib/telemetry";
 import { callStructured, StructuredCallError } from "@/lib/openai";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
@@ -165,6 +166,7 @@ export async function POST(req: Request) {
 
     const result = await callStructured<{ corrected: string }>({
       stage: `correct-${kind}`,
+      sessionId: null,
       systemPrompt: SYSTEM_PROMPTS[kind],
       userContent: text,
       schemaName: "text_correction",
@@ -184,6 +186,7 @@ export async function POST(req: Request) {
     // corectarea e best-effort: la orice eroare returnăm textul original
     if (e instanceof StructuredCallError) {
       console.warn(`[correct-text] ${e.message}`);
+      await recordApiError("/api/ai/correct-text", 502, e);
     }
     if (text) return NextResponse.json({ corrected: text });
     return NextResponse.json({ error: "Eroare." }, { status: 500 });
