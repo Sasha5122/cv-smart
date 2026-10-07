@@ -200,7 +200,7 @@ test.describe("Landing — pagina de start", () => {
     await expect(page.getByTestId("admin-login-error")).toBeVisible();
 
     // parolă corectă → panoul cu cele 3 secțiuni
-    await page.getByTestId("admin-password").fill("***REMOVED-ADMIN-PASSWORD***");
+    await page.getByTestId("admin-password").fill("playwright-admin"); // setată în playwright.config.ts
     await page.getByTestId("admin-login-submit").click();
     await expect(page.getByTestId("admin-cvs")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("admin-sessions")).toBeVisible();

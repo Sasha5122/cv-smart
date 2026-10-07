@@ -31,6 +31,7 @@ export default defineConfig({
     timeout: 60000,
     // testele e2e verifică fluxul de produs, nu checkout-ul Paddle —
     // paywall-ul se testează separat, manual, în sandbox
-    env: { NEXT_PUBLIC_PAYWALL_ENABLED: "false" },
+    // ADMIN_PASSWORD: valoare de test cunoscută de wizard.spec.ts (nu există fallback în cod)
+    env: { NEXT_PUBLIC_PAYWALL_ENABLED: "false", ADMIN_PASSWORD: "playwright-admin" },
   },
 });
