@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ADMIN_COOKIE, adminToken, isValidPassword } from "@/lib/admin-auth";
+import { ADMIN_COOKIE, adminConfigured, adminToken, isValidPassword } from "@/lib/admin-auth";
 import { checkRateLimit, peekRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 
@@ -13,6 +13,12 @@ const WINDOW_MS = 15 * 60 * 1000;
  *  (login-urile reușite nu consumă bugetul). */
 export async function POST(req: NextRequest) {
   try {
+    if (!adminConfigured()) {
+      return NextResponse.json(
+        { error: "Panoul de administrare nu este configurat (lipsește ADMIN_PASSWORD)." },
+        { status: 503 }
+      );
+    }
     const ip = clientIp(req);
     const stillAllowed = await peekRateLimit(ip, "admin-login", MAX_FAILURES, WINDOW_MS);
     if (!stillAllowed) {

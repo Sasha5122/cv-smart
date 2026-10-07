@@ -1,7 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://vhhvywptbntlhykkznpk.supabase.co";
-const serviceKey = "***REMOVED-SUPABASE-SERVICE-ROLE-KEY***";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!serviceKey) {
+  console.error("Lipsește SUPABASE_SERVICE_ROLE_KEY în mediu (vezi .env.example).");
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, serviceKey);
 

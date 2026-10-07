@@ -123,7 +123,8 @@ export default function AdminPage() {
         body: JSON.stringify({ password }),
       });
       if (!res.ok) {
-        setLoginError("Parolă incorectă.");
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        setLoginError(body?.error || "Parolă incorectă.");
         return;
       }
       await loadData();

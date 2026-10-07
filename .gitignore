@@ -46,3 +46,8 @@ next-env.d.ts
 
 # screenshots de verificare vizuala
 /.screens/
+
+# loguri locale si capturi de referinta
+*.log
+ref-*.png
+!.env.example
