@@ -7,11 +7,13 @@
  * Rulare:
  *   ... test-pipeline.ts --case=N [--variant=strict|liber] [--no-jd]  — o rulare
  *   ... test-pipeline.ts --ab --case=N                                — A/B pe cazul N
+ *   ... test-pipeline.ts --case=5 --lang=en                           — pipeline-ul în engleză
  * Cazuri: 1 contabil CU anunț · 2 contabil colocvial FĂRĂ anunț ·
  *         3 răspunsuri sărace · 4 șofer profesionist (alt domeniu)
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { MATRIX_CASES } from "./test-cases";
 
 // Încarcă .env.local ÎNAINTE de importul clientului OpenAI
 const envPath = join(process.cwd(), ".env.local");
@@ -34,6 +36,8 @@ interface TestCase {
 }
 
 const CASES: Record<string, TestCase> = {
+  // cazul în engleză (pipeline-ul cu --lang=en)
+  "5": MATRIX_CASES.find((c) => c.slug === "caz5_warehouse_en")!,
   "1": {
     name: "Contabil CU anunț țintă",
     jobTitle: "Contabil",
@@ -89,6 +93,8 @@ const CASES: Record<string, TestCase> = {
 
 type Variant = "strict" | "liber";
 
+const LANG = (process.argv.find((a) => a.startsWith("--lang="))?.split("=")[1] === "en" ? "en" : "ro") as "ro" | "en";
+
 async function runOne(tc: TestCase, variant: Variant, withJD: boolean) {
   const { runRecruiterQuestions, runBulletsFromContext } = await import(
     "../lib/cv-pipeline/stages"
@@ -104,7 +110,7 @@ async function runOne(tc: TestCase, variant: Variant, withJD: boolean) {
       rawText: tc.raw,
       jobDescription: jd,
     },
-    { variant }
+    { variant, language: LANG }
   );
   const q_s = ((Date.now() - t1) / 1000).toFixed(1);
 
@@ -116,7 +122,7 @@ async function runOne(tc: TestCase, variant: Variant, withJD: boolean) {
   const t2 = Date.now();
   const result = await runBulletsFromContext(
     { jobTitle: tc.jobTitle, rawText: tc.raw, interview, jobDescription: jd },
-    { variant }
+    { variant, language: LANG }
   );
   const b_s = ((Date.now() - t2) / 1000).toFixed(1);
 
@@ -147,7 +153,7 @@ async function main() {
 
   const caseArg = process.argv.find((a) => a.startsWith("--case="))?.split("=")[1] ?? "1";
   const tc = CASES[caseArg];
-  if (!tc) throw new Error(`Caz necunoscut: ${caseArg} (valide: 1-4)`);
+  if (!tc) throw new Error(`Caz necunoscut: ${caseArg} (valide: 1-5)`);
   const withJD = Boolean(tc.jd) && !process.argv.includes("--no-jd");
 
   if (process.argv.includes("--ab")) {
