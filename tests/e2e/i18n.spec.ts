@@ -73,12 +73,13 @@ test.describe("Wizard în engleză (nivel demo)", () => {
     await expect(page.locator("aside").getByTestId("lang-switch")).toBeVisible();
 
     // completăm pasul 1 ca să ajungem la pasul 2 (Poză) în engleză
-    await page.getByLabel(/First name/i).fill("Ana");
-    await page.getByLabel(/^Last name/i).fill("Pop");
-    await page.getByLabel(/E-?mail/i).fill("ana@example.com");
-    await page.getByLabel(/Phone/i).fill("0721234567");
-    await page.getByRole("button", { name: /Continue/ }).click();
-    await expect(page.getByRole("heading", { name: /photo/i })).toBeVisible();
+    await page.getByLabel(/^first name/i).fill("Ana");
+    await page.getByLabel(/^last name/i).fill("Pop");
+    await page.getByLabel(/^email/i).fill("ana@example.com");
+    await page.getByLabel(/^phone/i).fill("0721234567");
+    await page.getByLabel(/^city/i).first().fill("Cluj-Napoca");
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(page.getByRole("heading", { name: "Add a photo" })).toBeVisible();
 
     await page.goto("/ro");
     await page.goto("/creare-cv");
