@@ -1,13 +1,13 @@
 /**
- * Rapoarte suplimentare din results/*.json (fără apeluri AI):
- *  - results/costs.md            — costuri MĂSURATE, defalcate apel#1/apel#2 + reasoning
- *  - results/comparison_caz4.md  — comparație oarbă caz 4 (șofer)
- *  - results/comparison_caz3.md  — comparație oarbă caz 3 + verdictul validatorului
+ * Rapoarte suplimentare din docs/evaluation/results/*.json (fără apeluri AI):
+ *  - docs/evaluation/results/costs.md            — costuri MĂSURATE, defalcate apel#1/apel#2 + reasoning
+ *  - docs/evaluation/results/comparison_caz4.md  — comparație oarbă caz 4 (șofer)
+ *  - docs/evaluation/results/comparison_caz3.md  — comparație oarbă caz 3 + verdictul validatorului
  */
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const DIR = join(process.cwd(), "results");
+const DIR = join(process.cwd(), "docs", "evaluation", "results");
 const ORDER = ["C0_baseline_55","C1_55_effort_min","C2_54_full","C3_mini_54","C4_mini_full","C5_51_full","C6_mini_51","C7_nano_54","C8_51_54"];
 
 const load = (cfg, caz) => {
