@@ -2,9 +2,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogoMark } from "@/components/ui/logo";
+import { LanguageSwitch } from "@/components/i18n/language-switch";
+import { useT } from "@/lib/i18n/context";
 
 /** Header sticky, subțire — crem ca pagina; umbră + blur după scroll. */
 export function LandingHeader() {
+  const t = useT();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -55,14 +58,15 @@ export function LandingHeader() {
 
         <nav style={{ display: "flex", alignItems: "center", gap: 22 }}>
           <Link href="/pret" className="landing-nav-link" style={{ fontSize: 14.5, fontWeight: 600, color: "var(--muted-foreground)", textDecoration: "none" }}>
-            Preț
+            {t.header.price}
           </Link>
           <Link href="/contact" className="landing-nav-link" style={{ fontSize: 14.5, fontWeight: 600, color: "var(--muted-foreground)", textDecoration: "none" }}>
-            Contact
+            {t.header.contact}
           </Link>
           <Link href="/termeni" className="landing-nav-link" style={{ fontSize: 14.5, fontWeight: 600, color: "var(--muted-foreground)", textDecoration: "none" }}>
-            Termeni și condiții
+            {t.header.terms}
           </Link>
+          <LanguageSwitch compact />
           <Link
             href="/creare-cv"
             className="cta-btn"
@@ -79,7 +83,7 @@ export function LandingHeader() {
               boxShadow: "0 1px 2px rgba(244,90,39,0.25), 0 6px 16px -6px rgba(244,90,39,0.45)",
             }}
           >
-            Începe
+            {t.header.start}
           </Link>
         </nav>
       </div>

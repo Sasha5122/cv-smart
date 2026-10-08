@@ -4,6 +4,7 @@ import { LandingHero } from "@/components/landing/hero";
 import { LandingFooter } from "@/components/landing/footer";
 import { LEGAL } from "@/lib/legal-config";
 import { PRICE_DISPLAY } from "@/lib/pricing";
+import { getT } from "@/lib/i18n/server";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || LEGAL.siteUrl;
 
@@ -28,7 +29,8 @@ const JSON_LD = {
 
 /** Landing-ul CVexpres — mesajul, CTA-ul și CV-ul ca element central,
  *  plus cartela de preț. „Începe" → /creare-cv (pasul 1). */
-export default function LandingPage() {
+export default async function LandingPage() {
+  const t = await getT();
   return (
     <>
       <script
@@ -49,13 +51,12 @@ export default function LandingPage() {
           }}
         >
           <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--muted-foreground)" }}>
-            CVexpres este un serviciu online de creare a CV-urilor profesioniste în
-            format PDF.
+            {t.home.description}
           </p>
           <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--muted-foreground)", marginTop: 4 }}>
-            Preț: {PRICE_DISPLAY} per CV, cu TVA inclus — plată unică, fără abonament.{" "}
+            {t.home.priceLine(PRICE_DISPLAY)}{" "}
             <Link href="/pret" style={{ color: "var(--primary)", fontWeight: 600 }}>
-              Vezi detalii
+              {t.home.details}
             </Link>
           </p>
         </section>
