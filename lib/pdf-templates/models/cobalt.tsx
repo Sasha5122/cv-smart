@@ -3,6 +3,7 @@ import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "../fonts";
 import { fullNameOf, eduMetaOf, photoSrcOf } from "../shared";
 import { roleOf, localityOf, streetOf, licenseTextOf } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -72,11 +73,11 @@ const s = StyleSheet.create({
   bulletText: { flex: 1, fontSize: 8.8, lineHeight: 1.42 },
 });
 
-export function CobaltTemplate({ data }: { data: CVData }) {
+export function CobaltTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
@@ -92,28 +93,28 @@ export function CobaltTemplate({ data }: { data: CVData }) {
               </View>
             )}
             <View style={s.namePill}>
-              <Text style={s.nameText}>{fullName || "Prenume Nume"}</Text>
+              <Text style={s.nameText}>{fullName || L.fullName}</Text>
             </View>
             {roleOf(data) ? <Text style={s.roleText}>{roleOf(data)}</Text> : null}
 
             <View style={s.sidePill}>
-              <Text style={s.sidePillText}>Contact</Text>
+              <Text style={s.sidePillText}>{L.contact}</Text>
             </View>
             {(streetOf(data) || localityOf(data)) ? (
               <>
-                <Text style={s.cLabel}>Adresă</Text>
+                <Text style={s.cLabel}>{L.address}</Text>
                 <Text style={s.cValue}>{[streetOf(data), localityOf(data)].filter(Boolean).join(", ")}</Text>
               </>
             ) : null}
             {p?.phone ? (
               <>
-                <Text style={s.cLabel}>Telefon</Text>
+                <Text style={s.cLabel}>{L.phone}</Text>
                 <Text style={s.cValue}>{p.phone}</Text>
               </>
             ) : null}
             {p?.email ? (
               <>
-                <Text style={s.cLabel}>Email</Text>
+                <Text style={s.cLabel}>{L.email}</Text>
                 <Text style={s.cValue}>{p.email}</Text>
               </>
             ) : null}
@@ -121,7 +122,7 @@ export function CobaltTemplate({ data }: { data: CVData }) {
             {data.skills.length > 0 && (
               <>
                 <View style={s.sidePill}>
-                  <Text style={s.sidePillText}>Competențe</Text>
+                  <Text style={s.sidePillText}>{L.skills}</Text>
                 </View>
                 {data.skills.map((sk, i) => (
                   <View key={i} style={s.skillRow}>
@@ -135,7 +136,7 @@ export function CobaltTemplate({ data }: { data: CVData }) {
             {data.languages.length > 0 && (
               <>
                 <View style={s.sidePill}>
-                  <Text style={s.sidePillText}>Limbi</Text>
+                  <Text style={s.sidePillText}>{L.languagesShort}</Text>
                 </View>
                 {data.languages.map((l, i) => (
                   <View key={i}>
@@ -152,7 +153,7 @@ export function CobaltTemplate({ data }: { data: CVData }) {
             {data.summary ? (
               <View style={s.section}>
                 <View style={s.mainPill}>
-                  <Text style={s.mainPillText}>Despre mine</Text>
+                  <Text style={s.mainPillText}>{L.about}</Text>
                 </View>
                 <Text style={s.summary}>{data.summary}</Text>
               </View>
@@ -161,7 +162,7 @@ export function CobaltTemplate({ data }: { data: CVData }) {
             {data.education.length > 0 && (
               <View style={s.section}>
                 <View style={s.mainPill}>
-                  <Text style={s.mainPillText}>Educație</Text>
+                  <Text style={s.mainPillText}>{L.education}</Text>
                 </View>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={s.tlRow}>
@@ -172,13 +173,13 @@ export function CobaltTemplate({ data }: { data: CVData }) {
                     <View style={s.tlBody}>
                       <Text style={s.eduTitle}>
                         {edu.level}
-                        {edu.field ? ` în ${edu.field}` : ""}
+                        {edu.field ? L.inField(edu.field) : ""}
                       </Text>
                       <Text style={s.eduInst}>{edu.institution}</Text>
                       <Text style={s.eduYears}>{edu.years}</Text>
                       {(edu.grade || edu.thesis) && (
                         <Text style={{ fontSize: 8, color: C.muted, fontStyle: "italic", marginTop: 1 }}>
-                          {eduMetaOf(edu)}
+                          {eduMetaOf(edu, L)}
                         </Text>
                       )}
                     </View>
@@ -190,7 +191,7 @@ export function CobaltTemplate({ data }: { data: CVData }) {
             {data.experience.length > 0 && (
               <View style={s.section}>
                 <View style={s.mainPill}>
-                  <Text style={s.mainPillText}>Experiență</Text>
+                  <Text style={s.mainPillText}>{L.experienceShort}</Text>
                 </View>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={{ marginBottom: 9 }}>
@@ -215,7 +216,7 @@ export function CobaltTemplate({ data }: { data: CVData }) {
             {(data.courses.length > 0 || licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
               <View style={s.section}>
                 <View style={s.mainPill}>
-                  <Text style={s.mainPillText}>Extra</Text>
+                  <Text style={s.mainPillText}>{L.extra}</Text>
                 </View>
                 {data.courses.map((c, i) => (
                   <View key={i} style={s.bulletRow}>
@@ -242,7 +243,7 @@ export function CobaltTemplate({ data }: { data: CVData }) {
                 {data.hobbies.length > 0 && (
                   <View style={s.bulletRow}>
                     <Text style={s.dot}>•</Text>
-                    <Text style={s.bulletText}>Hobby-uri: {data.hobbies.join(", ")}</Text>
+                    <Text style={s.bulletText}>{L.hobbiesLabel} {data.hobbies.join(", ")}</Text>
                   </View>
                 )}
               </View>

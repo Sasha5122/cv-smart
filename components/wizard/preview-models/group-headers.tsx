@@ -1,6 +1,8 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import type { CVData } from "@/lib/types/cv";
+import { useMessages } from "@/lib/i18n/context";
+import { PREVIEW_LABELS } from "@/lib/i18n/wizard/preview-labels";
 import {
   Sheet, Row, Bullet, pt, DISPLAY,
   fullNameOf, firstNameOf, lastNameOf, roleOf, localityOf, streetOf, licenseTextOf,
@@ -17,11 +19,12 @@ import {
 const MC = { navy: "#1e2a38", navyDark: "#141c26", green: "#6aa63c", greenLt: "#7cb342", ink: "#1f2937", text: "#374151", muted: "#6b7280", faint: "#9ca3af" };
 
 export function MeridianPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
   const tech = data.skills.filter((sk) => sk.category !== "soft");
   const soft = data.skills.filter((sk) => sk.category === "soft");
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const secTitle: React.CSSProperties = { fontSize: pt(11), fontWeight: 900, color: MC.green, marginBottom: pt(6) };
   const bulletText: React.CSSProperties = { fontSize: pt(8.8), color: MC.text, lineHeight: 1.4 };
   const rText: React.CSSProperties = { fontSize: pt(8.8), color: MC.text, lineHeight: 1.45 };
@@ -40,7 +43,7 @@ export function MeridianPreview({ data }: { data: CVData }) {
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: pt(24), fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: pt(0.5), lineHeight: 1.1 }}>
-            {fullNameOf(data) || "Prenume Nume"}
+            {fullNameOf(data) || L.fullName}
           </div>
           {roleOf(data) && <div style={{ fontSize: pt(12), fontWeight: 700, color: MC.greenLt, marginTop: pt(2), marginBottom: pt(5) }}>{roleOf(data)}</div>}
           {data.summary && <div style={{ fontSize: pt(8.6), color: "#c8cfd8", lineHeight: 1.5 }}>{data.summary}</div>}
@@ -60,7 +63,7 @@ export function MeridianPreview({ data }: { data: CVData }) {
         <div style={{ width: "60%" }}>
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              <div style={secTitle}>Experiență</div>
+              <div style={secTitle}>{L.experienceShort}</div>
               {data.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: pt(9) }}>
                   <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -80,7 +83,7 @@ export function MeridianPreview({ data }: { data: CVData }) {
           )}
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              <div style={secTitle}>Educație</div>
+              <div style={secTitle}>{L.education}</div>
               {data.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: pt(9) }}>
                   <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -95,7 +98,7 @@ export function MeridianPreview({ data }: { data: CVData }) {
                     {edu.location ? ` — ${edu.location}` : ""}
                   </div>
                   {(edu.grade || edu.thesis) && (
-                    <div style={{ fontSize: pt(8.4), color: MC.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</div>
+                    <div style={{ fontSize: pt(8.4), color: MC.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</div>
                   )}
                 </div>
               ))}
@@ -103,7 +106,7 @@ export function MeridianPreview({ data }: { data: CVData }) {
           )}
           {data.courses.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              <div style={secTitle}>Certificări</div>
+              <div style={secTitle}>{L.certifications}</div>
               {data.courses.map((c, i) => (
                 <Bullet key={i} markColor={MC.green} markSize={pt(9)} textStyle={bulletText}>
                   {c.name}
@@ -117,12 +120,12 @@ export function MeridianPreview({ data }: { data: CVData }) {
         <div style={{ width: "40%" }}>
           {data.skills.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              <div style={secTitle}>Competențe</div>
-              {tech.length > 0 && <div style={{ fontSize: pt(9), fontWeight: 700, color: MC.ink, margin: `${pt(3)}px 0` }}>Tehnice</div>}
+              <div style={secTitle}>{L.skills}</div>
+              {tech.length > 0 && <div style={{ fontSize: pt(9), fontWeight: 700, color: MC.ink, margin: `${pt(3)}px 0` }}>{L.technical}</div>}
               {tech.map((sk, i) => (
                 <Bullet key={i} markColor={MC.green} markSize={pt(9)} textStyle={rText} mb={pt(2.5)}>{sk.name}</Bullet>
               ))}
-              {soft.length > 0 && <div style={{ fontSize: pt(9), fontWeight: 700, color: MC.ink, margin: `${pt(3)}px 0` }}>Personale</div>}
+              {soft.length > 0 && <div style={{ fontSize: pt(9), fontWeight: 700, color: MC.ink, margin: `${pt(3)}px 0` }}>{L.personal}</div>}
               {soft.map((sk, i) => (
                 <Bullet key={i} markColor={MC.green} markSize={pt(9)} textStyle={rText} mb={pt(2.5)}>{sk.name}</Bullet>
               ))}
@@ -130,7 +133,7 @@ export function MeridianPreview({ data }: { data: CVData }) {
           )}
           {data.languages.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              <div style={secTitle}>Limbi</div>
+              <div style={secTitle}>{L.languagesShort}</div>
               {data.languages.map((l, i) => (
                 <Bullet key={i} markColor={MC.green} markSize={pt(9)} textStyle={rText} mb={pt(2.5)}>
                   {l.name}: {l.level}
@@ -140,7 +143,7 @@ export function MeridianPreview({ data }: { data: CVData }) {
           )}
           {(licenseText || data.qualifications?.trim()) && (
             <div style={{ marginBottom: pt(13) }}>
-              <div style={secTitle}>Permis & Calificări</div>
+              <div style={secTitle}>{L.licenseQualifications}</div>
               {licenseText && <Bullet markColor={MC.green} markSize={pt(9)} textStyle={rText} mb={pt(2.5)}>{licenseText}</Bullet>}
               {data.qualifications?.trim() && (
                 <Bullet markColor={MC.green} markSize={pt(9)} textStyle={rText} mb={pt(2.5)}>{data.qualifications.trim()}</Bullet>
@@ -149,7 +152,7 @@ export function MeridianPreview({ data }: { data: CVData }) {
           )}
           {data.hobbies.length > 0 && (
             <div style={{ marginBottom: pt(13) }}>
-              <div style={secTitle}>Hobby-uri</div>
+              <div style={secTitle}>{L.hobbies}</div>
               {data.hobbies.map((h, i) => (
                 <Bullet key={i} markColor={MC.green} markSize={pt(9)} textStyle={rText} mb={pt(2.5)}>{h}</Bullet>
               ))}
@@ -165,9 +168,10 @@ export function MeridianPreview({ data }: { data: CVData }) {
 const PC = { teal: "#4a7d80", tealDark: "#3d686b", band: "#d3e4e4", bg: "#eef4f4", ink: "#263435", text: "#3d4a4b", muted: "#64777a" };
 
 export function PetrolPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const secBand = (label: string) => (
     <div style={{ backgroundColor: PC.band, padding: `${pt(4)}px ${pt(10)}px`, marginBottom: pt(6) }}>
       <span style={{ fontSize: pt(8.5), fontWeight: 900, color: PC.ink, textTransform: "uppercase", letterSpacing: pt(1.2) }}>{label}</span>
@@ -186,7 +190,7 @@ export function PetrolPreview({ data }: { data: CVData }) {
       <div style={{ backgroundColor: PC.teal, display: "flex", alignItems: "center", padding: `${pt(18)}px ${pt(30)}px` }}>
         <div style={{ flex: 1, paddingRight: pt(14), minWidth: 0 }}>
           <div style={{ fontSize: pt(21), fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: pt(1), lineHeight: 1.15 }}>
-            {fullNameOf(data) || "Prenume Nume"}
+            {fullNameOf(data) || L.fullName}
           </div>
           {roleOf(data) && (
             <div style={{ fontSize: pt(10), color: "#d8e6e6", fontWeight: 700, textTransform: "uppercase", letterSpacing: pt(1.6), marginTop: pt(5), lineHeight: 1.2 }}>
@@ -206,13 +210,13 @@ export function PetrolPreview({ data }: { data: CVData }) {
         <div style={{ width: "56%" }}>
           {data.summary && (
             <div style={{ marginBottom: pt(11) }}>
-              {secBand("Obiectiv")}
+              {secBand(L.objective)}
               <div style={{ fontSize: pt(8.6), lineHeight: 1.45 }}>{data.summary}</div>
             </div>
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(11) }}>
-              {secBand("Experiență profesională")}
+              {secBand(L.experience)}
               {data.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: pt(7) }}>
                   <Row style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
@@ -234,7 +238,7 @@ export function PetrolPreview({ data }: { data: CVData }) {
           )}
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(11) }}>
-              {secBand("Educație")}
+              {secBand(L.education)}
               {data.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: pt(7) }}>
                   <Row style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
@@ -246,7 +250,7 @@ export function PetrolPreview({ data }: { data: CVData }) {
                   </Row>
                   <div style={{ fontSize: pt(8.2), color: PC.teal, fontWeight: 700 }}>{edu.institution}</div>
                   {(edu.grade || edu.thesis) && (
-                    <div style={{ fontSize: pt(7.8), color: PC.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</div>
+                    <div style={{ fontSize: pt(7.8), color: PC.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</div>
                   )}
                 </div>
               ))}
@@ -256,7 +260,7 @@ export function PetrolPreview({ data }: { data: CVData }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           {data.skills.length > 0 && (
             <div style={{ marginBottom: pt(11) }}>
-              {secBand("Competențe")}
+              {secBand(L.skills)}
               {data.skills.map((sk, i) => (
                 <div key={i} style={rItem}>•  {sk.name}</div>
               ))}
@@ -264,7 +268,7 @@ export function PetrolPreview({ data }: { data: CVData }) {
           )}
           {data.courses.length > 0 && (
             <div style={{ marginBottom: pt(11) }}>
-              {secBand("Certificări")}
+              {secBand(L.certifications)}
               {data.courses.map((c, i) => (
                 <div key={i} style={rItem}>
                   •  {c.name}
@@ -275,7 +279,7 @@ export function PetrolPreview({ data }: { data: CVData }) {
           )}
           {data.languages.length > 0 && (
             <div style={{ marginBottom: pt(11) }}>
-              {secBand("Limbi străine")}
+              {secBand(L.languages)}
               {data.languages.map((l, i) => (
                 <div key={i} style={rItem}>
                   •  {l.name} — {l.level}
@@ -285,7 +289,7 @@ export function PetrolPreview({ data }: { data: CVData }) {
           )}
           {(licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
             <div style={{ marginBottom: pt(11) }}>
-              {secBand("Extra")}
+              {secBand(L.extra)}
               {licenseText && <div style={rItem}>•  {licenseText}</div>}
               {data.qualifications?.trim() && <div style={rItem}>•  {data.qualifications.trim()}</div>}
               {data.hobbies.map((h, i) => (
@@ -305,9 +309,10 @@ const A_BANNER_H = 120;
 const A_PHOTO = 96;
 
 export function AtlanticPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const secTitle = (label: string) => (
     <div style={{ fontSize: pt(10), fontWeight: 900, color: AC.ink, textTransform: "uppercase", letterSpacing: pt(0.8), paddingBottom: pt(3), borderBottom: `2px solid ${AC.blue}`, marginBottom: pt(7), alignSelf: "flex-start", display: "inline-block" }}>
       {label}
@@ -330,8 +335,8 @@ export function AtlanticPreview({ data }: { data: CVData }) {
     <Sheet id="atlantic" style={{ color: AC.text }}>
       <div style={{ backgroundColor: AC.blue, height: pt(A_BANNER_H), display: "flex", alignItems: "center", padding: `0 ${pt(28)}px` }}>
         <div style={{ maxWidth: "38%" }}>
-          <div style={{ fontSize: pt(20), color: "#fff", lineHeight: 1.1 }}>{firstNameOf(data) || "Prenume"}</div>
-          <div style={{ fontSize: pt(26), color: "#fff", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1 }}>{lastNameOf(data) || "Nume"}</div>
+          <div style={{ fontSize: pt(20), color: "#fff", lineHeight: 1.1 }}>{firstNameOf(data) || L.firstName}</div>
+          <div style={{ fontSize: pt(26), color: "#fff", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1 }}>{lastNameOf(data) || L.lastName}</div>
           {roleOf(data) && (
             <div style={{ fontSize: pt(10), color: "#cfe0f5", fontWeight: 700, textTransform: "uppercase", letterSpacing: pt(1), marginTop: pt(4) }}>{roleOf(data)}</div>
           )}
@@ -358,19 +363,19 @@ export function AtlanticPreview({ data }: { data: CVData }) {
         <div style={{ width: "32%" }}>
           {data.skills.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Competențe")}
+              {secTitle(L.skills)}
               {data.skills.map((sk, i) => lItem(sk.name, i))}
             </div>
           )}
           {data.languages.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Limbi străine")}
+              {secTitle(L.languages)}
               {data.languages.map((l, i) => lItem(`${l.name} — ${l.level}`, i))}
             </div>
           )}
           {data.education.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Educație")}
+              {secTitle(L.education)}
               {data.education.map((edu, i) => (
                 <div key={i}>
                   <div style={{ fontSize: pt(8), color: AC.faint, marginBottom: pt(1) }}>{edu.years}</div>
@@ -385,14 +390,14 @@ export function AtlanticPreview({ data }: { data: CVData }) {
           )}
           {(licenseText || data.qualifications?.trim()) && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Permis & Calificări")}
+              {secTitle(L.licenseQualifications)}
               {licenseText && lItem(licenseText, 0)}
               {data.qualifications?.trim() && lItem(data.qualifications.trim(), 1)}
             </div>
           )}
           {data.hobbies.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Hobby-uri")}
+              {secTitle(L.hobbies)}
               {data.hobbies.map((h, i) => lItem(h, i))}
             </div>
           )}
@@ -400,13 +405,13 @@ export function AtlanticPreview({ data }: { data: CVData }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           {data.summary && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Profil")}
+              {secTitle(L.profile)}
               <div style={{ fontSize: pt(9.4), lineHeight: 1.55 }}>{data.summary}</div>
             </div>
           )}
           {data.experience.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Experiență profesională")}
+              {secTitle(L.experience)}
               {data.experience.map((exp, i) => (
                 <Row key={i} gap={pt(12)} style={{ marginBottom: pt(11) }}>
                   <div style={{ width: pt(74), flexShrink: 0, fontSize: pt(8.2), color: AC.muted, lineHeight: 1.4 }}>
@@ -426,7 +431,7 @@ export function AtlanticPreview({ data }: { data: CVData }) {
           )}
           {data.courses.length > 0 && (
             <div style={{ marginBottom: pt(14) }}>
-              {secTitle("Certificări")}
+              {secTitle(L.certifications)}
               {data.courses.map((c, i) => (
                 <Bullet key={i} markColor={AC.ink} markSize={pt(8.5)} textStyle={{ fontSize: pt(8.8), color: AC.text, lineHeight: 1.42 }}>
                   {c.name}
@@ -446,14 +451,15 @@ export function AtlanticPreview({ data }: { data: CVData }) {
 const HC = { blue: "#2077b4", teal: "#1aa39b", ink: "#1f2430", text: "#3d4451", muted: "#6b7280", hair: "#d7dbe0" };
 
 export function ManhattanPreview({ data }: { data: CVData }) {
+  const L = useMessages(PREVIEW_LABELS);
   const photo = photoOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const bioItems = [
-    localityOf(data) && { l: "Oraș", v: localityOf(data) },
-    licenseText && { l: "Permis", v: data.license!.categories.join(", ") },
-    data.languages.length > 0 && { l: "Limbi", v: data.languages.map((x) => x.name).join(", ") },
-    data.hobbies.length > 0 && { l: "Hobby", v: data.hobbies.join(", ") },
+    localityOf(data) && { l: L.city, v: localityOf(data) },
+    licenseText && { l: L.licenseShort, v: data.license!.categories.join(", ") },
+    data.languages.length > 0 && { l: L.languagesShort, v: data.languages.map((x) => x.name).join(", ") },
+    data.hobbies.length > 0 && { l: L.hobbyShort, v: data.hobbies.join(", ") },
   ].filter(Boolean) as { l: string; v: string }[];
   const secTitle = (label: string) => (
     <div style={{ fontFamily: DISPLAY, fontSize: pt(11.5), fontWeight: 700, color: HC.blue, marginBottom: pt(3) }}>{label}</div>
@@ -472,33 +478,33 @@ export function ManhattanPreview({ data }: { data: CVData }) {
       <Row gap={pt(20)}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: pt(30), color: HC.blue, lineHeight: 1.05 }}>
-            {fullNameOf(data) || "Prenume Nume"}
+            {fullNameOf(data) || L.fullName}
           </div>
           {roleOf(data) && <div style={{ fontSize: pt(10), color: HC.muted, marginTop: pt(4) }}>{roleOf(data)}</div>}
           <div style={{ backgroundColor: HC.blue, padding: `${pt(14)}px ${pt(18)}px`, marginTop: pt(16), width: "100%", boxSizing: "border-box" }}>
-            <div style={{ fontSize: pt(12), fontWeight: 900, color: "#fff", marginBottom: pt(8) }}>Informații de contact</div>
+            <div style={{ fontSize: pt(12), fontWeight: 900, color: "#fff", marginBottom: pt(8) }}>{L.contactInfo}</div>
             <div style={{ display: "flex", flexWrap: "wrap" }}>
               {p?.phone && (
                 <div style={{ width: "50%", marginBottom: pt(7), paddingRight: pt(12), boxSizing: "border-box" }}>
-                  <div style={{ fontSize: pt(8.5), fontWeight: 700, color: "#bcd9ee", marginBottom: pt(1.5) }}>Telefon</div>
+                  <div style={{ fontSize: pt(8.5), fontWeight: 700, color: "#bcd9ee", marginBottom: pt(1.5) }}>{L.phone}</div>
                   <div style={{ fontSize: pt(9), color: "#fff" }}>{p.phone}</div>
                 </div>
               )}
               {(streetOf(data) || localityOf(data)) && (
                 <div style={{ width: "50%", marginBottom: pt(7), paddingRight: pt(12), boxSizing: "border-box" }}>
-                  <div style={{ fontSize: pt(8.5), fontWeight: 700, color: "#bcd9ee", marginBottom: pt(1.5) }}>Adresă</div>
+                  <div style={{ fontSize: pt(8.5), fontWeight: 700, color: "#bcd9ee", marginBottom: pt(1.5) }}>{L.address}</div>
                   <div style={{ fontSize: pt(9), color: "#fff" }}>{[streetOf(data), localityOf(data)].filter(Boolean).join(", ")}</div>
                 </div>
               )}
               {p?.email && (
                 <div style={{ width: "50%", marginBottom: pt(7), paddingRight: pt(12), boxSizing: "border-box" }}>
-                  <div style={{ fontSize: pt(8.5), fontWeight: 700, color: "#bcd9ee", marginBottom: pt(1.5) }}>Email</div>
+                  <div style={{ fontSize: pt(8.5), fontWeight: 700, color: "#bcd9ee", marginBottom: pt(1.5) }}>{L.email}</div>
                   <div style={{ fontSize: pt(9), color: "#fff", wordBreak: "break-word" }}>{p.email}</div>
                 </div>
               )}
               {p?.linkedin && (
                 <div style={{ width: "50%", marginBottom: pt(7), paddingRight: pt(12), boxSizing: "border-box" }}>
-                  <div style={{ fontSize: pt(8.5), fontWeight: 700, color: "#bcd9ee", marginBottom: pt(1.5) }}>LinkedIn</div>
+                  <div style={{ fontSize: pt(8.5), fontWeight: 700, color: "#bcd9ee", marginBottom: pt(1.5) }}>{L.linkedin}</div>
                   <div style={{ fontSize: pt(9), color: "#fff", wordBreak: "break-word" }}>{p.linkedin}</div>
                 </div>
               )}
@@ -513,14 +519,14 @@ export function ManhattanPreview({ data }: { data: CVData }) {
           <Row gap={pt(22)}>
             {data.summary && (
               <div style={{ flex: 1, minWidth: 0 }}>
-                {secTitle("Profil personal")}
+                {secTitle(L.profilePersonal)}
                 {secLine}
                 <div style={{ fontSize: pt(9.4), lineHeight: 1.55 }}>{data.summary}</div>
               </div>
             )}
             {bioItems.length > 0 && (
               <div style={{ width: pt(150), flexShrink: 0 }}>
-                {secTitle("Pe scurt")}
+                {secTitle(L.atAGlance)}
                 {secLine}
                 {bioItems.map((b, i) => (
                   <Row key={i} style={{ marginBottom: pt(3) }}>
@@ -536,7 +542,7 @@ export function ManhattanPreview({ data }: { data: CVData }) {
 
       {data.education.length > 0 && (
         <div style={{ marginTop: pt(15) }}>
-          {secTitle("Educație")}
+          {secTitle(L.education)}
           {secLine}
           <div style={{ display: "flex", flexWrap: "wrap", gap: pt(18) }}>
             {data.education.map((edu, i) => (
@@ -548,7 +554,7 @@ export function ManhattanPreview({ data }: { data: CVData }) {
                   {edu.field ? ` — ${edu.field}` : ""}
                 </div>
                 {(edu.grade || edu.thesis) && (
-                  <div style={{ fontSize: pt(8), color: HC.muted, fontStyle: "italic", marginTop: pt(1) }}>{eduMetaOf(edu)}</div>
+                  <div style={{ fontSize: pt(8), color: HC.muted, fontStyle: "italic", marginTop: pt(1) }}>{eduMetaOf(edu, L)}</div>
                 )}
               </div>
             ))}
@@ -558,7 +564,7 @@ export function ManhattanPreview({ data }: { data: CVData }) {
 
       {(data.skills.length > 0 || data.qualifications?.trim()) && (
         <div style={{ marginTop: pt(15) }}>
-          {secTitle("Competențe")}
+          {secTitle(L.skills)}
           {secLine}
           <div style={{ display: "flex", flexWrap: "wrap" }}>
             {data.skills.map((sk, i) => skillCell(sk.name, i))}
@@ -572,7 +578,7 @@ export function ManhattanPreview({ data }: { data: CVData }) {
 
       {data.experience.length > 0 && (
         <div style={{ marginTop: pt(15) }}>
-          {secTitle("Experiență profesională")}
+          {secTitle(L.experience)}
           {secLine}
           {data.experience.map((exp, i) => (
             <div key={i} style={{ marginBottom: pt(10), paddingTop: pt(7), borderTop: `2px solid ${HC.blue}` }}>

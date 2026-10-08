@@ -18,3 +18,15 @@ export function useLocale(): Locale {
 export function useT(): Messages {
   return messagesFor(useContext(LocaleContext));
 }
+
+/** Mesaje locale unei componente: `{ ro: {...}, en: {...} }` → varianta pentru limba curentă.
+ *  Folosit de pașii wizard-ului, fiecare cu propriul fișier de texte. */
+export function useMessages<T>(m: Readonly<Record<Locale, T>>): T {
+  const locale = useContext(LocaleContext);
+  return m[locale] ?? m[DEFAULT_LOCALE];
+}
+
+/** Varianta non-hook (pentru funcții utilitare care primesc limba explicit). */
+export function pickMessages<T>(m: Readonly<Record<Locale, T>>, locale: Locale): T {
+  return m[locale] ?? m[DEFAULT_LOCALE];
+}

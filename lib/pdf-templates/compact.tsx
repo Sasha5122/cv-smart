@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/render
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
 import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf, photoSrcOf } from "./shared";
+import { pdfLabels, type PdfLabels } from "./labels";
 
 registerFonts();
 
@@ -74,7 +75,7 @@ const s = StyleSheet.create({
   },
 });
 
-export function CompactTemplate({ data }: { data: CVData }) {
+export function CompactTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const contactItems = contactItemsOf(data);
   const hasLicenseInfo = hasLicenseInfoOf(data);
@@ -86,7 +87,7 @@ export function CompactTemplate({ data }: { data: CVData }) {
         {/* Antet economic */}
         <View style={s.headRow}>
           <View style={{ flex: 1 }}>
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {data.targetTitle ? (
               <Text style={{ fontSize: 9, color: C.accent, fontWeight: 700, marginTop: 2 }}>
                 {data.targetTitle}
@@ -105,14 +106,14 @@ export function CompactTemplate({ data }: { data: CVData }) {
 
         {data.summary ? (
           <View style={s.section}>
-            <Text style={s.secTitle}>Rezumat</Text>
+            <Text style={s.secTitle}>{L.summary}</Text>
             <Text style={{ fontSize: 8.6, lineHeight: 1.4 }}>{data.summary}</Text>
           </View>
         ) : null}
 
         {data.experience.length > 0 && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Experiență profesională</Text>
+            <Text style={s.secTitle}>{L.experience}</Text>
             {data.experience.map((exp, i) => (
               <View key={i} wrap={false} style={{ marginBottom: i < data.experience.length - 1 ? 6 : 0 }}>
                 <View style={s.entryHead}>
@@ -136,7 +137,7 @@ export function CompactTemplate({ data }: { data: CVData }) {
 
         {data.education.length > 0 && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Educație</Text>
+            <Text style={s.secTitle}>{L.education}</Text>
             {data.education.map((edu, i) => (
               <View key={i} wrap={false} style={{ marginBottom: i < data.education.length - 1 ? 4 : 0 }}>
                 <View style={s.entryHead}>
@@ -149,7 +150,7 @@ export function CompactTemplate({ data }: { data: CVData }) {
                 <Text style={{ fontSize: 8.6, marginTop: 0.5 }}>
                   {edu.institution}
                   {edu.location ? ` · ${edu.location}` : ""}
-                  {(edu.grade || edu.thesis) ? `  —  ${eduMetaOf(edu)}` : ""}
+                  {(edu.grade || edu.thesis) ? `  —  ${eduMetaOf(edu, L)}` : ""}
                 </Text>
               </View>
             ))}
@@ -158,7 +159,7 @@ export function CompactTemplate({ data }: { data: CVData }) {
 
         {data.courses.length > 0 && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Cursuri & certificări</Text>
+            <Text style={s.secTitle}>{L.courses}</Text>
             <Text style={s.inline}>
               {data.courses
                 .map((c) =>
@@ -171,35 +172,35 @@ export function CompactTemplate({ data }: { data: CVData }) {
 
         {data.skills.length > 0 && (
           <View style={s.section} wrap={false}>
-            <Text style={s.secTitle}>Competențe</Text>
+            <Text style={s.secTitle}>{L.skills}</Text>
             <Text style={s.inline}>{data.skills.map((sk) => sk.name).join("  ·  ")}</Text>
           </View>
         )}
 
         {(data.languages.length > 0 || hasLicenseInfo || data.hobbies.length > 0) && (
           <View style={s.section} wrap={false}>
-            <Text style={s.secTitle}>Alte informații</Text>
+            <Text style={s.secTitle}>{L.otherInfo}</Text>
             {data.languages.length > 0 && (
               <Text style={[s.inline, { marginBottom: 1.5 }]}>
-                <Text style={s.inlineLabel}>Limbi străine:  </Text>
+                <Text style={s.inlineLabel}>{`${L.languages}:  `}</Text>
                 {data.languages.map((l) => `${l.name} (${l.level})`).join("  ·  ")}
               </Text>
             )}
             {data.license?.hasLicense && data.license.categories.length > 0 && (
               <Text style={[s.inline, { marginBottom: 1.5 }]}>
-                <Text style={s.inlineLabel}>Permis de conducere:  </Text>
-                categoria {data.license.categories.join(", ")}
+                <Text style={s.inlineLabel}>{`${L.license}:  `}</Text>
+                {L.category} {data.license.categories.join(", ")}
               </Text>
             )}
             {data.qualifications?.trim() ? (
               <Text style={[s.inline, { marginBottom: 1.5 }]}>
-                <Text style={s.inlineLabel}>Calificări:  </Text>
+                <Text style={s.inlineLabel}>{`${L.qualifications}:  `}</Text>
                 {data.qualifications.trim()}
               </Text>
             ) : null}
             {data.hobbies.length > 0 && (
               <Text style={s.inline}>
-                <Text style={s.inlineLabel}>Hobby-uri:  </Text>
+                <Text style={s.inlineLabel}>{`${L.hobbiesLabel}  `}</Text>
                 {data.hobbies.join(", ")}
               </Text>
             )}

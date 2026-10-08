@@ -4,6 +4,9 @@ import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Star, ArrowRight, Plus, X, Loader2 } from "lucide-react";
 import type { Skill, CVData } from "@/lib/types/cv";
+import { useMessages, useLocale } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/locale";
+import { STEP_SKILLS_MESSAGES } from "@/lib/i18n/wizard/step-skills";
 
 interface SkillPool {
   hardSkills: string[];
@@ -14,7 +17,6 @@ interface SkillPool {
 const SECTIONS = [
   {
     key: "hardSkills" as const,
-    label: "Abilități tehnice / Hard skills",
     testId: "section-hard",
     recommended: "4–6",
     min: 4,
@@ -22,7 +24,6 @@ const SECTIONS = [
   },
   {
     key: "softwareTools" as const,
-    label: "Software / Tools",
     testId: "section-software",
     recommended: "3–4",
     min: 3,
@@ -30,7 +31,6 @@ const SECTIONS = [
   },
   {
     key: "softSkills" as const,
-    label: "Soft skills",
     testId: "section-soft",
     recommended: "2–3",
     min: 2,
@@ -83,7 +83,7 @@ const inflightSkills = new Map<string, Promise<SkillPool>>();
 
 function fetchSkillsOnce(
   fingerprint: string,
-  body: { cvData: CVData; jobDescription?: string; sessionId: string }
+  body: { cvData: CVData; jobDescription?: string; sessionId: string; language: Locale }
 ): Promise<SkillPool> {
   const existing = inflightSkills.get(fingerprint);
   if (existing) return existing;
@@ -104,6 +104,8 @@ function fetchSkillsOnce(
 }
 
 export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNext, onBack }: Props) {
+  const t = useMessages(STEP_SKILLS_MESSAGES);
+  const locale = useLocale();
   const [phase, setPhase] = useState<"loading" | "selection">("loading");
   const [loadError, setLoadError] = useState(false);
   const [pool, setPool] = useState<SkillPool>({ hardSkills: [], softwareTools: [], softSkills: [] });
@@ -126,6 +128,7 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
       cvData,
       jobDescription: jobDescription?.trim() || undefined,
       sessionId,
+      language: locale,
     })
       .then((data: SkillPool) => {
         setPool(data);
@@ -206,7 +209,7 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
       const res = await fetch("/api/ai/format-skill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skill: trimmed }),
+        body: JSON.stringify({ skill: trimmed, language: locale }),
       });
       const { corrected } = await res.json();
       setCustomSkills((prev) => [...prev, corrected || trimmed]);
@@ -237,16 +240,16 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
   if (phase === "loading") {
     return (
       <StepCard
-        title="Abilități"
-        subtitle="AI analizează profilul tău și generează abilități potrivite..."
+        title={t.title}
+        subtitle={t.loadingSubtitle}
         icon={<Star className="w-5 h-5" />}
       >
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 0", gap: 16 }}>
           <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--primary)" }} />
-          <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>Generăm abilitățile personalizate pentru tine...</p>
+          <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>{t.loadingText}</p>
         </div>
         <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>{t.back}</Button>
         </div>
       </StepCard>
     );
@@ -254,8 +257,8 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
 
   return (
     <StepCard
-      title="Abilități"
-      subtitle="Selectează abilitățile tale relevante pentru CV."
+      title={t.title}
+      subtitle={t.subtitle}
       icon={<Star className="w-5 h-5" />}
     >
       {loadError && (
@@ -275,9 +278,9 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
             fontSize: 13.5,
           }}
         >
-          <span>Generarea AI a abilităților a eșuat. Poți reîncerca sau adaugă-le manual mai jos.</span>
+          <span>{t.loadError}</span>
           <Button size="sm" variant="outline" onClick={loadSkills} data-testid="skills-retry">
-            Încearcă din nou
+            {t.retry}
           </Button>
         </div>
       )}
@@ -296,14 +299,14 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
               style={{ border: "1px solid var(--hairline)", borderRadius: 10, padding: "14px 16px", background: "#FAFAFA" }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-                <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{section.label}</span>
+                <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{t.sections[section.key]}</span>
                 <span style={{ fontSize: 13, color, fontWeight: 500 }}>
-                  {count} / {items.length} — recomandat: {section.recommended}
+                  {t.counter(count, items.length, section.recommended)}
                 </span>
               </div>
 
               {items.length === 0 ? (
-                <p style={{ fontSize: 13, color: "var(--faint)" }}>Niciun item generat.</p>
+                <p style={{ fontSize: 13, color: "var(--faint)" }}>{t.noItems}</p>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "6px 12px" }}>
                   {items.map((skill) => (
@@ -332,13 +335,13 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
         {/* Manual add */}
         <div style={{ border: "1px dashed var(--input-border)", borderRadius: 10, padding: "14px 16px" }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 10 }}>
-            Adaugă manual
+            {t.manualTitle}
           </p>
           <div style={{ display: "flex", gap: 8 }}>
             <input
               data-testid="manual-skill-input"
               type="text"
-              placeholder="Ex: Managementul timpului"
+              placeholder={t.manualPlaceholder}
               value={manualInput}
               onChange={(e) => setManualInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !isFormatting && handleAddManual()}
@@ -361,7 +364,7 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
               }}
             >
               {isFormatting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              Adaugă
+              {t.add}
             </button>
           </div>
 
@@ -391,9 +394,9 @@ export function Step10Skills({ sessionId, cvData, jobDescription, onUpdate, onNe
       </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-        <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+        <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>{t.back}</Button>
         <Button onClick={handleContinue} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
-          Continuă
+          {t.continue}
         </Button>
       </div>
     </StepCard>

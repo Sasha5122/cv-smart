@@ -5,6 +5,7 @@ import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
 import { ALL_TEMPLATE_IDS } from "@/lib/types/cv";
 import type { TemplateId } from "@/lib/types/cv";
+import { LOCALE_COOKIE, toLocale } from "@/lib/i18n/locale";
 
 const VALID_TEMPLATES: TemplateId[] = ALL_TEMPLATE_IDS;
 
@@ -36,7 +37,15 @@ export async function PATCH(
       }
     }
 
-    await updateSessionCVData(id, (cv_data ?? {}) as Parameters<typeof updateSessionCVData>[1]);
+    // Limba aleasă (cookie NEXT_LOCALE) se reține lângă datele CV-ului, ca
+    // livrarea după plată (webhook, fără cookie) să trimită emailul în limba
+    // potrivită. cv_data se salvează ca atare (fără parse zod) — cheia `locale`
+    // apare DOAR pentru engleză; pentru română rândul rămâne identic.
+    const locale = toLocale(req.cookies.get(LOCALE_COOKIE)?.value);
+    const toSave: Record<string, unknown> = { ...(cv_data ?? {}) };
+    if (locale === "en") toSave.locale = "en";
+    else delete toSave.locale;
+    await updateSessionCVData(id, toSave as Parameters<typeof updateSessionCVData>[1]);
 
     // designul ales — salvat înainte de plată ca parte a variantei finale
     // (tolerant la constraint-ul vechi: fallback pe event template_selected)

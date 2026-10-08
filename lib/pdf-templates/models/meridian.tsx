@@ -6,6 +6,7 @@ import {
   roleOf, localityOf, licenseTextOf,
   IconPhone, IconMail, IconPin, IconLinkedin,
 } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -67,14 +68,14 @@ function Bullets({ items }: { items: string[] }) {
   );
 }
 
-export function MeridianTemplate({ data }: { data: CVData }) {
+export function MeridianTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const role = roleOf(data);
   const p = data.personal;
   const tech = data.skills.filter((sk) => sk.category !== "soft");
   const soft = data.skills.filter((sk) => sk.category === "soft");
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   const contacts = [
     p?.phone && { icon: <IconPhone color={C.greenLt} size={9} />, t: p.phone },
@@ -92,7 +93,7 @@ export function MeridianTemplate({ data }: { data: CVData }) {
             <Image src={photo} style={s.photo} />
           )}
           <View style={{ flex: 1 }}>
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {role ? <Text style={s.role}>{role}</Text> : null}
             {data.summary ? <Text style={s.headerDesc}>{data.summary}</Text> : null}
           </View>
@@ -114,7 +115,7 @@ export function MeridianTemplate({ data }: { data: CVData }) {
           <View style={s.colL}>
             {data.experience.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Experiență</Text>
+                <Text style={s.secTitle}>{L.experienceShort}</Text>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={s.entry}>
                     <View style={s.entryHead}>
@@ -133,7 +134,7 @@ export function MeridianTemplate({ data }: { data: CVData }) {
 
             {data.education.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Educație</Text>
+                <Text style={s.secTitle}>{L.education}</Text>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={s.entry}>
                     <View style={s.entryHead}>
@@ -148,7 +149,7 @@ export function MeridianTemplate({ data }: { data: CVData }) {
                       {edu.location ? ` — ${edu.location}` : ""}
                     </Text>
                     {(edu.grade || edu.thesis) && (
-                      <Text style={{ fontSize: 8.4, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</Text>
+                      <Text style={{ fontSize: 8.4, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</Text>
                     )}
                   </View>
                 ))}
@@ -157,7 +158,7 @@ export function MeridianTemplate({ data }: { data: CVData }) {
 
             {data.courses.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Certificări</Text>
+                <Text style={s.secTitle}>{L.certifications}</Text>
                 {data.courses.map((c, i) => (
                   <View key={i} style={s.bulletRow}>
                     <Text style={s.dot}>•</Text>
@@ -176,15 +177,15 @@ export function MeridianTemplate({ data }: { data: CVData }) {
           <View style={s.colR}>
             {data.skills.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Competențe</Text>
-                {tech.length > 0 && <Text style={s.rSubTitle}>Tehnice</Text>}
+                <Text style={s.secTitle}>{L.skills}</Text>
+                {tech.length > 0 && <Text style={s.rSubTitle}>{L.technical}</Text>}
                 {tech.map((sk, i) => (
                   <View key={i} style={s.rItem}>
                     <Text style={s.rDot}>•</Text>
                     <Text style={s.rText}>{sk.name}</Text>
                   </View>
                 ))}
-                {soft.length > 0 && <Text style={s.rSubTitle}>Personale</Text>}
+                {soft.length > 0 && <Text style={s.rSubTitle}>{L.personal}</Text>}
                 {soft.map((sk, i) => (
                   <View key={i} style={s.rItem}>
                     <Text style={s.rDot}>•</Text>
@@ -196,7 +197,7 @@ export function MeridianTemplate({ data }: { data: CVData }) {
 
             {data.languages.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Limbi</Text>
+                <Text style={s.secTitle}>{L.languagesShort}</Text>
                 {data.languages.map((l, i) => (
                   <View key={i} style={s.rItem}>
                     <Text style={s.rDot}>•</Text>
@@ -210,7 +211,7 @@ export function MeridianTemplate({ data }: { data: CVData }) {
 
             {(licenseText || data.qualifications?.trim()) && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Permis & Calificări</Text>
+                <Text style={s.secTitle}>{L.licenseQualifications}</Text>
                 {licenseText ? (
                   <View style={s.rItem}>
                     <Text style={s.rDot}>•</Text>
@@ -228,7 +229,7 @@ export function MeridianTemplate({ data }: { data: CVData }) {
 
             {data.hobbies.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Hobby-uri</Text>
+                <Text style={s.secTitle}>{L.hobbies}</Text>
                 {data.hobbies.map((h, i) => (
                   <View key={i} style={s.rItem}>
                     <Text style={s.rDot}>•</Text>

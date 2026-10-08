@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Image, StyleSheet, Svg, Path } from "@react
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "../fonts";
 import { fullNameOf, eduMetaOf, photoSrcOf } from "../shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 import { roleOf, localityOf, streetOf, licenseTextOf, IconPhone, IconMail, IconPin, IconGlobe } from "./_shared";
 
 registerFonts();
@@ -63,11 +64,11 @@ const s = StyleSheet.create({
   pSection: { marginBottom: 16 },
 });
 
-export function FlamingoTemplate({ data }: { data: CVData }) {
+export function FlamingoTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
@@ -100,7 +101,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
           </View>
         )}
         <View style={s.headRight}>
-          <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+          <Text style={s.name}>{fullName || L.fullName}</Text>
           {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
         </View>
 
@@ -109,7 +110,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
           {data.summary ? (
             <View style={s.section}>
               <View style={s.pill}>
-                <Text style={s.pillText}>Profil</Text>
+                <Text style={s.pillText}>{L.profile}</Text>
               </View>
               <Text style={s.summary}>{data.summary}</Text>
             </View>
@@ -118,7 +119,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
           {data.education.length > 0 && (
             <View style={s.section}>
               <View style={s.pill}>
-                <Text style={s.pillText}>Educație</Text>
+                <Text style={s.pillText}>{L.education}</Text>
               </View>
               {data.education.map((edu, i) => (
                 <View key={i} wrap={false} style={s.entry}>
@@ -129,7 +130,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
                   <Text style={s.entryMeta}>
                     ({edu.years}) · {edu.institution}
                   </Text>
-                  {(edu.grade || edu.thesis) && <Text style={s.entryText}>{eduMetaOf(edu)}</Text>}
+                  {(edu.grade || edu.thesis) && <Text style={s.entryText}>{eduMetaOf(edu, L)}</Text>}
                 </View>
               ))}
               {data.courses.map((c, i) => (
@@ -146,7 +147,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
           {data.experience.length > 0 && (
             <View style={s.section}>
               <View style={s.pill}>
-                <Text style={s.pillText}>Experiență</Text>
+                <Text style={s.pillText}>{L.experienceShort}</Text>
               </View>
               {data.experience.map((exp, i) => (
                 <View key={i} wrap={false} style={s.entry}>
@@ -168,7 +169,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
           {data.skills.length > 0 && (
             <View style={s.section}>
               <View style={s.pill}>
-                <Text style={s.pillText}>Competențe</Text>
+                <Text style={s.pillText}>{L.skills}</Text>
               </View>
               <Text style={s.entryText}>{data.skills.map((sk) => sk.name).join("  ·  ")}</Text>
             </View>
@@ -179,7 +180,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
         <View style={s.panelContent}>
           <View style={s.pSection}>
             <View style={s.pPill}>
-              <Text style={s.pillText}>Contact</Text>
+              <Text style={s.pillText}>{L.contact}</Text>
             </View>
             {p?.phone ? (
               <View style={s.pItemRow}>
@@ -210,7 +211,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
           {data.languages.length > 0 && (
             <View style={s.pSection}>
               <View style={s.pPill}>
-                <Text style={s.pillText}>Limbi</Text>
+                <Text style={s.pillText}>{L.languagesShort}</Text>
               </View>
               {data.languages.map((l, i) => (
                 <View key={i} style={s.pItemRow}>
@@ -226,7 +227,7 @@ export function FlamingoTemplate({ data }: { data: CVData }) {
           {(licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
             <View style={s.pSection}>
               <View style={s.pPill}>
-                <Text style={s.pillText}>Extra</Text>
+                <Text style={s.pillText}>{L.extra}</Text>
               </View>
               {licenseText ? (
                 <View style={s.pItemRow}>

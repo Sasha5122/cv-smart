@@ -1,5 +1,8 @@
 "use client";
 import { Select } from "@/components/ui/select";
+import { pickMessages, useMessages } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/locale";
+import { PERIOD_PICKER_MESSAGES } from "@/lib/i18n/wizard/period-picker";
 
 /* ────────────────────────────────────────────────────────────────
    Selector de perioadă comun (Experiență, Educație): an + lună
@@ -31,22 +34,27 @@ export const YEARS = Array.from({ length: CURRENT_YEAR - 1974 }, (_, i) =>
 );
 
 /** Compune textul perioadei din dropdown-uri (luna e opțională). */
-export function buildPeriod(v: PeriodValue): string {
+export function buildPeriod(v: PeriodValue, locale: Locale = "ro"): string {
+  const m = pickMessages(PERIOD_PICKER_MESSAGES, locale);
+  const monthLabel = (stored: string) => {
+    const idx = MONTHS.indexOf(stored);
+    return idx >= 0 ? m.months[idx] : stored;
+  };
   const start = v.startYear
     ? v.startMonth
-      ? `${v.startMonth} ${v.startYear}`
+      ? `${monthLabel(v.startMonth)} ${v.startYear}`
       : v.startYear
     : "";
   const end =
     v.endYear === "Prezent"
-      ? "prezent"
+      ? m.presentInPeriod
       : v.endYear
         ? v.endMonth
-          ? `${v.endMonth} ${v.endYear}`
+          ? `${monthLabel(v.endMonth)} ${v.endYear}`
           : v.endYear
         : "";
   if (start && end) return `${start} – ${end}`;
-  if (start) return `${start} – prezent`;
+  if (start) return `${start} – ${m.presentInPeriod}`;
   return "";
 }
 
@@ -61,12 +69,15 @@ interface Props {
 export function PeriodPicker({
   value,
   onChange,
-  fromLabel = "De când",
-  toLabel = "Până când",
+  fromLabel,
+  toLabel,
 }: Props) {
+  const t = useMessages(PERIOD_PICKER_MESSAGES);
+  const fromText = fromLabel ?? t.from;
+  const toText = toLabel ?? t.to;
   const monthOptions = [
-    { value: "", label: "luna (opțional)" },
-    ...MONTHS.map((m) => ({ value: m, label: m })),
+    { value: "", label: t.monthOptional },
+    ...MONTHS.map((m, i) => ({ value: m, label: t.months[i] })),
   ];
   const isPresent = value.endYear === "Prezent";
 
@@ -83,26 +94,26 @@ export function PeriodPicker({
     >
       <div style={{ minWidth: 0 }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>
-          {fromLabel}
+          {fromText}
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 8 }}>
           <Select
             value={value.startYear}
             onChange={(v) => onChange("startYear", v)}
             options={YEARS}
-            placeholder="anul"
+            placeholder={t.year}
           />
           <Select
             value={value.startMonth}
             onChange={(v) => onChange("startMonth", v)}
             options={monthOptions}
-            placeholder="luna (opțional)"
+            placeholder={t.monthOptional}
           />
         </div>
       </div>
       <div style={{ minWidth: 0 }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>
-          {toLabel}
+          {toText}
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.2fr)", gap: 8 }}>
           <Select
@@ -111,14 +122,14 @@ export function PeriodPicker({
               onChange("endYear", v);
               if (v === "Prezent") onChange("endMonth", "");
             }}
-            options={["Prezent", ...YEARS]}
-            placeholder="anul"
+            options={[{ value: "Prezent", label: t.present }, ...YEARS]}
+            placeholder={t.year}
           />
           <Select
             value={value.endMonth}
             onChange={(v) => onChange("endMonth", v)}
             options={monthOptions}
-            placeholder="luna (opțional)"
+            placeholder={t.monthOptional}
             disabled={isPresent}
           />
         </div>

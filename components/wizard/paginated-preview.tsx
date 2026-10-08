@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { CVPreview } from "./cv-preview";
+import { useMessages } from "@/lib/i18n/context";
+import { PREVIEW_LABELS } from "@/lib/i18n/wizard/preview-labels";
 import type { CVData, TemplateId } from "@/lib/types/cv";
 
 /** Lățimea de referință la care e „proiectat" preview-ul (px). Conținutul se
@@ -21,6 +23,7 @@ interface Props {
  *  scrollbar intern. Conținutul e măsurat la lățimea de referință și
  *  scalat; fiecare foaie afișează felia ei. Aproximează paginarea PDF. */
 export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }: Props) {
+  const L = useMessages(PREVIEW_LABELS);
   const wrapRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState(1);
@@ -86,7 +89,7 @@ export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }
           </div>
           {pages > 1 && (
             <p style={{ textAlign: "center", fontSize: 11, color: "var(--faint)", margin: "6px 0 0" }}>
-              Pagina {i + 1} din {pages}
+              {L.pageOf(i + 1, pages)}
             </p>
           )}
         </div>
@@ -100,6 +103,7 @@ export function PaginatedCVPreview({ cvData, template = "classic", sheetTestId }
  *  rupe pagina. Conținutul e randat la lățimea de referință și scalat —
  *  proporții identice cu PDF-ul. */
 export function PreviewWithPageMarks({ cvData, template = "classic" }: Omit<Props, "sheetTestId">) {
+  const L = useMessages(PREVIEW_LABELS);
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -187,7 +191,7 @@ export function PreviewWithPageMarks({ cvData, template = "classic" }: Omit<Prop
                 borderRadius: 4,
               }}
             >
-              Pagina {i + 2}
+              {L.page(i + 2)}
             </span>
           </div>
         ))}

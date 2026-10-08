@@ -45,6 +45,8 @@ export interface ExtractOptions<T = unknown> {
   /** telemetrie: numele etapei → apelul se înregistrează ca `ai_call` */
   stage?: string;
   sessionId?: string | null;
+  /** limba instrucțiunii de format JSON (ro implicit) */
+  language?: "ro" | "en";
 }
 
 /** Forma minimă a răspunsului de care are nevoie telemetria. */
@@ -131,9 +133,13 @@ export async function chatStream(
 }
 
 export async function extractJSON<T>(opts: ExtractOptions<T>): Promise<T> {
+  const jsonRule =
+    opts.language === "en"
+      ? "IMPORTANT: Reply ONLY with valid JSON, no markdown, no explanations. Do not use ```json```."
+      : "IMPORTANT: Răspunde EXCLUSIV cu JSON valid, fără markdown, fără explicații. Nu folosi ```json```.";
   const systemPrompt = `${opts.system}
 
-IMPORTANT: Răspunde EXCLUSIV cu JSON valid, fără markdown, fără explicații. Nu folosi \`\`\`json\`\`\`.`;
+${jsonRule}`;
 
   // json_object forțează un OBIECT la top-level → îl activăm doar când
   // fallback-ul nu e array (unele rute așteaptă array-uri, ex. string[]).

@@ -5,16 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Globe, Plus, X, ArrowRight } from "lucide-react";
 import type { Language } from "@/lib/types/cv";
+import { useMessages } from "@/lib/i18n/context";
+import { STEP_LANGUAGES_MESSAGES } from "@/lib/i18n/wizard/step-languages";
 
-const LEVELS = [
-  { value: "A1", label: "A1 — Începător" },
-  { value: "A2", label: "A2 — Elementar" },
-  { value: "B1", label: "B1 — Intermediar" },
-  { value: "B2", label: "B2 — Intermediar avansat" },
-  { value: "C1", label: "C1 — Avansat" },
-  { value: "C2", label: "C2 — Mastery" },
-  { value: "Nativ", label: "Nativ" },
-];
+/** Valorile stocate în CV (apar în PDF); eticheta afișată vine din mesaje. */
+const LEVEL_VALUES = ["A1", "A2", "B1", "B2", "C1", "C2", "Nativ"] as const;
 
 /** Ordinea cerută: Engleză prima, apoi limbile europene, apoi restul. */
 const LANGUAGES = [
@@ -72,12 +67,18 @@ interface Props {
 }
 
 export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) {
+  const t = useMessages(STEP_LANGUAGES_MESSAGES);
   const [name, setName] = useState("");
   const [level, setLevel] = useState("B1");
 
+  const languageLabel = (value: string) =>
+    (t.languages as Record<string, string>)[value] ?? value;
+  const levelLabel = (value: string) => (t.levels as Record<string, string>)[value] ?? value;
+
   const available = LANGUAGES.filter(
     (l) => !languages.some((lang) => lang.name === l)
-  );
+  ).map((value) => ({ value, label: languageLabel(value) }));
+  const levelOptions = LEVEL_VALUES.map((value) => ({ value, label: levelLabel(value) }));
 
   const addLanguage = () => {
     if (!name.trim()) return;
@@ -90,8 +91,8 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
 
   return (
     <StepCard
-      title="Limbi străine"
-      subtitle="Adaugă limbile pe care le cunoști și nivelul de competență."
+      title={t.title}
+      subtitle={t.subtitle}
       icon={<Globe className="w-5 h-5" />}
     >
       {/* Limbile adăugate */}
@@ -113,7 +114,7 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
             >
               <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
                 <span style={{ fontSize: 15.5, fontWeight: 700, color: "var(--ink-strong)" }}>
-                  {lang.name}
+                  {languageLabel(lang.name)}
                 </span>
                 <span
                   style={{
@@ -127,12 +128,12 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {LEVELS.find((l) => l.value === lang.level)?.label ?? lang.level}
+                  {levelLabel(lang.level)}
                 </span>
               </div>
               <button
                 onClick={() => remove(i)}
-                aria-label={`Șterge ${lang.name}`}
+                aria-label={t.remove(languageLabel(lang.name))}
                 style={{
                   width: 30,
                   height: 30,
@@ -163,23 +164,23 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
         }}
       >
         <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink)", marginBottom: 14 }}>
-          Adaugă o limbă
+          {t.addTitle}
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
           <Select
-            label="Limbă"
+            label={t.languageLabel}
             value={name}
             onChange={setName}
             options={available}
-            placeholder="alege limba..."
+            placeholder={t.languagePlaceholder}
             searchable
             id="language-select"
           />
           <Select
-            label="Nivel"
+            label={t.levelLabel}
             value={level}
             onChange={setLevel}
-            options={LEVELS}
+            options={levelOptions}
             id="level-select"
           />
         </div>
@@ -190,15 +191,15 @@ export function Step11Languages({ languages, onUpdate, onNext, onBack }: Props) 
             icon={<Plus className="w-4 h-4" />}
             style={{ width: "100%" }}
           >
-            Adaugă
+            {t.add}
           </Button>
         </div>
       </div>
 
       <div className="flex gap-3" style={{ marginTop: 32 }}>
-        <Button variant="outline" onClick={onBack} className="flex-1">← Înapoi</Button>
+        <Button variant="outline" onClick={onBack} className="flex-1">{t.back}</Button>
         <Button onClick={onNext} className="flex-[2]" iconRight={<ArrowRight className="w-4 h-4" />}>
-          Continuă
+          {t.continue}
         </Button>
       </div>
     </StepCard>

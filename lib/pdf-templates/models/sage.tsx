@@ -6,6 +6,7 @@ import {
   roleOf, localityOf, streetOf, licenseTextOf,
   IconPhone, IconMail, IconPin,
 } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -74,11 +75,11 @@ function Chevron() {
   );
 }
 
-export function SageTemplate({ data }: { data: CVData }) {
+export function SageTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
@@ -96,12 +97,12 @@ export function SageTemplate({ data }: { data: CVData }) {
             )}
             {data.summary ? (
               <>
-                <Text style={s.sideSecTitle}>Profil</Text>
+                <Text style={s.sideSecTitle}>{L.profile}</Text>
                 <Text style={s.sideText}>{data.summary}</Text>
               </>
             ) : null}
 
-            <Text style={s.sideSecTitle}>Contact</Text>
+            <Text style={s.sideSecTitle}>{L.contact}</Text>
             {p?.phone ? (
               <View style={s.cRow}>
                 <IconPhone color="#fff" size={9} />
@@ -123,7 +124,7 @@ export function SageTemplate({ data }: { data: CVData }) {
 
             {data.hobbies.length > 0 && (
               <>
-                <Text style={s.sideSecTitle}>Hobby-uri</Text>
+                <Text style={s.sideSecTitle}>{L.hobbies}</Text>
                 {data.hobbies.map((h, i) => (
                   <Text key={i} style={[s.sideText, { marginBottom: 2.5 }]}>
                     {h}
@@ -134,7 +135,7 @@ export function SageTemplate({ data }: { data: CVData }) {
 
             {(licenseText || data.qualifications?.trim()) && (
               <>
-                <Text style={s.sideSecTitle}>Calificări</Text>
+                <Text style={s.sideSecTitle}>{L.qualifications}</Text>
                 {licenseText ? <Text style={[s.sideText, { marginBottom: 2.5 }]}>{licenseText}</Text> : null}
                 {data.qualifications?.trim() ? (
                   <Text style={s.sideText}>{data.qualifications.trim()}</Text>
@@ -145,23 +146,23 @@ export function SageTemplate({ data }: { data: CVData }) {
 
           {/* Main */}
           <View style={s.main}>
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
 
             {data.education.length > 0 && (
               <View style={s.section}>
                 <View style={s.secHead}>
                   <Chevron />
-                  <Text style={s.secTitle}>Educație</Text>
+                  <Text style={s.secTitle}>{L.education}</Text>
                 </View>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={{ marginBottom: 7 }}>
                     <Text style={s.eName}>{edu.institution}</Text>
                     <Text style={s.eSub}>
                       {edu.level}
-                      {edu.field ? ` în ${edu.field}` : ""} · <Text style={s.years}>{edu.years}</Text>
+                      {edu.field ? L.inField(edu.field) : ""} · <Text style={s.years}>{edu.years}</Text>
                     </Text>
-                    {(edu.grade || edu.thesis) && <Text style={s.eText}>{eduMetaOf(edu)}</Text>}
+                    {(edu.grade || edu.thesis) && <Text style={s.eText}>{eduMetaOf(edu, L)}</Text>}
                   </View>
                 ))}
                 {data.courses.map((c, i) => (
@@ -180,7 +181,7 @@ export function SageTemplate({ data }: { data: CVData }) {
               <View style={s.section}>
                 <View style={s.secHead}>
                   <Chevron />
-                  <Text style={s.secTitle}>Experiență</Text>
+                  <Text style={s.secTitle}>{L.experienceShort}</Text>
                 </View>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={{ marginBottom: 8 }}>
@@ -203,7 +204,7 @@ export function SageTemplate({ data }: { data: CVData }) {
               <View style={s.section}>
                 <View style={s.secHead}>
                   <Chevron />
-                  <Text style={s.secTitle}>Limbi străine</Text>
+                  <Text style={s.secTitle}>{L.languages}</Text>
                 </View>
                 {data.languages.map((l, i) => (
                   <Text key={i} style={s.eText}>
@@ -217,7 +218,7 @@ export function SageTemplate({ data }: { data: CVData }) {
               <View style={s.section}>
                 <View style={s.secHead}>
                   <Chevron />
-                  <Text style={s.secTitle}>Competențe</Text>
+                  <Text style={s.secTitle}>{L.skills}</Text>
                 </View>
                 <Text style={s.eText}>{data.skills.map((sk) => sk.name).join(" · ")}</Text>
               </View>

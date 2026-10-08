@@ -14,6 +14,8 @@ import {
 } from "@/lib/paddle/client";
 import { PRICE_DISPLAY } from "@/lib/pricing";
 import { toast } from "sonner";
+import { useMessages, useLocale } from "@/lib/i18n/context";
+import { STEP_DRAFT_MESSAGES } from "@/lib/i18n/wizard/step-draft";
 
 /* ────────────────────────────────────────────────────────────────
    Pasul final — alegi designul CV-ului (19 variante), preview-ul se
@@ -40,26 +42,27 @@ const IS_IOS =
   typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
 const IS_ANDROID = typeof navigator !== "undefined" && /Android/.test(navigator.userAgent);
 
-const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
-  { id: "classic", label: "Clasic", hint: "echilibrat, accente albastre" },
-  { id: "modern", label: "Modern", hint: "sidebar închis la culoare" },
-  { id: "elegant", label: "Elegant", hint: "serif, accente aurii" },
-  { id: "compact", label: "Compact", hint: "dens, o singură pagină" },
-  { id: "minimal", label: "Minimalist", hint: "alb-negru, aerisit" },
-  { id: "meridian", label: "Meridian", hint: "antet navy, accente verzi" },
-  { id: "velvet", label: "Velvet", hint: "sidebar prună, bandă mov" },
-  { id: "riviera", label: "Riviera", hint: "panglică teal, poză mare" },
-  { id: "flamingo", label: "Flamingo", hint: "curbe roz, panou gri" },
-  { id: "atlantic", label: "Atlantic", hint: "banner albastru, poză centrată" },
-  { id: "petrol", label: "Petrol", hint: "antet teal, dens, poză pătrată" },
-  { id: "manhattan", label: "Manhattan", hint: "nume mare albastru, grilă" },
-  { id: "blush", label: "Blush", hint: "pastel roz, forme geometrice" },
-  { id: "sage", label: "Sage", hint: "panou verde salvie, serif" },
-  { id: "graphite", label: "Graphite", hint: "coloană slate, bare de titlu" },
-  { id: "cobalt", label: "Cobalt", hint: "albastru regal, pill-uri" },
-  { id: "amber", label: "Amber", hint: "antracit cu galben, timeline" },
-  { id: "sterling", label: "Sterling", hint: "gri pal, accente albastre" },
-  { id: "sapphire", label: "Sapphire", hint: "cyan + navy, accente galbene" },
+// ordinea designurilor în selector; numele și descrierile vin din STEP_DRAFT_MESSAGES
+const TEMPLATE_IDS: TemplateId[] = [
+  "classic",
+  "modern",
+  "elegant",
+  "compact",
+  "minimal",
+  "meridian",
+  "velvet",
+  "riviera",
+  "flamingo",
+  "atlantic",
+  "petrol",
+  "manhattan",
+  "blush",
+  "sage",
+  "graphite",
+  "cobalt",
+  "amber",
+  "sterling",
+  "sapphire",
 ];
 
 /** Mini-mockup CSS al fiecărui design pentru cardul de selecție. */
@@ -342,6 +345,8 @@ function TemplateThumb({ id }: { id: TemplateId }) {
 }
 
 export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary, onBack, onRestart, onPaidLock }: Props) {
+  const t = useMessages(STEP_DRAFT_MESSAGES);
+  const locale = useLocale();
   const [isDownloading, setIsDownloading] = useState(false);
   const [template, setTemplate] = useState<TemplateId>("classic");
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -386,7 +391,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     fetch("/api/ai/summary", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cvData, jobDescription: jobDescription?.trim() || undefined }),
+      body: JSON.stringify({ cvData, jobDescription: jobDescription?.trim() || undefined, language: locale }),
     })
       .then((res) => (res.ok ? res.json() : { summary: "" }))
       .then((data) => {
@@ -425,7 +430,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
 
   const handlePay = async () => {
     if (!termsAccepted) {
-      toast.error("Pentru a continua, bifează mai întâi acordul cu Termenii și condițiile.");
+      toast.error(t.paywall.termsRequiredToContinue);
       return;
     }
     if (!paywall?.enabled) return;
@@ -440,7 +445,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         const res = await fetch("/api/checkout/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, email: cvData.personal?.email?.trim() }),
+          body: JSON.stringify({ sessionId, email: cvData.personal?.email?.trim(), language: locale }),
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok && typeof data.url === "string") {
@@ -450,7 +455,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         throw new Error("no-url");
       } catch {
         setIsPaying(false);
-        toast.error("Plata nu poate fi inițiată acum. Reîncarcă pagina și încearcă din nou.");
+        toast.error(t.paywall.cannotStart);
       }
       return;
     }
@@ -462,7 +467,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     const paddle = await getPaddleClient(paywall);
     if (!paddle) {
       setIsPaying(false);
-      toast.error("Plata nu poate fi inițiată acum. Reîncarcă pagina și încearcă din nou.");
+      toast.error(t.paywall.cannotStart);
       return;
     }
     setCheckoutHandler((event) => {
@@ -474,7 +479,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           // lăsăm userul să vadă confirmarea Paddle, apoi pornim descărcarea
           setTimeout(() => {
             paddle.Checkout.close();
-            toast.success("Plată confirmată. Îți pregătim PDF-ul…");
+            toast.success(t.paywall.confirmedPreparingPdf);
             handleDownload(txn);
           }, 1800);
         }
@@ -482,7 +487,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       if (event.name === "checkout.closed") setIsPaying(false);
       if (event.name === "checkout.error") {
         setIsPaying(false);
-        toast.error("Checkout-ul nu s-a putut deschide. Încearcă din nou.");
+        toast.error(t.paywall.checkoutFailed);
       }
     });
     const email = cvData.personal?.email?.trim();
@@ -499,7 +504,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
    *  fluxul devine identic cu cel de după o plată reală (inclusiv emailul). */
   const handleRedeem = async () => {
     if (!termsAccepted) {
-      toast.error("Pentru a continua, bifează mai întâi acordul cu Termenii și condițiile.");
+      toast.error(t.paywall.termsRequiredToContinue);
       return;
     }
     const code = promoCode.trim();
@@ -517,15 +522,11 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(data.error ?? "Cod invalid sau expirat.");
+        toast.error(data.error ?? t.promo.invalid);
         return;
       }
       setPaywall((p) => (p ? { ...p, paid: true } : p));
-      toast.success(
-        data.emailSent
-          ? "Cod acceptat! Ți-am trimis CV-ul și pe email. Îl descărcăm acum…"
-          : "Cod acceptat! Îți descărcăm CV-ul…"
-      );
+      toast.success(data.emailSent ? t.promo.acceptedWithEmail : t.promo.accepted);
       await handleDownload();
     } finally {
       setPromoBusy(false);
@@ -543,10 +544,11 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         cvData,
         templateId: template,
         transactionId: txnOverride ?? transactionId ?? undefined,
+        language: locale,
       }),
     });
     if (res.status === 402) {
-      toast.error("Plata nu a fost confirmată încă. Dacă ai plătit, așteaptă câteva secunde și încearcă din nou.");
+      toast.error(t.paywall.notConfirmedYet);
       return null;
     }
     if (!res.ok) throw new Error();
@@ -557,7 +559,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
     // după o plată reală termenii au fost deja acceptați (înainte de checkout);
     // la revenirea din redirect starea se resetează, deci sărim verificarea
     if (!opts?.skipTerms && !termsAccepted) {
-      toast.error("Pentru a descărca CV-ul, bifează mai întâi acordul cu Termenii și condițiile.");
+      toast.error(t.paywall.termsRequiredToDownload);
       return;
     }
     setIsDownloading(true);
@@ -576,11 +578,11 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
 
       if (IS_IOS) {
-        toast.success("PDF descărcat — îl găsești în Descărcări (săgeata din Safari) sau în Fișiere.");
+        toast.success(t.download.doneIos);
       } else if (IS_ANDROID) {
-        toast.success("PDF salvat în folderul Descărcări. Succes la aplicare! 🎉");
+        toast.success(t.download.doneAndroid);
       } else {
-        toast.success("CV-ul a fost descărcat. Succes la aplicare! 🎉");
+        toast.success(t.download.doneDesktop);
       }
 
       // doar pe dispozitive touch cu share nativ de fișiere (telefoane/tablete)
@@ -594,7 +596,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         // share indisponibil — descărcarea a mers oricum
       }
     } catch {
-      toast.error("Eroare la generarea PDF-ului. Încearcă din nou.");
+      toast.error(t.download.error);
     } finally {
       setIsDownloading(false);
     }
@@ -634,12 +636,10 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
       if (paid) {
         setTermsAccepted(true); // acceptase deja înainte de plată
         setPaywall((p) => (p ? { ...p, paid: true } : p));
-        toast.success("Plată confirmată! Îți pregătim CV-ul…");
+        toast.success(t.paywall.confirmedPreparingCv);
         handleDownload(undefined, { skipTerms: true });
       } else {
-        toast.error(
-          "Nu am putut confirma plata automat. Dacă ai plătit, verifică emailul — CV-ul a fost trimis acolo."
-        );
+        toast.error(t.paywall.notConfirmedAuto);
       }
     })();
   }, []);
@@ -657,7 +657,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         file = new File([blob], buildCvFilename(cvData), { type: "application/pdf" });
         setShareFile(file);
       }
-      await navigator.share({ files: [file], title: "CV-ul meu", text: "CV-ul meu, creat cu CVexpres" });
+      await navigator.share({ files: [file], title: t.share.title, text: t.share.text });
     } catch {
       // userul a închis share sheet-ul sau share indisponibil — nu e eroare
       setIsDownloading(false);
@@ -666,18 +666,19 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
 
   return (
     <StepCard
-      kicker="Finalizare"
-      title="CV-ul tău e gata."
-      subtitle="Alege designul care ți se potrivește — exact așa va arăta PDF-ul descărcat."
+      kicker={t.header.kicker}
+      title={t.header.title}
+      subtitle={t.header.subtitle}
     >
       {/* Selectorul de design — ascuns după plată: designul plătit e final */}
       {!isFrozen && (
       <div
         role="radiogroup"
-        aria-label="Alege designul CV-ului"
+        aria-label={t.templates.pickerLabel}
         style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 22 }}
       >
-        {TEMPLATES.map((tpl) => {
+        {TEMPLATE_IDS.map((id) => {
+          const tpl = { id, ...t.templates.items[id] };
           const isSelected = tpl.id === template;
           return (
             <button
@@ -725,7 +726,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           }}
         >
           <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: "var(--primary)" }} />
-          Scriem rezumatul tău profesional…
+          {t.summary.writing}
         </div>
       )}
 
@@ -757,20 +758,18 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           }}
         >
           <p style={{ fontSize: 19, fontWeight: 800, color: "#166534", marginBottom: 6 }}>
-            CV-ul tău e gata! ✔
+            {t.paid.title}
           </p>
           {cvData.personal?.email && (
             <p style={{ fontSize: 14, color: "#15803D", marginBottom: 4 }}>
-              Ți l-am trimis și pe email la <strong>{cvData.personal.email}</strong> —
-              cu PDF-ul atașat.
+              {t.paid.emailSentPrefix}<strong>{cvData.personal.email}</strong>{t.paid.emailSentSuffix}
             </p>
           )}
           <p style={{ fontSize: 12.5, color: "var(--muted-foreground)" }}>
-            Poți re-descărca CV-ul oricând în următoarele 30 de zile din emailul primit.
+            {t.paid.redownloadNote}
           </p>
           <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 4 }}>
-            CV-ul plătit e <strong>final</strong> — pentru modificări sau un CV nou,
-            apasă „Începe de la zero” mai jos (proces nou, plată nouă).
+            {t.paid.finalPrefix}<strong>{t.paid.finalWord}</strong>{t.paid.finalSuffix}
           </p>
 
           {/* butonul principal: descarcă (din nou) PDF-ul — pagina aplicației
@@ -789,7 +788,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
               cursor: "pointer",
             }}
           >
-            ⬇ Descarcă PDF-ul
+            {t.paid.downloadAgain}
           </button>
 
           {/* share nativ — gate pe capabilitate (canShare), nu pe userAgent:
@@ -808,22 +807,20 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
                 cursor: "pointer",
               }}
             >
-              💬 Trimite pe WhatsApp
+              {t.paid.whatsapp}
             </button>
           )}
 
           {/* instrucțiuni per platformă — doar pe mobil */}
           {IS_ANDROID && (
             <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 12, lineHeight: 1.55 }}>
-              După descărcare, CV-ul e în folderul <strong>Descărcări</strong>. Îl găsești
-              și trăgând în jos bara de notificări.
+              {t.paid.androidHintPrefix}<strong>{t.paid.androidHintFolder}</strong>{t.paid.androidHintSuffix}
             </p>
           )}
           {IS_IOS && (
             <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 12, lineHeight: 1.55 }}>
-              PDF-ul descărcat îl găsești în <strong>Descărcări</strong> (săgeata din
-              bara Safari) sau în aplicația <strong>Fișiere</strong> — ori trimite-l
-              direct pe WhatsApp de mai sus.
+              {t.paid.iosHintPrefix}<strong>{t.paid.iosHintFolder}</strong>{t.paid.iosHintMiddle}
+              <strong>{t.paid.iosHintApp}</strong>{t.paid.iosHintSuffix}
             </p>
           )}
         </div>
@@ -853,7 +850,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           style={{ width: 18, height: 18, marginTop: 1, accentColor: "var(--primary)", cursor: "pointer", flexShrink: 0 }}
         />
         <span style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--foreground)" }}>
-          Am luat la cunoștință și sunt de acord cu{" "}
+          {t.terms.prefix}{" "}
           <a
             href="/termeni"
             target="_blank"
@@ -861,9 +858,9 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
             onClick={(e) => e.stopPropagation()}
             style={{ color: "var(--primary)", fontWeight: 600 }}
           >
-            Termenii și condițiile
+            {t.terms.termsLink}
           </a>{" "}
-          și cu{" "}
+          {t.terms.and}{" "}
           <a
             href="/confidentialitate"
             target="_blank"
@@ -871,10 +868,9 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
             onClick={(e) => e.stopPropagation()}
             style={{ color: "var(--primary)", fontWeight: 600 }}
           >
-            Politica de confidențialitate
+            {t.terms.privacyLink}
           </a>
-          . Solicit executarea imediată a serviciului și înțeleg că îmi pierd dreptul de
-          retragere odată cu descărcarea CV-ului.
+          {t.terms.suffix}
         </span>
       </label>
 
@@ -882,12 +878,12 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         {/* după plată CV-ul e înghețat — Înapoi dispare, rămâne doar restart */}
         {!isFrozen && (
           <Button variant="outline" onClick={onBack} className="flex-1">
-            ← Înapoi
+            {t.paywall.back}
           </Button>
         )}
         {paywallLoading ? (
           <Button size="lg" className="flex-[2]" loading disabled>
-            Se pregătește…
+            {t.paywall.preparing}
           </Button>
         ) : isPaid ? (
           <Button
@@ -898,7 +894,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
             disabled={!termsAccepted}
             icon={<Download className="w-4 h-4" />}
           >
-            Descarcă PDF
+            {t.paywall.download}
           </Button>
         ) : (
           <Button
@@ -910,7 +906,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
             data-testid="pay-download"
             icon={<Lock className="w-4 h-4" />}
           >
-            Plătește și descarcă — {PRICE_DISPLAY}
+            {t.paywall.payAndDownload(PRICE_DISPLAY)}
           </Button>
         )}
       </div>
@@ -925,7 +921,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
               textAlign: "center",
             }}
           >
-            {PRICE_DISPLAY} · plată unică, TVA inclus · plata se procesează securizat în EUR prin Paddle
+            {t.paywall.priceNote(PRICE_DISPLAY)}
           </p>
 
           {/* ── cod de reducere / promo (testeri) ── */}
@@ -941,7 +937,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
                 textDecoration: "underline",
               }}
             >
-              Ai un cod de reducere?
+              {t.promo.toggle}
             </button>
           ) : (
             <div style={{ display: "flex", gap: 8, maxWidth: 380, margin: "12px auto 0" }}>
@@ -950,7 +946,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === "Enter" && handleRedeem()}
-                placeholder="Codul tău"
+                placeholder={t.promo.placeholder}
                 data-testid="promo-input"
                 autoFocus
                 style={{
@@ -966,7 +962,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
                 disabled={promoCode.trim().length < 3}
                 data-testid="promo-apply"
               >
-                Aplică
+                {t.promo.apply}
               </Button>
             </div>
           )}
@@ -984,8 +980,8 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
             navigator
               .share({
                 files: [shareFile],
-                title: "CV-ul meu",
-                text: "CV-ul meu, creat cu CVexpres",
+                title: t.share.title,
+                text: t.share.text,
               })
               .catch(() => {
                 // userul a închis share sheet-ul — nimic de făcut
@@ -1009,7 +1005,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
             cursor: "pointer",
           }}
         >
-          📤 Trimite CV-ul — WhatsApp, Email, Salvează…
+          {t.share.button}
         </button>
       )}
 
@@ -1018,11 +1014,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
         type="button"
         data-testid="restart-wizard"
         onClick={() => {
-          if (
-            window.confirm(
-              "Sigur vrei să începi de la zero? Toate datele introduse se vor șterge definitiv."
-            )
-          ) {
+          if (window.confirm(t.restart.confirm)) {
             onRestart();
           }
         }}
@@ -1052,7 +1044,7 @@ export function Step14Draft({ sessionId, cvData, jobDescription, onUpdateSummary
           e.currentTarget.style.color = "var(--muted-foreground)";
         }}
       >
-        ↺ Începe de la zero
+        {t.restart.button}
       </button>
     </StepCard>
   );

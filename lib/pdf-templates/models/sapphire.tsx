@@ -6,6 +6,7 @@ import {
   roleOf, localityOf, licenseTextOf,
   IconPhone, IconMail, IconPin, IconGlobe,
 } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -79,11 +80,11 @@ const s = StyleSheet.create({
   swName: { flex: 1, fontSize: 8.8, fontWeight: 700, color: C.ink },
 });
 
-export function SapphireTemplate({ data }: { data: CVData }) {
+export function SapphireTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
   const softwareSkills = data.skills.filter((sk) => sk.category === "software");
   const otherSkills = data.skills.filter((sk) => sk.category !== "software");
 
@@ -103,7 +104,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
               <View style={{ width: SIDE_W, height: PHOTO_H }} />
             )}
             <View style={s.sideInner}>
-              <Text style={s.sideSecTitle}>Contact</Text>
+              <Text style={s.sideSecTitle}>{L.contact}</Text>
               {p?.phone ? (
                 <View style={s.cRow}>
                   <View style={s.cIcon}>
@@ -139,7 +140,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
 
               {otherSkills.length > 0 && (
                 <>
-                  <Text style={s.sideSecTitle}>Competențe</Text>
+                  <Text style={s.sideSecTitle}>{L.skills}</Text>
                   {otherSkills.map((sk, i) => (
                     <View key={i} style={s.skillRow}>
                       <Text style={s.intDot}>•</Text>
@@ -151,7 +152,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
 
               {data.hobbies.length > 0 && (
                 <>
-                  <Text style={s.sideSecTitle}>Interese</Text>
+                  <Text style={s.sideSecTitle}>{L.interests}</Text>
                   <View style={s.twoCol}>
                     {data.hobbies.map((h, i) => (
                       <View key={i} style={s.intCell}>
@@ -165,7 +166,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
 
               {data.languages.length > 0 && (
                 <>
-                  <Text style={s.sideSecTitle}>Limbi</Text>
+                  <Text style={s.sideSecTitle}>{L.languagesShort}</Text>
                   <View style={s.twoCol}>
                     {data.languages.map((l, i) => (
                       <View key={i} style={s.intCell}>
@@ -181,7 +182,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
 
               {(licenseText || data.qualifications?.trim()) && (
                 <>
-                  <Text style={s.sideSecTitle}>Calificări</Text>
+                  <Text style={s.sideSecTitle}>{L.qualifications}</Text>
                   {licenseText ? (
                     <View style={s.cRow}>
                       <Text style={s.intDot}>•</Text>
@@ -201,20 +202,20 @@ export function SapphireTemplate({ data }: { data: CVData }) {
 
           {/* Main */}
           <View style={s.main}>
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
             <View style={s.nameRule} />
 
             {data.summary ? (
               <View style={s.section}>
-                <Text style={s.secTitle}>Despre mine</Text>
+                <Text style={s.secTitle}>{L.about}</Text>
                 <Text style={s.summary}>{data.summary}</Text>
               </View>
             ) : null}
 
             {data.experience.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Experiență profesională</Text>
+                <Text style={s.secTitle}>{L.experience}</Text>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={s.tlRow}>
                     <View style={s.tlDotCol}>
@@ -242,7 +243,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
 
             {data.education.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Educație</Text>
+                <Text style={s.secTitle}>{L.education}</Text>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={s.tlRow}>
                     <View style={s.tlDotCol}>
@@ -260,7 +261,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
                           {edu.field ? ` — ${edu.field}` : ""}
                         </Text>
                         {(edu.grade || edu.thesis) && (
-                          <Text style={{ fontSize: 8.4, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</Text>
+                          <Text style={{ fontSize: 8.4, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</Text>
                         )}
                       </View>
                     </View>
@@ -273,7 +274,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
                     </View>
                     <View style={s.entryRow}>
                       <View style={s.entryLeft}>
-                        <Text style={s.entryCompany}>{c.provider ?? "Certificare"}</Text>
+                        <Text style={s.entryCompany}>{c.provider ?? L.certification}</Text>
                         <Text style={s.entryYears}>{c.year ?? ""}</Text>
                       </View>
                       <View style={s.entryRight}>
@@ -287,7 +288,7 @@ export function SapphireTemplate({ data }: { data: CVData }) {
 
             {softwareSkills.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Software</Text>
+                <Text style={s.secTitle}>{L.software}</Text>
                 <View style={s.swGrid}>
                   {softwareSkills.map((sk, i) => (
                     <View key={i} style={s.swCell}>

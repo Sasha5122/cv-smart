@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/render
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "../fonts";
 import { fullNameOf, eduMetaOf, photoSrcOf } from "../shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 import { roleOf, localityOf, licenseTextOf, IconPhone, IconMail, IconPin, IconGlobe } from "./_shared";
 
 registerFonts();
@@ -53,18 +54,18 @@ const s = StyleSheet.create({
   rItem: { fontSize: 8.5, marginBottom: 2.5, lineHeight: 1.4 },
 });
 
-export function PetrolTemplate({ data }: { data: CVData }) {
+export function PetrolTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
       <Page size="A4" style={s.page}>
         <View style={s.header}>
           <View style={s.headLeft}>
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
           </View>
           {photo && (
@@ -105,7 +106,7 @@ export function PetrolTemplate({ data }: { data: CVData }) {
             {data.summary ? (
               <View style={s.section}>
                 <View style={s.secBand}>
-                  <Text style={s.secBandText}>Obiectiv</Text>
+                  <Text style={s.secBandText}>{L.objective}</Text>
                 </View>
                 <Text style={s.text}>{data.summary}</Text>
               </View>
@@ -114,7 +115,7 @@ export function PetrolTemplate({ data }: { data: CVData }) {
             {data.experience.length > 0 && (
               <View style={s.section}>
                 <View style={s.secBand}>
-                  <Text style={s.secBandText}>Experiență profesională</Text>
+                  <Text style={s.secBandText}>{L.experience}</Text>
                 </View>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={s.entry}>
@@ -140,7 +141,7 @@ export function PetrolTemplate({ data }: { data: CVData }) {
             {data.education.length > 0 && (
               <View style={s.section}>
                 <View style={s.secBand}>
-                  <Text style={s.secBandText}>Educație</Text>
+                  <Text style={s.secBandText}>{L.education}</Text>
                 </View>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={s.entry}>
@@ -153,7 +154,7 @@ export function PetrolTemplate({ data }: { data: CVData }) {
                     </View>
                     <Text style={s.entryMeta}>{edu.institution}</Text>
                     {(edu.grade || edu.thesis) && (
-                      <Text style={{ fontSize: 7.8, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</Text>
+                      <Text style={{ fontSize: 7.8, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</Text>
                     )}
                   </View>
                 ))}
@@ -166,7 +167,7 @@ export function PetrolTemplate({ data }: { data: CVData }) {
             {data.skills.length > 0 && (
               <View style={s.section}>
                 <View style={s.secBand}>
-                  <Text style={s.secBandText}>Competențe</Text>
+                  <Text style={s.secBandText}>{L.skills}</Text>
                 </View>
                 {data.skills.map((sk, i) => (
                   <Text key={i} style={s.rItem}>
@@ -179,7 +180,7 @@ export function PetrolTemplate({ data }: { data: CVData }) {
             {data.courses.length > 0 && (
               <View style={s.section}>
                 <View style={s.secBand}>
-                  <Text style={s.secBandText}>Certificări</Text>
+                  <Text style={s.secBandText}>{L.certifications}</Text>
                 </View>
                 {data.courses.map((c, i) => (
                   <Text key={i} style={s.rItem}>
@@ -193,7 +194,7 @@ export function PetrolTemplate({ data }: { data: CVData }) {
             {data.languages.length > 0 && (
               <View style={s.section}>
                 <View style={s.secBand}>
-                  <Text style={s.secBandText}>Limbi străine</Text>
+                  <Text style={s.secBandText}>{L.languages}</Text>
                 </View>
                 {data.languages.map((l, i) => (
                   <Text key={i} style={s.rItem}>
@@ -206,7 +207,7 @@ export function PetrolTemplate({ data }: { data: CVData }) {
             {(licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
               <View style={s.section}>
                 <View style={s.secBand}>
-                  <Text style={s.secBandText}>Extra</Text>
+                  <Text style={s.secBandText}>{L.extra}</Text>
                 </View>
                 {licenseText ? <Text style={s.rItem}>•  {licenseText}</Text> : null}
                 {data.qualifications?.trim() ? <Text style={s.rItem}>•  {data.qualifications.trim()}</Text> : null}

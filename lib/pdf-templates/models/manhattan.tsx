@@ -3,6 +3,7 @@ import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "../fonts";
 import { fullNameOf, eduMetaOf, photoSrcOf } from "../shared";
 import { roleOf, localityOf, streetOf, licenseTextOf } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -65,17 +66,17 @@ const s = StyleSheet.create({
   bulletText: { flex: 1, fontSize: 8.8, lineHeight: 1.42 },
 });
 
-export function ManhattanTemplate({ data }: { data: CVData }) {
+export function ManhattanTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   const bioItems = [
-    localityOf(data) && { l: "Oraș", v: localityOf(data) },
-    licenseText && { l: "Permis", v: data.license!.categories.join(", ") },
-    data.languages.length > 0 && { l: "Limbi", v: data.languages.map((x) => x.name).join(", ") },
-    data.hobbies.length > 0 && { l: "Hobby", v: data.hobbies.join(", ") },
+    localityOf(data) && { l: L.city, v: localityOf(data) },
+    licenseText && { l: L.licenseShort, v: data.license!.categories.join(", ") },
+    data.languages.length > 0 && { l: L.languagesShort, v: data.languages.map((x) => x.name).join(", ") },
+    data.hobbies.length > 0 && { l: L.hobbyShort, v: data.hobbies.join(", ") },
   ].filter(Boolean) as { l: string; v: string }[];
 
   return (
@@ -85,33 +86,33 @@ export function ManhattanTemplate({ data }: { data: CVData }) {
         {/* Antet: nume stânga + poză mare dreapta */}
         <View style={s.topRow}>
           <View style={s.topLeft}>
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {roleOf(data) ? <Text style={s.subtitle}>{roleOf(data)}</Text> : null}
 
             <View style={s.contactBox}>
-              <Text style={s.contactTitle}>Informații de contact</Text>
+              <Text style={s.contactTitle}>{L.contactInfo}</Text>
               <View style={s.cGrid}>
                 {p?.phone ? (
                   <View style={s.cCell}>
-                    <Text style={s.cLabel}>Telefon</Text>
+                    <Text style={s.cLabel}>{L.phone}</Text>
                     <Text style={s.cValue}>{p.phone}</Text>
                   </View>
                 ) : null}
                 {(streetOf(data) || localityOf(data)) ? (
                   <View style={s.cCell}>
-                    <Text style={s.cLabel}>Adresă</Text>
+                    <Text style={s.cLabel}>{L.address}</Text>
                     <Text style={s.cValue}>{[streetOf(data), localityOf(data)].filter(Boolean).join(", ")}</Text>
                   </View>
                 ) : null}
                 {p?.email ? (
                   <View style={s.cCell}>
-                    <Text style={s.cLabel}>Email</Text>
+                    <Text style={s.cLabel}>{L.email}</Text>
                     <Text style={s.cValue}>{p.email}</Text>
                   </View>
                 ) : null}
                 {p?.linkedin ? (
                   <View style={s.cCell}>
-                    <Text style={s.cLabel}>LinkedIn</Text>
+                    <Text style={s.cLabel}>{L.linkedin}</Text>
                     <Text style={s.cValue}>{p.linkedin}</Text>
                   </View>
                 ) : null}
@@ -130,14 +131,14 @@ export function ManhattanTemplate({ data }: { data: CVData }) {
             <View style={s.statementRow}>
               {data.summary ? (
                 <View style={s.statement}>
-                  <Text style={s.secTitle}>Profil personal</Text>
+                  <Text style={s.secTitle}>{L.profilePersonal}</Text>
                   <View style={s.secLine} />
                   <Text style={{ fontSize: 9.4, lineHeight: 1.55 }}>{data.summary}</Text>
                 </View>
               ) : null}
               {bioItems.length > 0 && (
                 <View style={s.bio}>
-                  <Text style={s.secTitle}>Pe scurt</Text>
+                  <Text style={s.secTitle}>{L.atAGlance}</Text>
                   <View style={s.secLine} />
                   {bioItems.map((b, i) => (
                     <View key={i} style={s.bioRow}>
@@ -154,7 +155,7 @@ export function ManhattanTemplate({ data }: { data: CVData }) {
         {/* Educație pe 2 coloane */}
         {data.education.length > 0 && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Educație</Text>
+            <Text style={s.secTitle}>{L.education}</Text>
             <View style={s.secLine} />
             <View style={s.eduGrid}>
               {data.education.map((edu, i) => (
@@ -167,7 +168,7 @@ export function ManhattanTemplate({ data }: { data: CVData }) {
                   </Text>
                   {(edu.grade || edu.thesis) && (
                     <Text style={{ fontSize: 8, color: C.muted, fontStyle: "italic", marginTop: 1 }}>
-                      {eduMetaOf(edu)}
+                      {eduMetaOf(edu, L)}
                     </Text>
                   )}
                 </View>
@@ -179,7 +180,7 @@ export function ManhattanTemplate({ data }: { data: CVData }) {
         {/* Competențe pe 3 coloane */}
         {(data.skills.length > 0 || data.qualifications?.trim()) && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Competențe</Text>
+            <Text style={s.secTitle}>{L.skills}</Text>
             <View style={s.secLine} />
             <View style={s.skillsGrid}>
               {data.skills.map((sk, i) => (
@@ -212,7 +213,7 @@ export function ManhattanTemplate({ data }: { data: CVData }) {
         {/* Experiență */}
         {data.experience.length > 0 && (
           <View style={s.section}>
-            <Text style={s.secTitle}>Experiență profesională</Text>
+            <Text style={s.secTitle}>{L.experience}</Text>
             <View style={s.secLine} />
             {data.experience.map((exp, i) => (
               <View key={i} wrap={false} style={s.expBlock}>

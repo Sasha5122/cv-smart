@@ -7,6 +7,8 @@ import { Select } from "@/components/ui/select";
 import { AbroadModal, type AbroadData } from "../abroad-modal";
 import { User, Mail, Phone, MapPin, ArrowRight, Link2, Globe, Pencil } from "lucide-react";
 import type { CVData } from "@/lib/types/cv";
+import { useMessages } from "@/lib/i18n/context";
+import { STEP_CONTACT_MESSAGES } from "@/lib/i18n/wizard/step-contact";
 
 const COUNTIES = [
   "Alba","Arad","Argeș","Bacău","Bihor","Bistrița-Năsăud","Botoșani","Brăila","Brașov",
@@ -49,6 +51,7 @@ interface Errors {
 }
 
 export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
+  const t = useMessages(STEP_CONTACT_MESSAGES);
   const [errors, setErrors] = useState<Errors>({});
   const [abroadOpen, setAbroadOpen] = useState(false);
 
@@ -136,15 +139,15 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
 
   const handleNext = () => {
     const e: Errors = {};
-    if (!value?.firstName?.trim()) e.firstName = "Introdu prenumele";
-    if (!value?.lastName?.trim()) e.lastName = "Introdu numele de familie";
-    if (!value?.email?.trim()) e.email = "Introdu adresa de email";
-    else if (!isValidEmail(value.email)) e.email = "Email invalid";
+    if (!value?.firstName?.trim()) e.firstName = t.errors.firstName;
+    if (!value?.lastName?.trim()) e.lastName = t.errors.lastName;
+    if (!value?.email?.trim()) e.email = t.errors.email;
+    else if (!isValidEmail(value.email)) e.email = t.errors.emailInvalid;
     // cu datele din străinătate completate, cele din România nu mai sunt necesare
     if (!isAbroad) {
-      if (!value?.phone?.trim()) e.phone = "Introdu numărul de telefon";
-      else if (!isValidPhone(value.phone)) e.phone = "Format: 07XX XXX XXX";
-      if (!value?.city?.trim()) e.city = "Introdu orașul";
+      if (!value?.phone?.trim()) e.phone = t.errors.phone;
+      else if (!isValidPhone(value.phone)) e.phone = t.errors.phoneFormat;
+      if (!value?.city?.trim()) e.city = t.errors.city;
     }
 
     if (Object.keys(e).length > 0) { setErrors(e); return; }
@@ -154,24 +157,24 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
 
   return (
     <StepCard
-      title="Date de contact"
-      subtitle="Informațiile de bază care vor apărea în antetul CV-ului tău."
+      title={t.title}
+      subtitle={t.subtitle}
       icon={<User className="w-5 h-5" />}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {/* Nume + Prenume */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
           <Input
-            label="Prenume *"
-            placeholder="ex: Alexandru"
+            label={t.fields.firstName}
+            placeholder={t.fields.firstNamePlaceholder}
             value={value?.firstName ?? ""}
             onChange={(e) => set("firstName", e.target.value)}
             error={errors.firstName}
             autoFocus
           />
           <Input
-            label="Nume de familie *"
-            placeholder="ex: Popescu"
+            label={t.fields.lastName}
+            placeholder={t.fields.lastNamePlaceholder}
             value={value?.lastName ?? ""}
             onChange={(e) => set("lastName", e.target.value)}
             error={errors.lastName}
@@ -200,8 +203,8 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
 
         {/* Email */}
         <Input
-          label="Email *"
-          placeholder="prenume.nume@gmail.com"
+          label={t.fields.email}
+          placeholder={t.fields.emailPlaceholder}
           value={value?.email ?? ""}
           onChange={(e) => set("email", e.target.value)}
           error={errors.email}
@@ -222,7 +225,7 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <Globe size={15} style={{ color: "var(--primary)" }} />
               <span style={{ fontSize: 14.5, fontWeight: 700, color: "var(--primary-strong)" }}>
-                Date de contact din {value?.country}
+                {t.abroad.summaryTitle(value?.country ?? "")}
               </span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 14.5, color: "var(--ink)" }}>
@@ -240,7 +243,7 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
                   background: "none", border: "none", cursor: "pointer", padding: "4px 0",
                 }}
               >
-                <Pencil size={13} /> Modifică
+                <Pencil size={13} /> {t.abroad.edit}
               </button>
               <button
                 onClick={resetToRomania}
@@ -250,7 +253,7 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
                   textDecoration: "underline", textUnderlineOffset: 3,
                 }}
               >
-                Locuiesc în România
+                {t.abroad.liveInRomania}
               </button>
             </div>
           </div>
@@ -259,8 +262,8 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
             {/* Telefon */}
             <Input
               ref={phoneRef}
-              label="Telefon *"
-              placeholder="0721 234 567"
+              label={t.fields.phone}
+              placeholder={t.fields.phonePlaceholder}
               value={value?.phone ?? ""}
               onChange={handlePhoneChange}
               onKeyDown={handlePhoneKeyDown}
@@ -268,47 +271,47 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
               type="tel"
               inputMode="numeric"
               icon={<Phone className="w-4 h-4" />}
-              hint="Format: 07XX XXX XXX"
+              hint={t.fields.phoneHint}
             />
 
             {/* Locație */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
               <Input
-                label="Oraș *"
-                placeholder="ex: Cluj-Napoca"
+                label={t.fields.city}
+                placeholder={t.fields.cityPlaceholder}
                 value={value?.city ?? ""}
                 onChange={(e) => set("city", e.target.value)}
                 error={errors.city}
                 icon={<MapPin className="w-4 h-4" />}
               />
               <Select
-                label="Județ"
+                label={t.fields.county}
                 value={value?.county ?? ""}
                 onChange={(v) => set("county", v)}
                 options={COUNTIES}
-                placeholder="alege județul..."
+                placeholder={t.fields.countyPlaceholder}
                 searchable
               />
             </div>
 
             {/* Adresă — stradă + număr + apartament */}
             <Input
-              label="Stradă (opțional)"
-              placeholder="ex: Str. Mihai Eminescu"
+              label={t.fields.street}
+              placeholder={t.fields.streetPlaceholder}
               value={value?.street ?? ""}
               onChange={(e) => set("street", e.target.value)}
               icon={<MapPin className="w-4 h-4" />}
             />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
               <Input
-                label="Număr (opțional)"
-                placeholder="ex: 12"
+                label={t.fields.streetNumber}
+                placeholder={t.fields.streetNumberPlaceholder}
                 value={value?.streetNumber ?? ""}
                 onChange={(e) => set("streetNumber", e.target.value)}
               />
               <Input
-                label="Apartament (opțional)"
-                placeholder="ex: 4A"
+                label={t.fields.apartment}
+                placeholder={t.fields.apartmentPlaceholder}
                 value={value?.apartment ?? ""}
                 onChange={(e) => set("apartment", e.target.value)}
               />
@@ -333,15 +336,15 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
               }}
             >
               <Globe size={15} />
-              Locuiești în afara României?
+              {t.abroad.openModal}
             </button>
           </>
         )}
 
         {/* LinkedIn - optional */}
         <Input
-          label="LinkedIn (opțional)"
-          placeholder="linkedin.com/in/username"
+          label={t.fields.linkedin}
+          placeholder={t.fields.linkedinPlaceholder}
           value={value?.linkedin ?? ""}
           onChange={(e) => set("linkedin", e.target.value)}
           icon={<Link2 className="w-4 h-4" />}
@@ -350,10 +353,10 @@ export function Step03Contact({ value, onChange, onNext, onBack }: Props) {
 
       <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
         {onBack && (
-          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>{t.back}</Button>
         )}
         <Button onClick={handleNext} style={{ flex: 2 }} iconRight={<ArrowRight className="w-4 h-4" />}>
-          Continuă
+          {t.next}
         </Button>
       </div>
 

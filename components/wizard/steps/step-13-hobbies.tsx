@@ -4,6 +4,8 @@ import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Heart, X, ArrowRight, Plus, Loader2 } from "lucide-react";
 import { correctText } from "@/lib/correct-text";
+import { useMessages, useLocale } from "@/lib/i18n/context";
+import { STEP_HOBBIES_MESSAGES } from "@/lib/i18n/wizard/step-hobbies";
 
 /* ────────────────────────────────────────────────────────────────
    Hobby-uri: userul scrie un hobby → un AI ieftin DOAR corectează
@@ -20,6 +22,8 @@ interface Props {
 }
 
 export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
+  const t = useMessages(STEP_HOBBIES_MESSAGES);
+  const locale = useLocale();
   const [input, setInput] = useState("");
   const [isCorrecting, setIsCorrecting] = useState(false);
 
@@ -28,7 +32,7 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
     if (!raw || isCorrecting) return;
     setIsCorrecting(true);
     // corectare de formă — la orice problemă păstrează textul original
-    const corrected = await correctText(raw, "hobby");
+    const corrected = await correctText(raw, "hobby", locale);
     setIsCorrecting(false);
     if (!hobbies.includes(corrected)) {
       onUpdate([...hobbies, corrected]);
@@ -40,8 +44,8 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
 
   return (
     <StepCard
-      title="Hobby-uri & Pasiuni"
-      subtitle="Scrie un hobby cu cuvintele tale — îl formulăm noi pentru CV. Apoi adaugă următorul."
+      title={t.title}
+      subtitle={t.subtitle}
       icon={<Heart className="w-5 h-5" />}
     >
       {/* Formular de adăugare */}
@@ -57,14 +61,14 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
           htmlFor="hobby-input"
           style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}
         >
-          Ce faci în timpul liber?
+          {t.form.label}
         </label>
         <div style={{ display: "flex", gap: 10 }}>
           <input
             id="hobby-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="ex: joc fotbal cu prietenii, citesc carti de istorie…"
+            placeholder={t.form.placeholder}
             onKeyDown={(e) => e.key === "Enter" && addHobby()}
             disabled={isCorrecting}
             style={{ flex: 1, padding: "13px 16px" }}
@@ -81,11 +85,11 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
               )
             }
           >
-            {isCorrecting ? "Formulăm…" : "Adaugă"}
+            {isCorrecting ? t.form.correcting : t.form.add}
           </Button>
         </div>
         <p style={{ fontSize: 12.5, color: "var(--faint)", marginTop: 10 }}>
-          AI-ul corectează doar formularea — sensul rămâne exact al tău.
+          {t.form.hint}
         </p>
       </div>
 
@@ -93,7 +97,7 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
       {hobbies.length > 0 && (
         <div>
           <p className="folio" style={{ fontSize: 10.5, marginBottom: 12 }}>
-            {hobbies.length} {hobbies.length === 1 ? "hobby adăugat" : "hobby-uri adăugate"}
+            {t.list.count(hobbies.length)}
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             {hobbies.map((h, i) => (
@@ -115,7 +119,7 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
                 {h}
                 <button
                   onClick={() => removeHobby(i)}
-                  aria-label={`Șterge ${h}`}
+                  aria-label={t.list.remove(h)}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -136,9 +140,9 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
       )}
 
       <div className="flex gap-3" style={{ marginTop: 32 }}>
-        <Button variant="outline" onClick={onBack} className="flex-1">← Înapoi</Button>
+        <Button variant="outline" onClick={onBack} className="flex-1">{t.back}</Button>
         <Button onClick={onNext} className="flex-[2]" iconRight={<ArrowRight className="w-4 h-4" />}>
-          Generează CV-ul!
+          {t.next}
         </Button>
       </div>
       <p
@@ -149,7 +153,7 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
           marginTop: 12,
         }}
       >
-        Hobby-urile sunt opționale — poți continua și fără.
+        {t.optional}
       </p>
     </StepCard>
   );

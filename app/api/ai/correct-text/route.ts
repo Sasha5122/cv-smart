@@ -3,6 +3,7 @@ import { recordApiError } from "@/lib/telemetry";
 import { callStructured, StructuredCallError } from "@/lib/openai";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
+import { toLocale, type Locale } from "@/lib/i18n/locale";
 
 export const maxDuration = 30;
 
@@ -73,6 +74,57 @@ EXEMPLE (învață tiparul):
 Diacriticele românești sunt obligatorii.`,
 };
 
+/** English (demo level) prompts — same kinds, same JSON shape. */
+const SYSTEM_PROMPTS_EN: Record<Kind, string> = {
+  "cv-bullet": `You turn a job responsibility written colloquially or telegraphically by a user into a professional CV bullet point in GERUND (noun) FORM, in English.
+
+GOLDEN RULE — the gerund form is MANDATORY:
+- the bullet opens with the -ing form of the action verb ("Coordinating", "Managing", "Preparing", "Verifying", "Reducing", "Operating"...), NEVER with a past participle ("Coordinated", "Managed", "Implemented") and never in the first person ("I coordinated")
+- the object follows naturally and grammatically: "Coordinating a team of 3 colleagues", "Managing monthly invoices"
+- one idea per bullet, concise (max ~22 words), no personal pronouns, no "I"
+- correct the grammar, spelling and capitalisation, and normalise figures ("38 thousand" → "38,000")
+- do NOT invent figures, names or new responsibilities; keep EXACTLY the facts and figures the user wrote
+- if the text is already in correct gerund form, return it unchanged
+
+EXAMPLES (learn the pattern):
+- "Coordinated a team of 3 colleagues" → "Coordinating a team of 3 colleagues"
+- "managed monthly invoices" → "Managing monthly invoices"
+- "I implemented a new inventory system" → "Implementing a new inventory management system"
+- "was in charge of receiving goods" → "Receiving and checking incoming goods"
+- "did timesheets and payroll" → "Preparing timesheets and payroll"
+
+The result is always in English.`,
+  qualification: `You correct the names of professional qualifications/licences written by users. Strict rules:
+- fix typos, grammar and capitalisation (e.g. "forklit operater" → "Forklift operator")
+- use the standard name of the qualification, with acronyms capitalised correctly (e.g. "cisco ccna" → "Cisco CCNA", "first aid cert" → "First Aid Certificate")
+- short, nominal form — NOT sentences
+- do NOT change the meaning, do NOT add qualifications, do NOT invent grades/levels the user did not write
+- if the text is already correct, return it unchanged`,
+  "job-title": `You correct job titles written by users. Strict rules:
+- fix typos and grammar (e.g. "acountant" → "Accountant")
+- capitalise the first letter, the rest according to standard usage
+- do NOT change the meaning, do NOT add words, do NOT translate, do NOT rephrase
+- if the text is already correct, return it unchanged`,
+  city: `You correct names of cities and towns written by users. Strict rules:
+- fix typos and use the standard spelling, including diacritics where the name has them (e.g. "cluj napoca" → "Cluj-Napoca", "new york" → "New York")
+- capitalise as for proper nouns
+- do NOT replace the place with another one, do NOT add words
+- if the text is already correct, return it unchanged`,
+  hobby: `You turn hobbies written colloquially by users into the short, nominal, standard form for the hobbies list of a CV, in English.
+
+GOLDEN RULE — the CV form is MANDATORY, not optional:
+- the result is a noun or a short noun phrase (1-4 words), NEVER a sentence
+- FORBIDDEN: first person ("I watch", "I play", "I like"), conjugated verbs, context details (with whom, when, where)
+- the meaning stays strictly the user's — do not add new activities
+
+EXAMPLES (learn the pattern):
+- "i watch matches and play football on sundays with the guys" → "Football, watching matches"
+- "i like reading history books" → "Reading (history books)"
+- "cooking for the family at weekends" → "Cooking"
+- "riding my bike" → "Cycling"
+- "video games" → "Video games" (already correct — stays)`,
+};
+
 const SCHEMA = {
   type: "object",
   properties: { corrected: { type: "string" } },
@@ -104,12 +156,29 @@ EXEMPLE:
 - "am implementat un sistem nou de inventar" → "Implementarea unui sistem nou de inventar"
 - "raspundeam de receptia marfii" → "Recepția și verificarea mărfii"`;
 
+const BATCH_SYSTEM_EN = `You turn job responsibilities written colloquially or telegraphically by a user into professional CV bullet points in GERUND (noun) FORM, in English.
+
+You receive a JSON array of lines. You return an array with EXACTLY the same number of lines, in the same order, each one rewritten.
+
+GOLDEN RULE — the gerund form is MANDATORY for every line:
+- opens with the -ing form of the action verb ("Coordinating", "Managing", "Preparing", "Verifying"...), NEVER with a past participle ("Coordinated") and never in the first person
+- the object follows naturally and grammatically: "Coordinating a team of 3 colleagues"
+- one idea per line, concise (max ~22 words), no personal pronouns
+- correct the grammar and spelling, normalise figures ("38 thousand" → "38,000")
+- do NOT invent figures, names or new responsibilities; keep EXACTLY the facts
+- a line that is already correct stays unchanged
+
+EXAMPLES:
+- "Coordinated a team of 3 colleagues" → "Coordinating a team of 3 colleagues"
+- "I implemented a new inventory system" → "Implementing a new inventory system"
+- "was in charge of receiving goods" → "Receiving and checking incoming goods"`;
+
 /**
  * Rescrierea în bloc a responsabilităților manuale (kind="cv-bullets"):
  * UN singur apel de model pentru toate liniile — atomic (ori toate rescrise,
  * ori apelantul păstrează originalele), o singură unitate de rate-limit.
  */
-async function handleBatch(lines: unknown): Promise<NextResponse> {
+async function handleBatch(lines: unknown, language: Locale = "ro"): Promise<NextResponse> {
   if (!Array.isArray(lines) || lines.length === 0 || lines.length > 20) {
     return NextResponse.json({ error: "Între 1 și 20 de linii." }, { status: 400 });
   }
@@ -119,7 +188,7 @@ async function handleBatch(lines: unknown): Promise<NextResponse> {
   }
   const result = await callStructured<{ corrected: string[] }>({
     stage: "correct-cv-bullets-batch",
-    systemPrompt: BATCH_SYSTEM,
+    systemPrompt: language === "en" ? BATCH_SYSTEM_EN : BATCH_SYSTEM,
     userContent: JSON.stringify(clean),
     schemaName: "bullets_correction",
     jsonSchema: BATCH_SCHEMA,
@@ -148,8 +217,9 @@ export async function POST(req: Request) {
 
     const body = await readJsonLimited<Record<string, unknown>>(req, BODY_LIMITS.TEXT);
     const kindRaw = String(body.kind ?? "");
+    const language = toLocale(body.language);
     if (kindRaw === "cv-bullets") {
-      return await handleBatch(body.lines);
+      return await handleBatch(body.lines, language);
     }
     text = String(body.text ?? "").trim();
     const kind = kindRaw as Kind;
@@ -167,7 +237,7 @@ export async function POST(req: Request) {
     const result = await callStructured<{ corrected: string }>({
       stage: `correct-${kind}`,
       sessionId: null,
-      systemPrompt: SYSTEM_PROMPTS[kind],
+      systemPrompt: language === "en" ? SYSTEM_PROMPTS_EN[kind] : SYSTEM_PROMPTS[kind],
       userContent: text,
       schemaName: "text_correction",
       jsonSchema: SCHEMA,

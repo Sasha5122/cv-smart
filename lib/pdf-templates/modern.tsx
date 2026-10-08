@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/render
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
 import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf, photoSrcOf } from "./shared";
+import { pdfLabels, type PdfLabels } from "./labels";
 
 registerFonts();
 
@@ -123,7 +124,7 @@ const s = StyleSheet.create({
   },
 });
 
-export function ModernTemplate({ data }: { data: CVData }) {
+export function ModernTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const contactItems = contactItemsOf(data);
   const hasLicenseInfo = hasLicenseInfoOf(data);
@@ -143,7 +144,7 @@ export function ModernTemplate({ data }: { data: CVData }) {
             )}
             {contactItems.length > 0 && (
               <View style={s.sideSection}>
-                <Text style={s.sideTitle}>Contact</Text>
+                <Text style={s.sideTitle}>{L.contact}</Text>
                 {contactItems.map((item, i) => (
                   <Text key={i} style={s.sideItem}>
                     {item}
@@ -153,7 +154,7 @@ export function ModernTemplate({ data }: { data: CVData }) {
             )}
             {data.skills.length > 0 && (
               <View style={s.sideSection}>
-                <Text style={s.sideTitle}>Competențe</Text>
+                <Text style={s.sideTitle}>{L.skills}</Text>
                 {data.skills.map((sk, i) => (
                   <Text key={i} style={s.sideItem}>
                     •  {sk.name}
@@ -163,7 +164,7 @@ export function ModernTemplate({ data }: { data: CVData }) {
             )}
             {data.languages.length > 0 && (
               <View style={s.sideSection}>
-                <Text style={s.sideTitle}>Limbi străine</Text>
+                <Text style={s.sideTitle}>{L.languages}</Text>
                 {data.languages.map((l, i) => (
                   <Text key={i} style={s.sideItem}>
                     {l.name} ({l.level})
@@ -173,10 +174,10 @@ export function ModernTemplate({ data }: { data: CVData }) {
             )}
             {hasLicenseInfo && (
               <View style={s.sideSection}>
-                <Text style={s.sideTitle}>Permis & Calificări</Text>
+                <Text style={s.sideTitle}>{L.licenseQualifications}</Text>
                 {data.license?.hasLicense && data.license.categories.length > 0 && (
                   <Text style={s.sideText}>
-                    Permis categoria {data.license.categories.join(", ")}
+                    {L.licenseShortLine(data.license.categories.join(", "))}
                   </Text>
                 )}
                 {data.qualifications?.trim() ? (
@@ -186,7 +187,7 @@ export function ModernTemplate({ data }: { data: CVData }) {
             )}
             {data.hobbies.length > 0 && (
               <View style={s.sideSection}>
-                <Text style={s.sideTitle}>Hobby-uri</Text>
+                <Text style={s.sideTitle}>{L.hobbies}</Text>
                 <Text style={s.sideText}>{data.hobbies.join(", ")}</Text>
               </View>
             )}
@@ -194,7 +195,7 @@ export function ModernTemplate({ data }: { data: CVData }) {
 
           {/* Coloana principală */}
           <View style={s.main}>
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {data.targetTitle ? (
               <Text style={{ fontSize: 10.5, color: C.primary, fontWeight: 700, marginTop: 3 }}>
                 {data.targetTitle}
@@ -204,14 +205,14 @@ export function ModernTemplate({ data }: { data: CVData }) {
 
             {data.summary ? (
               <View style={s.section}>
-                <Text style={s.secTitle}>Rezumat</Text>
+                <Text style={s.secTitle}>{L.summary}</Text>
                 <Text style={{ fontSize: 9.8, lineHeight: 1.5 }}>{data.summary}</Text>
               </View>
             ) : null}
 
             {data.experience.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Experiență profesională</Text>
+                <Text style={s.secTitle}>{L.experience}</Text>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={{ marginBottom: i < data.experience.length - 1 ? 10 : 0 }}>
                     <View style={s.entryHead}>
@@ -235,7 +236,7 @@ export function ModernTemplate({ data }: { data: CVData }) {
 
             {data.education.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Educație</Text>
+                <Text style={s.secTitle}>{L.education}</Text>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={{ marginBottom: i < data.education.length - 1 ? 7 : 0 }}>
                     <View style={s.entryHead}>
@@ -249,7 +250,7 @@ export function ModernTemplate({ data }: { data: CVData }) {
                       {edu.institution}
                       {edu.location ? ` · ${edu.location}` : ""}
                     </Text>
-                    {(edu.grade || edu.thesis) && <Text style={s.meta}>{eduMetaOf(edu)}</Text>}
+                    {(edu.grade || edu.thesis) && <Text style={s.meta}>{eduMetaOf(edu, L)}</Text>}
                   </View>
                 ))}
               </View>
@@ -257,7 +258,7 @@ export function ModernTemplate({ data }: { data: CVData }) {
 
             {data.courses.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Cursuri & certificări</Text>
+                <Text style={s.secTitle}>{L.courses}</Text>
                 {data.courses.map((c, i) => (
                   <View key={i} style={s.bulletRow}>
                     <Text style={s.bulletDot}>•</Text>

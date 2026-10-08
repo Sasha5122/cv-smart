@@ -8,6 +8,7 @@ import {
   updatePipelineSession,
 } from "@/lib/cv-pipeline/store";
 import { PIPELINE_PROD_CONFIG, StructuredCallError } from "@/lib/openai";
+import { toLocale } from "@/lib/i18n/locale";
 
 export const maxDuration = 60;
 
@@ -42,6 +43,7 @@ export async function POST(req: Request) {
     const wizardSessionId = body.wizardSessionId
       ? String(body.wizardSessionId)
       : null;
+    const language = toLocale(body.language);
 
     if (!jobTitle) {
       return NextResponse.json(
@@ -79,11 +81,13 @@ export async function POST(req: Request) {
     // 2) Apel #1 — întrebările recrutorului; salvăm rezultatul.
     const questions = await runRecruiterQuestions(
       { jobTitle, company, period, industry, yearsExperience, rawText, jobDescription },
-      { config: PIPELINE_PROD_CONFIG.call1, sessionId: wizardSessionId }
+      { config: PIPELINE_PROD_CONFIG.call1, sessionId: wizardSessionId, language }
     );
 
+    // limba se reține în JSONB-ul existent (fără coloană nouă) pentru apelul #2;
+    // pentru română rândul rămâne identic cu cel de până acum
     await updatePipelineSession(sessionId, {
-      extraction_result: { questions },
+      extraction_result: language === "en" ? { questions, language } : { questions },
     });
 
     return NextResponse.json({ sessionId, questions });

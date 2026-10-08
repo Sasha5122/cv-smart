@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { COUNTRIES, prefixFor } from "@/lib/countries";
 import { X, Globe } from "lucide-react";
+import { useMessages } from "@/lib/i18n/context";
+import { ABROAD_MODAL_MESSAGES } from "@/lib/i18n/wizard/abroad-modal";
 
 export interface AbroadData {
   country: string;
@@ -25,6 +27,7 @@ interface Props {
  * telefon cu prefixul țării completat automat, adresă liberă.
  */
 export function AbroadModal({ open, initial, onConfirm, onClose }: Props) {
+  const t = useMessages(ABROAD_MODAL_MESSAGES);
   const [country, setCountry] = useState(initial?.country ?? "");
   const [number, setNumber] = useState("");
   const [address, setAddress] = useState(initial?.address ?? "");
@@ -64,7 +67,7 @@ export function AbroadModal({ open, initial, onConfirm, onClose }: Props) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Date de contact din afara României"
+      aria-label={t.ariaLabel}
       style={{
         position: "fixed",
         inset: 0,
@@ -117,29 +120,28 @@ export function AbroadModal({ open, initial, onConfirm, onClose }: Props) {
                 color: "var(--ink-strong)",
               }}
             >
-              Locuiești în afara României?
+              {t.title}
             </h2>
           </div>
           <button
             onClick={onClose}
-            aria-label="Închide"
+            aria-label={t.close}
             style={{ background: "none", border: "none", cursor: "pointer", color: "var(--faint)", padding: 6 }}
           >
             <X size={18} />
           </button>
         </div>
         <p style={{ fontSize: 14, color: "var(--muted-foreground)", marginBottom: 22, lineHeight: 1.55 }}>
-          Completează datele de contact din țara în care locuiești — nu mai e
-          nevoie de cele din România.
+          {t.intro}
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <Select
-            label="Țara *"
+            label={t.country}
             value={country}
             onChange={setCountry}
             options={COUNTRIES.map((c) => c.name)}
-            placeholder="alege țara..."
+            placeholder={t.countryPlaceholder}
             searchable
             id="abroad-country"
           />
@@ -149,11 +151,11 @@ export function AbroadModal({ open, initial, onConfirm, onClose }: Props) {
               htmlFor="abroad-phone"
               style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", display: "block", marginBottom: 8 }}
             >
-              Telefon *
+              {t.phone}
             </label>
             <div style={{ display: "flex", gap: 8 }}>
               <span
-                aria-label="Prefix telefonic"
+                aria-label={t.phonePrefixAria}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -173,7 +175,7 @@ export function AbroadModal({ open, initial, onConfirm, onClose }: Props) {
               </span>
               <Input
                 id="abroad-phone"
-                placeholder="numărul de telefon"
+                placeholder={t.phonePlaceholder}
                 value={number}
                 onChange={(e) => setNumber(e.target.value.replace(/[^\d\s]/g, ""))}
                 type="tel"
@@ -181,13 +183,13 @@ export function AbroadModal({ open, initial, onConfirm, onClose }: Props) {
               />
             </div>
             <p style={{ fontSize: 12.5, color: "var(--faint)", marginTop: 6 }}>
-              Prefixul se completează automat după alegerea țării.
+              {t.phoneHint}
             </p>
           </div>
 
           <Input
-            label="Adresa"
-            placeholder="ex: Hauptstraße 12, 10115 Berlin"
+            label={t.address}
+            placeholder={t.addressPlaceholder}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             id="abroad-address"
@@ -196,10 +198,10 @@ export function AbroadModal({ open, initial, onConfirm, onClose }: Props) {
 
         <div style={{ display: "flex", gap: 12, marginTop: 28 }}>
           <Button variant="outline" onClick={onClose} style={{ flex: 1 }}>
-            Renunță
+            {t.cancel}
           </Button>
           <Button onClick={confirm} disabled={!canConfirm} style={{ flex: 2 }}>
-            OK
+            {t.confirm}
           </Button>
         </div>
       </div>

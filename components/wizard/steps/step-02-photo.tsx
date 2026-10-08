@@ -12,6 +12,8 @@ import {
 } from "@/lib/photo-decode";
 import { Camera, Upload, X, CheckCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { useMessages } from "@/lib/i18n/context";
+import { STEP_PHOTO_MESSAGES } from "@/lib/i18n/wizard/step-02-photo";
 
 interface Props {
   value?: string;
@@ -39,21 +41,8 @@ function fullFrameDataUrl(img: DecodedPhoto): string | undefined {
   }
 }
 
-const TIPS_OK = [
-  "Cămașă/bluză curată și îngrijită",
-  "Fundal alb sau neutru",
-  "Față zâmbitoare, privire spre cameră",
-  "Iluminare bună, fără umbre",
-];
-
-const TIPS_NO = [
-  "Selfie sau foto de vacanță",
-  "Ochelari de soare sau pălărie",
-  "Filtre sau efecte foto",
-  "Alte persoane în poză",
-];
-
 export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack }: Props) {
+  const t = useMessages(STEP_PHOTO_MESSAGES);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   // crop-ul „de revenire" pentru Resetează: încadrarea automată de la
@@ -64,13 +53,13 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
     const looksLikeImage =
       file.type.startsWith("image/") || /\.(jpe?g|png|webp|hei[cf])$/i.test(file.name);
     if (!looksLikeImage) {
-      toast.error("Acceptăm doar imagini (JPG, PNG, WEBP, HEIC)");
+      toast.error(t.errors.notImage);
       return;
     }
     // fără limită practică — pozele de telefon (8–25MB) sunt redimensionate
     // de noi; 50MB e doar protecție anti-abuz
     if (file.size > MAX_PHOTO_BYTES) {
-      toast.error("Imaginea e neobișnuit de mare (peste 50MB). Încearcă altă poză.");
+      toast.error(t.errors.tooLarge);
       return;
     }
     setIsUploading(true);
@@ -114,7 +103,7 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
       setIsUploading(false);
     } catch (e) {
       if (e instanceof Error && e.message === "too-large") {
-        toast.error("Imaginea are dimensiuni neobișnuit de mari. Încearcă altă poză.");
+        toast.error(t.errors.tooLargeDimensions);
         setIsUploading(false);
         return;
       }
@@ -123,16 +112,16 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
       if (dataUrl) {
         onChange(dataUrl);
       } else {
-        toast.error("Nu am putut citi poza. Încearcă alta (JPG sau PNG).");
+        toast.error(t.errors.unreadable);
       }
       setIsUploading(false);
     }
-  }, [onChange]);
+  }, [onChange, t]);
 
   return (
     <StepCard
-      title="Adaugă o poză"
-      subtitle="Candidații cu poză profesională sunt contactați cu 38% mai des de recrutori."
+      title={t.title}
+      subtitle={t.subtitle}
       icon={<Camera className="w-5 h-5" />}
     >
       {/* Stats banner */}
@@ -149,10 +138,10 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
         <span style={{ fontSize: 22, flexShrink: 0 }}>📈</span>
         <div>
           <p style={{ fontSize: 17, fontWeight: 700, color: "#166534", marginBottom: 2 }}>
-            +38% șanse mai multe cu poză profesională
+            {t.banner.title}
           </p>
           <p style={{ fontSize: 16, color: "#15803D", lineHeight: 1.5 }}>
-            Recrutorii filtrează CV-urile în primele 6 secunde.
+            {t.banner.text}
           </p>
         </div>
       </div>
@@ -167,9 +156,9 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
           borderRadius: 10,
           padding: "14px 16px",
         }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: "#166534", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Recomandat</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#166534", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>{t.tips.okTitle}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {TIPS_OK.map((tip, i) => (
+            {t.tips.ok.map((tip, i) => (
               <p key={i} style={{ fontSize: 16, color: "var(--foreground)", lineHeight: 1.5 }}>• {tip}</p>
             ))}
           </div>
@@ -183,9 +172,9 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
           borderRadius: 10,
           padding: "14px 16px",
         }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: "#991B1B", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Evită</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#991B1B", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>{t.tips.noTitle}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {TIPS_NO.map((tip, i) => (
+            {t.tips.no.map((tip, i) => (
               <p key={i} style={{ fontSize: 16, color: "var(--foreground)", lineHeight: 1.5 }}>• {tip}</p>
             ))}
           </div>
@@ -206,7 +195,7 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value}
-              alt="Poză de profil"
+              alt={t.preview.alt}
               style={{
                 width: 52, height: 52,
                 objectFit: "cover",
@@ -221,14 +210,14 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
               borderRadius: 50, padding: "6px 14px",
             }}>
               <CheckCircle style={{ width: 14, height: 14, color: "#22C55E" }} />
-              <span style={{ fontSize: 17, color: "#166534", fontWeight: 600 }}>Poză adăugată</span>
+              <span style={{ fontSize: 17, color: "#166534", fontWeight: 600 }}>{t.preview.added}</span>
             </div>
             <button
               onClick={() => {
                 setAutoCrop(undefined);
                 onChange(undefined, undefined);
               }}
-              aria-label="Șterge poza"
+              aria-label={t.preview.remove}
               style={{
                 width: 34, height: 34,
                 backgroundColor: "#EF4444", borderRadius: "50%",
@@ -273,7 +262,7 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
                 border: "3px solid var(--primary)", borderTopColor: "transparent",
                 borderRadius: "50%", animation: "spin 0.8s linear infinite",
               }} />
-              <p style={{ fontSize: 18, color: "var(--muted-foreground)" }}>Încarc poza...</p>
+              <p style={{ fontSize: 18, color: "var(--muted-foreground)" }}>{t.dropzone.uploading}</p>
             </div>
           ) : (
             <>
@@ -286,10 +275,10 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
                 <Upload style={{ width: 24, height: 24, color: "var(--primary)" }} />
               </div>
               <p style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>
-                Trage poza sau{" "}
-                <span style={{ color: "var(--primary)" }}>alege din telefon sau calculator</span>
+                {t.dropzone.dragPrefix}{" "}
+                <span style={{ color: "var(--primary)" }}>{t.dropzone.dragLink}</span>
               </p>
-              <p style={{ fontSize: 16, color: "var(--faint)" }}>JPG, PNG, WEBP sau HEIC (iPhone) · orice mărime — o redimensionăm noi</p>
+              <p style={{ fontSize: 16, color: "var(--faint)" }}>{t.dropzone.formats}</p>
             </>
           )}
         </div>
@@ -298,14 +287,14 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
       {/* Buttons */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={{ display: "flex", gap: 12 }}>
-          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>← Înapoi</Button>
+          <Button variant="outline" onClick={onBack} style={{ flex: 1 }}>{t.buttons.back}</Button>
           <Button
             onClick={onNext}
             size="lg"
             style={{ flex: 2 }}
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
-            {value ? "Continuă cu poza" : "Continuă"}
+            {value ? t.buttons.nextWithPhoto : t.buttons.next}
           </Button>
         </div>
         {!value && (
@@ -324,7 +313,7 @@ export function Step02Photo({ value, fullValue, onChange, onNext, onSkip, onBack
               letterSpacing: 0.2,
             }}
           >
-            Nu am poză potrivită
+            {t.buttons.skip}
           </button>
         )}
       </div>

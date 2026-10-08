@@ -10,6 +10,8 @@ import type { Experience } from "@/lib/types/cv";
 import type { GeneratedBullet, PipelineQuestion } from "@/lib/types/cv-pipeline";
 import { correctText, nominalizeBullets } from "@/lib/correct-text";
 import { toast } from "sonner";
+import { useMessages, useLocale } from "@/lib/i18n/context";
+import { STEP_EXPERIENCE_MESSAGES } from "@/lib/i18n/wizard/step-experience";
 
 /* ────────────────────────────────────────────────────────────────
    Pasul Experiență — pipeline AI în 4 ecrane:
@@ -47,20 +49,7 @@ const EMPTY_FORM = {
 };
 
 /** mesaje progresive pentru fazele de loading */
-const ANALYZE_MESSAGES = [
-  "Citim ce ne-ai povestit…",
-  "Extragem faptele care contează…",
-  "Căutăm golurile dintr-un CV puternic…",
-  "Pregătim 5 întrebări țintite…",
-];
-const GENERATE_MESSAGES = [
-  "Punem totul cap la cap…",
-  "Scriem descrierile ca un recrutor…",
-  "Verificăm fiecare cifră — nimic inventat…",
-  "Ordonăm de la cel mai puternic…",
-];
-
-function LoadingPanel({ messages, hint = "durează câteva zeci de secunde" }: { messages: string[]; hint?: string }) {
+function LoadingPanel({ messages, hint }: { messages: string[]; hint: string }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const t = setInterval(
@@ -167,6 +156,8 @@ export function Step09Experience({
   onNext,
   onBack,
 }: Props) {
+  const t = useMessages(STEP_EXPERIENCE_MESSAGES);
+  const locale = useLocale();
   const [phase, setPhase] = useState<Phase>(
     experience.length > 0 ? "summary" : "input"
   );
@@ -192,7 +183,8 @@ export function Step09Experience({
     if (current.length < 2) return;
     const corrected = await correctText(
       current,
-      field === "title" ? "job-title" : "city"
+      field === "title" ? "job-title" : "city",
+      locale
     );
     if (corrected !== current) {
       setForm((prev) =>
@@ -222,20 +214,21 @@ export function Step09Experience({
         body: JSON.stringify({
           jobTitle: form.title.trim(),
           company: form.company.trim() || undefined,
-          period: buildPeriod(form) || undefined,
+          period: buildPeriod(form, locale) || undefined,
           rawText: form.rawText.trim(),
           jobDescription: jobDescription?.trim() || undefined,
           wizardSessionId: sessionId,
+          language: locale,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Analiza a eșuat.");
+      if (!res.ok) throw new Error(data.error ?? t.errors.analyzeFailed);
       pipelineIdRef.current = data.sessionId;
       setQuestions(data.questions);
       setAnswers(new Array(data.questions.length).fill(""));
       setPhase("questions");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Analiza a eșuat.");
+      setError(e instanceof Error ? e.message : t.errors.analyzeFailed);
       setPhase("input");
     }
   }
@@ -253,16 +246,16 @@ export function Step09Experience({
       const gen = await fetch("/api/cv/generate-bullets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: pid, answers: answerPayload, force }),
+        body: JSON.stringify({ sessionId: pid, answers: answerPayload, force, language: locale }),
       });
       const genData = await gen.json();
-      if (!gen.ok) throw new Error(genData.error ?? "Generarea a eșuat.");
+      if (!gen.ok) throw new Error(genData.error ?? t.errors.generateFailed);
 
       setBullets(genData.bullets);
       setSelectedIds(new Set());
       setPhase("select");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Generarea a eșuat.");
+      setError(e instanceof Error ? e.message : t.errors.generateFailed);
       setPhase("questions");
     }
   }
@@ -275,16 +268,16 @@ export function Step09Experience({
       const res = await fetch("/api/cv/select-bullets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: pid, selectedIds: ids }),
+        body: JSON.stringify({ sessionId: pid, selectedIds: ids, language: locale }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Salvarea selecției a eșuat.");
+      if (!res.ok) throw new Error(data.error ?? t.errors.selectionSaveFailed);
 
       saveEntry(
         (data.selected as GeneratedBullet[]).map((b) => b.text)
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Salvarea a eșuat.");
+      setError(e instanceof Error ? e.message : t.errors.saveFailed);
     }
   }
 
@@ -294,13 +287,13 @@ export function Step09Experience({
     const entry: Experience = {
       title: form.title.trim(),
       company: form.company.trim() || "—",
-      period: buildPeriod(form),
+      period: buildPeriod(form, locale),
       location: form.location.trim() || undefined,
       responsibilities,
       achievements: [],
     };
     onUpdate([...experience, entry]);
-    toast.success("Jobul a fost adăugat în CV.");
+    toast.success(t.toasts.jobAdded);
     setForm({ ...EMPTY_FORM });
     setQuestions([]);
     setAnswers([]);
@@ -364,9 +357,9 @@ export function Step09Experience({
   if (phase === "summary") {
     return (
       <StepCard
-        kicker="Experiență profesională"
-        title="Joburile tale, negru pe alb."
-        subtitle="Fiecare job trece printr-un mic interviu cu AI-ul — descrierile rezultate sunt scrise ca de un recrutor."
+        kicker={t.summary.kicker}
+        title={t.summary.title}
+        subtitle={t.summary.subtitle}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {experience.map((exp, i) => (
@@ -390,7 +383,7 @@ export function Step09Experience({
                 </div>
                 <button
                   onClick={() => removeEntry(i)}
-                  aria-label={`Șterge ${exp.title}`}
+                  aria-label={t.summary.deleteAria(exp.title)}
                   style={{
                     background: "none",
                     border: "none",
@@ -411,7 +404,7 @@ export function Step09Experience({
                       <InlineEditableText
                         value={r}
                         onChange={(text) => editResponsibility(i, j, text)}
-                        ariaLabel={`Editează descrierea ${j + 1} de la ${exp.title}`}
+                        ariaLabel={t.summary.editAria(j + 1, exp.title)}
                       />
                     </li>
                   ))}
@@ -419,7 +412,7 @@ export function Step09Experience({
               )}
               {exp.responsibilities.length > 0 && (
                 <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "10px 0 0" }}>
-                  Poți edita descrierile direct — se salvează automat în CV.
+                  {t.summary.editHint}
                 </p>
               )}
             </div>
@@ -444,15 +437,13 @@ export function Step09Experience({
             }}
           >
             <Plus size={16} />
-            {experience.length === 0
-              ? "Adaugă experiența de la cel mai recent job"
-              : "Adaugă experiența de la jobul precedent"}
+            {experience.length === 0 ? t.summary.addFirst : t.summary.addAnother}
           </button>
         </div>
 
         <div className="flex gap-3" style={{ marginTop: 32 }}>
           <Button variant="outline" onClick={onBack} className="flex-1">
-            ← Înapoi
+            {t.summary.back}
           </Button>
           <Button
             onClick={onNext}
@@ -461,7 +452,7 @@ export function Step09Experience({
             disabled={experience.length === 0}
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
-            Continuă
+            {t.summary.next}
           </Button>
         </div>
       </StepCard>
@@ -472,16 +463,16 @@ export function Step09Experience({
   if (phase === "input" || phase === "analyzing") {
     if (phase === "analyzing")
       return (
-        <StepCard kicker="Experiență · Pas 1 din 3" title="Analizăm experiența ta">
-          <LoadingPanel messages={ANALYZE_MESSAGES} />
+        <StepCard kicker={t.input.kicker} title={t.input.analyzingTitle}>
+          <LoadingPanel messages={t.loading.analyze} hint={t.loading.hint} />
         </StepCard>
       );
 
     return (
       <StepCard
-        kicker="Experiență · Pas 1 din 3"
-        title="Povestește-ne ce faci la job."
-        subtitle="Scrie liber, ca și cum i-ai povesti unui prieten. Fără formulări pretențioase — de asta ne ocupăm noi."
+        kicker={t.input.kicker}
+        title={t.input.title}
+        subtitle={t.input.subtitle}
       >
         {ErrorCard}
 
@@ -500,22 +491,22 @@ export function Step09Experience({
           >
             <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "var(--amber)" }} />
             <span style={{ fontSize: 12.5, fontWeight: 600, color: "#065f46" }}>
-              Ancorat pe anunțul tău din Pasul 1
+              {t.input.anchoredBadge}
             </span>
           </div>
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 18 }}>
           <Input
-            label="Funcția / titlul jobului *"
-            placeholder="ex: Contabil"
+            label={t.input.jobTitleLabel}
+            placeholder={t.input.jobTitlePlaceholder}
             value={form.title}
             onChange={(e) => set("title", e.target.value)}
             onBlur={() => correctField("title")}
           />
           <Input
-            label="Compania"
-            placeholder="ex: SC Exemplu SRL"
+            label={t.input.companyLabel}
+            placeholder={t.input.companyPlaceholder}
             value={form.company}
             onChange={(e) => set("company", e.target.value)}
           />
@@ -525,8 +516,8 @@ export function Step09Experience({
 
         <div style={{ marginBottom: 18 }}>
           <Input
-            label="Localitatea"
-            placeholder="ex: Cluj-Napoca"
+            label={t.input.locationLabel}
+            placeholder={t.input.locationPlaceholder}
             value={form.location}
             onChange={(e) => set("location", e.target.value)}
             onBlur={() => correctField("location")}
@@ -534,12 +525,12 @@ export function Step09Experience({
         </div>
 
         <Textarea
-          label="Ce faci acolo, cu cuvintele tale? *"
+          label={t.input.rawTextLabel}
           value={form.rawText}
           onChange={(e) => set("rawText", e.target.value)}
-          placeholder="Descrie cu cuvintele tale ce faci la job, ca și cum i-ai povesti unui prieten. Nu-ți face griji de formulare."
+          placeholder={t.input.rawTextPlaceholder}
           rows={7}
-          hint="Cu cât povestești mai mult, cu atât descrierile generate vor fi mai bune."
+          hint={t.input.rawTextHint}
         />
 
         <div className="flex gap-3" style={{ marginTop: 32 }}>
@@ -548,7 +539,7 @@ export function Step09Experience({
             onClick={() => (experience.length > 0 ? setPhase("summary") : onBack())}
             className="flex-1"
           >
-            ← Înapoi
+            {t.input.back}
           </Button>
           <Button
             onClick={runAnalyze}
@@ -557,7 +548,7 @@ export function Step09Experience({
             disabled={!canAnalyze}
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
-            Analizează
+            {t.input.analyze}
           </Button>
         </div>
         <button
@@ -576,7 +567,7 @@ export function Step09Experience({
             textUnderlineOffset: 4,
           }}
         >
-          Prefer să scriu descrierile manual
+          {t.input.manualLink}
         </button>
       </StepCard>
     );
@@ -586,16 +577,16 @@ export function Step09Experience({
   if (phase === "questions" || phase === "generating") {
     if (phase === "generating")
       return (
-        <StepCard kicker="Experiență · Pas 2 din 3" title="Scriem descrierile">
-          <LoadingPanel messages={GENERATE_MESSAGES} hint="poate dura până la un minut — scriem cu grijă" />
+        <StepCard kicker={t.questions.kicker} title={t.questions.generatingTitle}>
+          <LoadingPanel messages={t.loading.generate} hint={t.loading.generateHint} />
         </StepCard>
       );
 
     return (
       <StepCard
-        kicker="Experiență · Pas 2 din 3"
-        title="5 întrebări, ca la un interviu bun."
-        subtitle="Răspunde scurt și concret — cifre, exemple, denumiri. Poți sări peste unele, dar minim 3 răspunsuri fac diferența."
+        kicker={t.questions.kicker}
+        title={t.questions.title}
+        subtitle={t.questions.subtitle}
       >
         {ErrorCard}
 
@@ -616,7 +607,7 @@ export function Step09Experience({
             ))}
           </div>
           <span className="folio" style={{ fontSize: 10.5 }}>
-            {answeredCount}/{questions.length} răspunsuri
+            {t.questions.progress(answeredCount, questions.length)}
           </span>
         </div>
 
@@ -649,7 +640,7 @@ export function Step09Experience({
                     return next;
                   })
                 }
-                placeholder="Răspunsul tău… (sau lasă gol)"
+                placeholder={t.questions.answerPlaceholder}
                 rows={2}
                 style={{ marginLeft: 0 }}
               />
@@ -659,7 +650,7 @@ export function Step09Experience({
 
         <div className="flex gap-3" style={{ marginTop: 32 }}>
           <Button variant="outline" onClick={() => setPhase("input")} className="flex-1">
-            ← Înapoi
+            {t.questions.back}
           </Button>
           <Button
             onClick={() => runGenerate()}
@@ -668,9 +659,7 @@ export function Step09Experience({
             disabled={answeredCount < 3}
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
-            {answeredCount < 3
-              ? `Răspunde la minim 3 (${answeredCount}/3)`
-              : "Generează descrierile"}
+            {answeredCount < 3 ? t.questions.answerMin(answeredCount) : t.questions.generate}
           </Button>
         </div>
       </StepCard>
@@ -681,9 +670,9 @@ export function Step09Experience({
   if (phase === "select") {
     return (
       <StepCard
-        kicker="Experiență · Pas 3 din 3"
-        title="Alege ce te reprezintă."
-        subtitle={`Toate sunt ancorate strict în ce ne-ai spus — nimic inventat. Alege minim ${minSelect}; poți bifa toate dacă ți se potrivesc.`}
+        kicker={t.select.kicker}
+        title={t.select.title}
+        subtitle={t.select.subtitle(minSelect)}
       >
         {ErrorCard}
 
@@ -696,7 +685,7 @@ export function Step09Experience({
           }}
         >
           <span className="folio" style={{ fontSize: 10.5 }}>
-            {bullets.length} descrieri generate
+            {t.select.generatedCount(bullets.length)}
           </span>
           <span
             style={{
@@ -706,7 +695,7 @@ export function Step09Experience({
               fontVariantNumeric: "tabular-nums",
             }}
           >
-            Ai ales {selectedIds.size} (minim {minSelect})
+            {t.select.chosen(selectedIds.size, minSelect)}
           </span>
         </div>
 
@@ -773,7 +762,7 @@ export function Step09Experience({
             className="flex-1"
             icon={<RefreshCcw className="w-4 h-4" />}
           >
-            Regenerează
+            {t.select.regenerate}
           </Button>
           <Button
             onClick={finishSelection}
@@ -782,9 +771,7 @@ export function Step09Experience({
             disabled={!canFinishSelect}
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
-            {canFinishSelect
-              ? "Finalizează"
-              : `Alege minim ${minSelect} descrieri`}
+            {canFinishSelect ? t.select.finish : t.select.chooseMin(minSelect)}
           </Button>
         </div>
       </StepCard>
@@ -794,22 +781,22 @@ export function Step09Experience({
   /* ── ECRAN: mod manual (fallback) ──────────────────────────── */
   return (
     <StepCard
-      kicker="Experiență · manual"
-      title="Scrie descrierile manual."
-      subtitle="Câte o responsabilitate pe rând. Le poți rafina mai târziu, la draftul final."
+      kicker={t.manual.kicker}
+      title={t.manual.title}
+      subtitle={t.manual.subtitle}
     >
       {ErrorCard}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 18 }}>
         <Input
-          label="Funcția *"
-          placeholder="ex: Contabil"
+          label={t.manual.jobTitleLabel}
+          placeholder={t.manual.jobTitlePlaceholder}
           value={form.title}
           onChange={(e) => set("title", e.target.value)}
           onBlur={() => correctField("title")}
         />
         <Input
-          label="Compania"
-          placeholder="ex: SC Exemplu SRL"
+          label={t.manual.companyLabel}
+          placeholder={t.manual.companyPlaceholder}
           value={form.company}
           onChange={(e) => set("company", e.target.value)}
         />
@@ -817,26 +804,26 @@ export function Step09Experience({
       <PeriodPicker value={form} onChange={set} />
       <div style={{ marginBottom: 18 }}>
         <Input
-          label="Localitatea"
-          placeholder="ex: Cluj-Napoca"
+          label={t.manual.locationLabel}
+          placeholder={t.manual.locationPlaceholder}
           value={form.location}
           onChange={(e) => set("location", e.target.value)}
           onBlur={() => correctField("location")}
         />
       </div>
       <Textarea
-        label="Responsabilități (una pe rând)"
+        label={t.manual.responsibilitiesLabel}
         value={manualText}
         onChange={(e) => setManualText(e.target.value)}
-        placeholder={"Coordonarea unei echipe de 3 colegi\nGestionarea facturilor lunare\n…"}
+        placeholder={t.manual.responsibilitiesPlaceholder}
         rows={6}
       />
       <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 6 }}>
-        Le rescriem automat în stil profesionist de CV la salvare.
+        {t.manual.rewriteNote}
       </p>
       <div className="flex gap-3" style={{ marginTop: 26 }}>
         <Button variant="outline" onClick={() => setPhase("input")} className="flex-1" icon={<ArrowLeft className="w-4 h-4" />}>
-          Înapoi la AI
+          {t.manual.backToAi}
         </Button>
         <Button
           onClick={async () => {
@@ -848,9 +835,9 @@ export function Step09Experience({
             try {
               // rescriem în formă nominală de CV („Coordonat…" → „Coordonarea…")
               // — atomic: ori toate liniile, ori păstrăm exact ce a scris userul
-              const result = await nominalizeBullets(lines);
+              const result = await nominalizeBullets(lines, locale);
               if (!result.rewritten) {
-                toast.info("Nu am putut rescrie descrierile acum — textul tău a fost păstrat exact cum l-ai scris.");
+                toast.info(t.toasts.manualNotRewritten);
               }
               saveEntry(result.lines);
             } finally {
@@ -863,7 +850,7 @@ export function Step09Experience({
           disabled={form.title.trim().length < 2 || manualText.trim().length < 3}
           iconRight={<ArrowRight className="w-4 h-4" />}
         >
-          Salvează jobul
+          {t.manual.save}
         </Button>
       </div>
     </StepCard>

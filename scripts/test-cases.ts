@@ -80,4 +80,22 @@ export const MATRIX_CASES: TestCase[] = [
       "am lucrat la 2 firme in 8 ani, la actuala sunt de 5 ani, avem vreo 15 camioane si 20 de soferi",
     ],
   },
+  {
+    slug: "caz5_warehouse_en",
+    name: "Warehouse operator (EN)",
+    jobTitle: "Warehouse operator",
+    company: "Nordic Logistics Ltd",
+    period: "2019 – present",
+    industry: "Logistics & Warehousing",
+    years: 4,
+    raw: `i work in a big warehouse, mostly receiving and shipping. we get like 60-80 pallets a day, i check them against the delivery notes, scan everything in the wms and put them in the right racks with the forklift. i also prepare orders for shipping, around 150 orders a day in peak season, and i do the cycle counts every week. when something is damaged i write the report and send photos to the supplier. we are a team of 12 on my shift and i train the new guys on the scanner and the forklift.`,
+    answers: [
+      "last year i found a mismatch of about 38k euros in stock value during a cycle count, turned out a whole pallet was booked twice, i fixed it with the supervisor and the system was corrected",
+      "the manager put me in charge of the weekly counts after that",
+      "i handle the whole receiving process alone on my shift, 1,200 pallets a month more or less",
+      "i use the forklift and the reach truck, i have the licence for both",
+      "i trained 6 new colleagues in the last 2 years",
+    ],
+    jd: `We are looking for a Warehouse Operator for our distribution centre. Requirements: 2+ years in warehousing, forklift licence, experience with WMS systems and barcode scanners, accuracy in receiving and picking, ability to work in a team. Responsibilities: receiving and putting away goods, order picking and packing, cycle counting, reporting damages, keeping the warehouse tidy and safe.`,
+  },
 ];

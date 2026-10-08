@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/render
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "./fonts";
 import { fullNameOf, contactItemsOf, hasLicenseInfoOf, eduMetaOf, photoSrcOf } from "./shared";
+import { pdfLabels, type PdfLabels } from "./labels";
 
 registerFonts();
 
@@ -113,7 +114,7 @@ function Sec({ title, children }: { title: string; children: React.ReactNode }) 
   );
 }
 
-export function ElegantTemplate({ data }: { data: CVData }) {
+export function ElegantTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const contactItems = contactItemsOf(data);
   const hasLicenseInfo = hasLicenseInfoOf(data);
@@ -138,7 +139,7 @@ export function ElegantTemplate({ data }: { data: CVData }) {
             }}
           />
         )}
-        <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+        <Text style={s.name}>{fullName || L.fullName}</Text>
         {data.targetTitle ? <Text style={s.title}>{data.targetTitle}</Text> : null}
         {contactItems.length > 0 && (
           <View style={s.contactRow}>
@@ -154,7 +155,7 @@ export function ElegantTemplate({ data }: { data: CVData }) {
         <View style={s.doubleRuleInner} />
 
         {data.summary ? (
-          <Sec title="Profil">
+          <Sec title={L.profile}>
             <Text style={{ fontSize: 10, lineHeight: 1.6, textAlign: "center", fontStyle: "italic" }}>
               {data.summary}
             </Text>
@@ -162,7 +163,7 @@ export function ElegantTemplate({ data }: { data: CVData }) {
         ) : null}
 
         {data.experience.length > 0 && (
-          <Sec title="Experiență profesională">
+          <Sec title={L.experience}>
             {data.experience.map((exp, i) => (
               <View key={i} wrap={false} style={{ marginBottom: i < data.experience.length - 1 ? 11 : 0 }}>
                 <View style={s.entryHead}>
@@ -185,7 +186,7 @@ export function ElegantTemplate({ data }: { data: CVData }) {
         )}
 
         {data.education.length > 0 && (
-          <Sec title="Educație">
+          <Sec title={L.education}>
             {data.education.map((edu, i) => (
               <View key={i} wrap={false} style={{ marginBottom: i < data.education.length - 1 ? 7 : 0 }}>
                 <View style={s.entryHead}>
@@ -199,14 +200,14 @@ export function ElegantTemplate({ data }: { data: CVData }) {
                   {edu.institution}
                   {edu.location ? ` · ${edu.location}` : ""}
                 </Text>
-                {(edu.grade || edu.thesis) && <Text style={s.meta}>{eduMetaOf(edu)}</Text>}
+                {(edu.grade || edu.thesis) && <Text style={s.meta}>{eduMetaOf(edu, L)}</Text>}
               </View>
             ))}
           </Sec>
         )}
 
         {data.courses.length > 0 && (
-          <Sec title="Cursuri & certificări">
+          <Sec title={L.courses}>
             {data.courses.map((c, i) => (
               <View key={i} style={s.bulletRow}>
                 <Text style={s.bulletMark}>•</Text>
@@ -221,7 +222,7 @@ export function ElegantTemplate({ data }: { data: CVData }) {
         )}
 
         {data.skills.length > 0 && (
-          <Sec title="Competențe">
+          <Sec title={L.skills}>
             <Text style={[s.inlineList, { textAlign: "center" }]}>
               {data.skills.map((sk) => sk.name).join("   ·   ")}
             </Text>
@@ -229,7 +230,7 @@ export function ElegantTemplate({ data }: { data: CVData }) {
         )}
 
         {data.languages.length > 0 && (
-          <Sec title="Limbi străine">
+          <Sec title={L.languages}>
             <Text style={[s.inlineList, { textAlign: "center" }]}>
               {data.languages.map((l) => `${l.name} (${l.level})`).join("   ·   ")}
             </Text>
@@ -237,11 +238,11 @@ export function ElegantTemplate({ data }: { data: CVData }) {
         )}
 
         {hasLicenseInfo && (
-          <Sec title="Permis & Calificări">
+          <Sec title={L.licenseQualifications}>
             <Text style={[s.inlineList, { textAlign: "center" }]}>
               {[
                 data.license?.hasLicense && data.license.categories.length > 0
-                  ? `Permis de conducere: categoria ${data.license.categories.join(", ")}`
+                  ? L.licenseLine(data.license.categories.join(", "))
                   : "",
                 data.qualifications?.trim() ?? "",
               ]
@@ -252,7 +253,7 @@ export function ElegantTemplate({ data }: { data: CVData }) {
         )}
 
         {data.hobbies.length > 0 && (
-          <Sec title="Hobby-uri">
+          <Sec title={L.hobbies}>
             <Text style={[s.inlineList, { textAlign: "center" }]}>{data.hobbies.join("   ·   ")}</Text>
           </Sec>
         )}
