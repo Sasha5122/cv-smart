@@ -4,7 +4,7 @@
  * Rulare:
  *   ... test-model-matrix.ts --config=C0        — o configurație (4 cazuri)
  *   ... test-model-matrix.ts --report           — regenerează comparison.md + summary.md
- * Artefacte: results/<config>/<caz>.json · results/comparison.md · results/summary.md
+ * Artefacte: docs/evaluation/results/<config>/<caz>.json · docs/evaluation/results/comparison.md · docs/evaluation/results/summary.md
  */
 import { mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -41,7 +41,7 @@ const CONFIGS: PipelineConfig[] = [
   { name: "C8_51_54", call1: { model: "gpt-5.1" }, call2: { model: "gpt-5.4" } },
 ];
 
-const RESULTS_DIR = join(process.cwd(), "results");
+const RESULTS_DIR = join(process.cwd(), "docs", "evaluation", "results");
 
 /* ── metrici obiective ─────────────────────────────────────────── */
 
@@ -263,7 +263,7 @@ function buildReport() {
   }
   writeFileSync(join(RESULTS_DIR, "comparison.md"), cmp);
 
-  console.log(`\n${md}\nScris: results/summary.md + results/comparison.md`);
+  console.log(`\n${md}\nScris: docs/evaluation/results/summary.md + comparison.md`);
 }
 
 /* ── main ──────────────────────────────────────────────────────── */
