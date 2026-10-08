@@ -11,6 +11,7 @@ import {
   updatePipelineSession,
 } from "@/lib/cv-pipeline/store";
 import { PIPELINE_PROD_CONFIG, StructuredCallError } from "@/lib/openai";
+import { toLocale } from "@/lib/i18n/locale";
 import type { QuestionAnswer } from "@/lib/types/cv-pipeline";
 
 export const maxDuration = 90;
@@ -58,6 +59,9 @@ export async function POST(req: Request) {
       );
     }
 
+    // limba: cea trimisă acum sau cea reținută la apelul #1 (resume)
+    const language = toLocale(body.language ?? session.extraction_result?.language);
+
     // răspunsurile: cele trimise acum sau cele salvate anterior (resume)
     const answers = incomingAnswers ?? session.user_answers ?? [];
 
@@ -97,7 +101,11 @@ export async function POST(req: Request) {
         interview,
         jobDescription: session.job_description ?? undefined,
       },
-      { config: PIPELINE_PROD_CONFIG.call2, sessionId: session.wizard_session_id ?? null }
+      {
+        config: PIPELINE_PROD_CONFIG.call2,
+        sessionId: session.wizard_session_id ?? null,
+        language,
+      }
     );
 
     await updatePipelineSession(sessionId, {

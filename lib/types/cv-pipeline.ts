@@ -8,6 +8,8 @@
  * Tipurile TS sunt derivate 1:1 din schemele trimise la OpenAI (strict mode).
  */
 
+import type { Locale } from "@/lib/i18n/locale";
+
 // ---------- Enums / primitives ----------
 
 export const FACT_CATEGORIES = [
@@ -37,6 +39,12 @@ export interface PipelineQuestion {
 
 export interface QuestionsResult {
   questions: PipelineQuestion[];
+}
+
+/** extraction_result așa cum e persistat (JSONB): întrebările + limba
+ * pipeline-ului („en" doar când userul a ales engleza; lipsă = română). */
+export interface StoredExtractionResult extends QuestionsResult {
+  language?: Locale;
 }
 
 // ---------- Apel #2: Bullet Generation din context unic ----------
@@ -82,8 +90,8 @@ export interface PipelineSessionRow {
   raw_text: string;
   job_description: string | null;
   stage: PipelineStage;
-  /** păstrează numele istoric al coloanei; conține { questions } */
-  extraction_result: QuestionsResult | null;
+  /** păstrează numele istoric al coloanei; conține { questions, language? } */
+  extraction_result: StoredExtractionResult | null;
   user_answers: QuestionAnswer[] | null;
   generated_bullets: GeneratedBullet[] | null;
   selected_bullet_ids: string[] | null;

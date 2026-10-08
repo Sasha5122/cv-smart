@@ -6,6 +6,7 @@ import {
   roleOf, localityOf, licenseTextOf,
   IconPhone, IconUser, IconBriefcase, IconCap, IconStar,
 } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -78,11 +79,11 @@ const s = StyleSheet.create({
   bulletText: { flex: 1, fontSize: 8.8, lineHeight: 1.42 },
 });
 
-export function AmberTemplate({ data }: { data: CVData }) {
+export function AmberTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
@@ -97,37 +98,37 @@ export function AmberTemplate({ data }: { data: CVData }) {
                 <Image src={photo} style={s.photo} />
               </View>
             )}
-            <Text style={s.name}>{fullName || "Prenume Nume"}</Text>
+            <Text style={s.name}>{fullName || L.fullName}</Text>
             {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
 
             <View style={s.sideSecHead}>
               <View style={s.sideIconPill}>
                 <IconPhone color={C.charcoal} size={9} />
               </View>
-              <Text style={s.sideSecTitle}>Contact</Text>
+              <Text style={s.sideSecTitle}>{L.contact}</Text>
             </View>
             <View style={s.sideRule} />
             {p?.email ? (
               <>
-                <Text style={s.cLabel}>Email</Text>
+                <Text style={s.cLabel}>{L.email}</Text>
                 <Text style={s.cValue}>{p.email}</Text>
               </>
             ) : null}
             {p?.phone ? (
               <>
-                <Text style={s.cLabel}>Telefon</Text>
+                <Text style={s.cLabel}>{L.phone}</Text>
                 <Text style={s.cValue}>{p.phone}</Text>
               </>
             ) : null}
             {localityOf(data) ? (
               <>
-                <Text style={s.cLabel}>Oraș</Text>
+                <Text style={s.cLabel}>{L.city}</Text>
                 <Text style={s.cValue}>{localityOf(data)}</Text>
               </>
             ) : null}
             {p?.linkedin ? (
               <>
-                <Text style={s.cLabel}>LinkedIn</Text>
+                <Text style={s.cLabel}>{L.linkedin}</Text>
                 <Text style={s.cValue}>{p.linkedin}</Text>
               </>
             ) : null}
@@ -138,7 +139,7 @@ export function AmberTemplate({ data }: { data: CVData }) {
                   <View style={s.sideIconPill}>
                     <IconStar color={C.charcoal} size={9} />
                   </View>
-                  <Text style={s.sideSecTitle}>Competențe</Text>
+                  <Text style={s.sideSecTitle}>{L.skills}</Text>
                 </View>
                 <View style={s.sideRule} />
                 {data.skills.map((sk, i) => (
@@ -156,7 +157,7 @@ export function AmberTemplate({ data }: { data: CVData }) {
                   <View style={s.sideIconPill}>
                     <IconUser color={C.charcoal} size={9} />
                   </View>
-                  <Text style={s.sideSecTitle}>Interese & Limbi</Text>
+                  <Text style={s.sideSecTitle}>{L.interestsLanguages}</Text>
                 </View>
                 <View style={s.sideRule} />
                 {data.languages.map((l, i) => (
@@ -181,7 +182,7 @@ export function AmberTemplate({ data }: { data: CVData }) {
                   <View style={s.mainIconCircle}>
                     <IconUser color={C.charcoal} size={10} />
                   </View>
-                  <Text style={s.mainSecTitle}>Profil</Text>
+                  <Text style={s.mainSecTitle}>{L.profile}</Text>
                 </View>
                 <View style={s.mainRule} />
                 <Text style={s.summary}>{data.summary}</Text>
@@ -194,7 +195,7 @@ export function AmberTemplate({ data }: { data: CVData }) {
                   <View style={s.mainIconCircle}>
                     <IconBriefcase color={C.charcoal} size={10} />
                   </View>
-                  <Text style={s.mainSecTitle}>Experiență</Text>
+                  <Text style={s.mainSecTitle}>{L.experienceShort}</Text>
                 </View>
                 <View style={s.mainRule} />
                 {data.experience.map((exp, i) => (
@@ -227,7 +228,7 @@ export function AmberTemplate({ data }: { data: CVData }) {
                   <View style={s.mainIconCircle}>
                     <IconCap color={C.charcoal} size={10} />
                   </View>
-                  <Text style={s.mainSecTitle}>Educație</Text>
+                  <Text style={s.mainSecTitle}>{L.education}</Text>
                 </View>
                 <View style={s.mainRule} />
                 {data.education.map((edu, i) => (
@@ -240,7 +241,7 @@ export function AmberTemplate({ data }: { data: CVData }) {
                       {edu.institution} | {edu.years}
                     </Text>
                     {(edu.grade || edu.thesis) && (
-                      <Text style={{ fontSize: 8.2, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</Text>
+                      <Text style={{ fontSize: 8.2, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</Text>
                     )}
                   </View>
                 ))}
@@ -253,7 +254,7 @@ export function AmberTemplate({ data }: { data: CVData }) {
                   <View style={s.mainIconCircle}>
                     <IconStar color={C.charcoal} size={10} />
                   </View>
-                  <Text style={s.mainSecTitle}>Certificări & Calificări</Text>
+                  <Text style={s.mainSecTitle}>{L.certificationsQualifications}</Text>
                 </View>
                 <View style={s.mainRule} />
                 {data.courses.map((c, i) => (

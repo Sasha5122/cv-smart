@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/render
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "../fonts";
 import { fullNameOf, eduMetaOf, photoSrcOf } from "../shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 import { firstNameOf, lastNameOf, roleOf, localityOf, streetOf, licenseTextOf } from "./_shared";
 
 registerFonts();
@@ -57,11 +58,11 @@ const s = StyleSheet.create({
   bulletText: { flex: 1, fontSize: 8.8, lineHeight: 1.42 },
 });
 
-export function SterlingTemplate({ data }: { data: CVData }) {
+export function SterlingTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
@@ -74,7 +75,7 @@ export function SterlingTemplate({ data }: { data: CVData }) {
               /* eslint-disable-next-line jsx-a11y/alt-text */
               <Image src={photo} style={s.photo} />
             )}
-            <Text style={s.lSecTitle}>Contact</Text>
+            <Text style={s.lSecTitle}>{L.contact}</Text>
             {p?.phone ? <Text style={s.lText}>{p.phone}</Text> : null}
             {p?.email ? <Text style={s.lText}>{p.email}</Text> : null}
             {(streetOf(data) || localityOf(data)) ? (
@@ -84,7 +85,7 @@ export function SterlingTemplate({ data }: { data: CVData }) {
 
             {data.languages.length > 0 && (
               <>
-                <Text style={s.lSecTitle}>Limbi străine</Text>
+                <Text style={s.lSecTitle}>{L.languages}</Text>
                 {data.languages.map((l, i) => (
                   <Text key={i} style={s.lText}>
                     {l.name} — {l.level}
@@ -95,7 +96,7 @@ export function SterlingTemplate({ data }: { data: CVData }) {
 
             {(licenseText || data.qualifications?.trim()) && (
               <>
-                <Text style={s.lSecTitle}>Calificări</Text>
+                <Text style={s.lSecTitle}>{L.qualifications}</Text>
                 {licenseText ? <Text style={s.lText}>{licenseText}</Text> : null}
                 {data.qualifications?.trim() ? <Text style={s.lText}>{data.qualifications.trim()}</Text> : null}
               </>
@@ -103,7 +104,7 @@ export function SterlingTemplate({ data }: { data: CVData }) {
 
             {data.hobbies.length > 0 && (
               <>
-                <Text style={s.lSecTitle}>Hobby-uri</Text>
+                <Text style={s.lSecTitle}>{L.hobbies}</Text>
                 {data.hobbies.map((h, i) => (
                   <Text key={i} style={s.lText}>
                     {h}
@@ -115,20 +116,20 @@ export function SterlingTemplate({ data }: { data: CVData }) {
 
           {/* Main */}
           <View style={s.main}>
-            <Text style={s.nameFirst}>{firstNameOf(data) || "Prenume"}</Text>
-            <Text style={s.nameLast}>{lastNameOf(data) || "Nume"}</Text>
+            <Text style={s.nameFirst}>{firstNameOf(data) || L.firstName}</Text>
+            <Text style={s.nameLast}>{lastNameOf(data) || L.lastName}</Text>
             {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
 
             {data.summary ? (
               <View style={s.section}>
-                <Text style={s.secTitle}>Rezumat</Text>
+                <Text style={s.secTitle}>{L.summary}</Text>
                 <Text style={s.summary}>{data.summary}</Text>
               </View>
             ) : null}
 
             {data.skills.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Competențe</Text>
+                <Text style={s.secTitle}>{L.skills}</Text>
                 <View style={s.skillsGrid}>
                   {data.skills.map((sk, i) => (
                     <View key={i} style={s.skillCell}>
@@ -142,7 +143,7 @@ export function SterlingTemplate({ data }: { data: CVData }) {
 
             {data.experience.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Experiență profesională</Text>
+                <Text style={s.secTitle}>{L.experience}</Text>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={s.entry}>
                     <View style={s.entryHead}>
@@ -166,7 +167,7 @@ export function SterlingTemplate({ data }: { data: CVData }) {
 
             {data.education.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Educație</Text>
+                <Text style={s.secTitle}>{L.education}</Text>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={s.entry}>
                     <View style={s.entryHead}>
@@ -178,7 +179,7 @@ export function SterlingTemplate({ data }: { data: CVData }) {
                     </View>
                     <Text style={s.entryCompany}>{edu.institution}</Text>
                     {(edu.grade || edu.thesis) && (
-                      <Text style={{ fontSize: 8.4, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu)}</Text>
+                      <Text style={{ fontSize: 8.4, color: C.muted, fontStyle: "italic" }}>{eduMetaOf(edu, L)}</Text>
                     )}
                   </View>
                 ))}
@@ -187,7 +188,7 @@ export function SterlingTemplate({ data }: { data: CVData }) {
 
             {data.courses.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Certificări</Text>
+                <Text style={s.secTitle}>{L.certifications}</Text>
                 {data.courses.map((c, i) => (
                   <View key={i} style={s.bulletRow}>
                     <Text style={s.dot}>•</Text>

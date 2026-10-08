@@ -13,6 +13,7 @@ import { ensureSquarePhoto } from "@/lib/pdf-templates/photo";
 import { buildCvFilename } from "@/lib/pdf-filename";
 import { checkRateLimit, clientIp } from "@/lib/cv-pipeline/rate-limit";
 import { readJsonLimited, BODY_LIMITS } from "@/lib/http-guards";
+import { toLocale } from "@/lib/i18n/locale";
 import type { CVData, Session, TemplateId } from "@/lib/types/cv";
 
 /** Fotografia se decupează defensiv la pătrat înainte de render. */
@@ -100,7 +101,9 @@ export async function POST(
     const cvData = frozen ? (access.session!.cv_data as CVData) : bodyCvData;
     const template = frozen ? await resolveTemplate(access.session!) : templateId;
 
-    const pdfBuffer = await renderCVPDF(await withSquarePhoto(cvData), template);
+    // limba etichetelor: cea cerută de client; pentru CV-ul înghețat, cea salvată în sesiune
+    const locale = toLocale(frozen ? (cvData as { locale?: unknown }).locale : body.language);
+    const pdfBuffer = await renderCVPDF(await withSquarePhoto(cvData), template, locale);
 
     // marcăm sesiunea descărcată (tolerant la constraint-ul vechi de template);
     // datele NU se mai suprascriu — varianta plătită rămâne cea de la plată
@@ -132,7 +135,7 @@ export async function GET(
 
     const cvData = session.cv_data as CVData;
     const template = await resolveTemplate(session);
-    const pdfBuffer = await renderCVPDF(await withSquarePhoto(cvData), template);
+    const pdfBuffer = await renderCVPDF(await withSquarePhoto(cvData), template, toLocale((cvData as { locale?: unknown }).locale));
     await markSessionDownloaded(sessionId, template);
 
     return pdfResponse(pdfBuffer, cvData);

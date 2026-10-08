@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/render
 import type { CVData } from "@/lib/types/cv";
 import { registerFonts } from "../fonts";
 import { fullNameOf, eduMetaOf, photoSrcOf } from "../shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 import { firstNameOf, lastNameOf, roleOf, localityOf, streetOf, licenseTextOf } from "./_shared";
 
 registerFonts();
@@ -60,11 +61,11 @@ const s = StyleSheet.create({
   entryText: { fontSize: 8.8, color: C.text, lineHeight: 1.45, marginBottom: 1.5 },
 });
 
-export function RivieraTemplate({ data }: { data: CVData }) {
+export function RivieraTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
@@ -78,9 +79,9 @@ export function RivieraTemplate({ data }: { data: CVData }) {
         )}
         <View style={s.headRight}>
           <Text style={s.name}>
-            {firstNameOf(data) || "Prenume"}
+            {firstNameOf(data) || L.firstName}
             {"\n"}
-            {lastNameOf(data) || "Nume"}
+            {lastNameOf(data) || L.lastName}
           </Text>
           {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
         </View>
@@ -90,7 +91,7 @@ export function RivieraTemplate({ data }: { data: CVData }) {
           <View style={s.colL}>
             <View style={s.section}>
               <View style={s.pill}>
-                <Text style={s.pillText}>Contact</Text>
+                <Text style={s.pillText}>{L.contact}</Text>
               </View>
               {p?.phone ? <Text style={s.lItem}>{p.phone}</Text> : null}
               {p?.email ? <Text style={s.lItem}>{p.email}</Text> : null}
@@ -103,7 +104,7 @@ export function RivieraTemplate({ data }: { data: CVData }) {
             {data.skills.length > 0 && (
               <View style={s.section}>
                 <View style={s.pill}>
-                  <Text style={s.pillText}>Competențe</Text>
+                  <Text style={s.pillText}>{L.skills}</Text>
                 </View>
                 {data.skills.map((sk, i) => (
                   <Text key={i} style={s.lItem}>
@@ -116,7 +117,7 @@ export function RivieraTemplate({ data }: { data: CVData }) {
             {data.languages.length > 0 && (
               <View style={s.section}>
                 <View style={s.pill}>
-                  <Text style={s.pillText}>Limbi străine</Text>
+                  <Text style={s.pillText}>{L.languages}</Text>
                 </View>
                 {data.languages.map((l, i) => (
                   <Text key={i} style={s.lItem}>
@@ -129,7 +130,7 @@ export function RivieraTemplate({ data }: { data: CVData }) {
             {(licenseText || data.qualifications?.trim() || data.hobbies.length > 0) && (
               <View style={s.section}>
                 <View style={s.pill}>
-                  <Text style={s.pillText}>Extra</Text>
+                  <Text style={s.pillText}>{L.extra}</Text>
                 </View>
                 {licenseText ? <Text style={s.lItem}>{licenseText}</Text> : null}
                 {data.qualifications?.trim() ? <Text style={s.lItem}>{data.qualifications.trim()}</Text> : null}
@@ -143,7 +144,7 @@ export function RivieraTemplate({ data }: { data: CVData }) {
             {data.summary ? (
               <View style={s.section}>
                 <View style={s.pillRight}>
-                  <Text style={s.pillText}>Profil</Text>
+                  <Text style={s.pillText}>{L.profile}</Text>
                 </View>
                 <Text style={s.summary}>{data.summary}</Text>
               </View>
@@ -152,7 +153,7 @@ export function RivieraTemplate({ data }: { data: CVData }) {
             {data.experience.length > 0 && (
               <View style={s.section}>
                 <View style={s.pillRight}>
-                  <Text style={s.pillText}>Experiență</Text>
+                  <Text style={s.pillText}>{L.experienceShort}</Text>
                 </View>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={s.entry}>
@@ -175,7 +176,7 @@ export function RivieraTemplate({ data }: { data: CVData }) {
             {data.education.length > 0 && (
               <View style={s.section}>
                 <View style={s.pillRight}>
-                  <Text style={s.pillText}>Educație</Text>
+                  <Text style={s.pillText}>{L.education}</Text>
                 </View>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false} style={s.entry}>
@@ -185,7 +186,7 @@ export function RivieraTemplate({ data }: { data: CVData }) {
                       {edu.field ? ` — ${edu.field}` : ""}
                     </Text>
                     <Text style={s.entryMeta}>{edu.institution}</Text>
-                    {(edu.grade || edu.thesis) && <Text style={s.entryText}>{eduMetaOf(edu)}</Text>}
+                    {(edu.grade || edu.thesis) && <Text style={s.entryText}>{eduMetaOf(edu, L)}</Text>}
                   </View>
                 ))}
                 {data.courses.map((c, i) => (

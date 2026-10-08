@@ -6,6 +6,7 @@ import {
   roleOf, localityOf, licenseTextOf,
   IconPhone, IconMail, IconPin,
 } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -89,11 +90,11 @@ function splitPeriod(period: string): { from: string; to: string } {
   return { from: period, to: "" };
 }
 
-export function VelvetTemplate({ data }: { data: CVData }) {
+export function VelvetTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
@@ -101,7 +102,7 @@ export function VelvetTemplate({ data }: { data: CVData }) {
         <View style={s.sideBg} fixed />
         {/* banda cu numele + strip-ul cu rolul + poza pe graniță */}
         <View style={s.band}>
-          <Text style={s.bandName}>{fullName || "Prenume Nume"}</Text>
+          <Text style={s.bandName}>{fullName || L.fullName}</Text>
         </View>
         {roleOf(data) ? (
           <View style={s.roleStrip}>
@@ -139,7 +140,7 @@ export function VelvetTemplate({ data }: { data: CVData }) {
 
             {data.education.length > 0 && (
               <>
-                <Text style={s.sideSecTitle}>Educație</Text>
+                <Text style={s.sideSecTitle}>{L.education}</Text>
                 <View style={s.sideRule} />
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false}>
@@ -156,7 +157,7 @@ export function VelvetTemplate({ data }: { data: CVData }) {
 
             {(data.courses.length > 0 || data.qualifications?.trim() || licenseText) && (
               <>
-                <Text style={s.sideSecTitle}>Certificări</Text>
+                <Text style={s.sideSecTitle}>{L.certifications}</Text>
                 <View style={s.sideRule} />
                 {data.courses.map((c, i) => (
                   <View key={i} wrap={false}>
@@ -174,7 +175,7 @@ export function VelvetTemplate({ data }: { data: CVData }) {
 
             {data.languages.length > 0 && (
               <>
-                <Text style={s.sideSecTitle}>Limbi străine</Text>
+                <Text style={s.sideSecTitle}>{L.languages}</Text>
                 <View style={s.sideRule} />
                 {data.languages.map((l, i) => (
                   <View key={i} wrap={false}>
@@ -187,7 +188,7 @@ export function VelvetTemplate({ data }: { data: CVData }) {
 
             {data.hobbies.length > 0 && (
               <>
-                <Text style={s.sideSecTitle}>Hobby-uri</Text>
+                <Text style={s.sideSecTitle}>{L.hobbies}</Text>
                 <View style={s.sideRule} />
                 {data.hobbies.map((h, i) => (
                   <Text key={i} style={[s.sTitle, { marginBottom: 3 }]}>
@@ -202,22 +203,22 @@ export function VelvetTemplate({ data }: { data: CVData }) {
           <View style={s.main}>
             {data.summary ? (
               <View style={s.section}>
-                <Text style={s.secTitle}>Profil</Text>
+                <Text style={s.secTitle}>{L.profile}</Text>
                 <Text style={s.summary}>{data.summary}</Text>
               </View>
             ) : null}
 
             {data.experience.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Experiență profesională</Text>
+                <Text style={s.secTitle}>{L.experience}</Text>
                 {data.experience.map((exp, i) => {
                   const { from, to } = splitPeriod(exp.period);
                   return (
                     <View key={i} wrap={false} style={s.expRow}>
                       <View style={s.expLeft}>
-                        <Text style={s.fromTo}>De la:</Text>
+                        <Text style={s.fromTo}>{L.from}</Text>
                         <Text style={s.fromToVal}>{from}</Text>
-                        <Text style={s.fromTo}>Până la:</Text>
+                        <Text style={s.fromTo}>{L.to}</Text>
                         <Text style={s.fromToVal}>{to || "—"}</Text>
                       </View>
                       <View style={s.expBody}>
@@ -241,7 +242,7 @@ export function VelvetTemplate({ data }: { data: CVData }) {
 
             {data.skills.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Competențe</Text>
+                <Text style={s.secTitle}>{L.skills}</Text>
                 <Text style={s.skillsInline}>{data.skills.map((sk) => sk.name).join("  •  ")}</Text>
               </View>
             )}

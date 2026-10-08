@@ -9,6 +9,7 @@ import { ensureSquarePhoto } from "@/lib/pdf-templates/photo";
 import { buildCvFilename } from "@/lib/pdf-filename";
 import { createDownloadToken } from "@/lib/download-token";
 import { sendCvDeliveryEmail } from "@/lib/email/delivery";
+import { toLocale } from "@/lib/i18n/locale";
 import type { CVData, Session } from "@/lib/types/cv";
 
 /**
@@ -40,6 +41,9 @@ export async function deliverCvByEmail(
   const cvData = session.cv_data as CVData;
   const to = cvData.personal.email?.trim();
   if (!to) return "no-email";
+  // limba aleasă în wizard — reținută în cv_data.locale de PATCH /api/session/[id]
+  // (webhook-ul nu are cookie); lipsă = română
+  const locale = toLocale((session.cv_data as { locale?: unknown }).locale);
 
   // claim ÎNAINTE de munca grea — închide fereastra de duplicat
   await trackEvent(session.id, "cv_email_claim", { transaction_id: transactionId });
@@ -51,17 +55,18 @@ export async function deliverCvByEmail(
     pdfData = { ...cvData, personal: { ...cvData.personal, photoUrl } };
   }
   const template = await resolveTemplate(session);
-  const pdfBuffer = await renderCVPDF(pdfData, template);
+  const pdfBuffer = await renderCVPDF(pdfData, template, locale);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.cvexpres.ro";
   const downloadUrl = `${siteUrl}/descarca/${createDownloadToken(session.id)}`;
 
   const emailId = await sendCvDeliveryEmail({
     to,
-    firstName: cvData.personal.firstName || "candidat",
+    firstName: cvData.personal.firstName || (locale === "en" ? "candidate" : "candidat"),
     pdfBuffer,
     pdfFilename: buildCvFilename(cvData),
     downloadUrl,
+    locale,
   });
 
   await trackEvent(session.id, "cv_email_sent", {

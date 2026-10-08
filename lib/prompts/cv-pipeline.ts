@@ -15,6 +15,8 @@
  * varianta liber tratează anunțul inline, în textul de bază.
  */
 
+import type { Locale } from "@/lib/i18n/locale";
+
 export type PromptVariant = "strict" | "liber";
 
 export function getDefaultPromptVariant(): PromptVariant {
@@ -69,26 +71,65 @@ Dacă primești și anunțul jobului la care aplică, prioritizează întrebări
 
 Răspunzi STRICT în formatul JSON cerut.`;
 
+/** English (demo level) — call #1. Only the "liber" wording exists in English;
+ *  the "strict" variant falls back to it. */
+const STAGE1_LIBER_EN = `You are a highly experienced recruiter who writes professional CVs for candidates from every field — from drivers and cooks to accountants and sales staff.
+
+A candidate has described, in their own words and colloquially, what they do at their job. You understand it perfectly, including the trade jargon.
+
+STRICT SCOPE OF THE CONVERSATION: every question refers EXCLUSIVELY to this job — the position, the company and the period given below. You are a recruiter filling in ONE SINGLE experience entry of the CV, not the whole CV. It is FORBIDDEN to ask about: other jobs or employers (previous or current), the career as a whole, "where else have you worked", education or certifications in general, future plans. If you need context, ask for the context of THIS workplace: the team there, the volumes there, the tools used there, the achievements there. Certifications/courses only if you ask how they were used at this job.
+
+To write this entry in a truly convincing way, you need a complete picture of the candidate's experience at this job. Formulate EXACTLY 5 questions that bring you the missing information that would make the biggest difference in the eyes of an employer in their field.
+
+The questions are simple and friendly, in plain language (the candidate is not an HR professional), with examples in brackets wherever that helps them understand what kind of answer you are looking for (e.g. "how many invoices per day, how many clients in your portfolio"). Do not repeat what they have already told you. One question = one topic.
+
+If you also receive the ad of the job they are applying for, prioritise the questions that bring out the experience at this job relevant to the ad's requirements — but never push them to make things up.
+
+Answer STRICTLY in the required JSON format.`;
+
 export function buildStage1System(
   jobTitle: string,
   hasJobDescription: boolean,
-  variant: PromptVariant = getDefaultPromptVariant()
+  variant: PromptVariant = getDefaultPromptVariant(),
+  language: Locale = "ro"
 ): string {
+  if (language === "en") return STAGE1_LIBER_EN;
   if (variant === "liber") return STAGE1_LIBER;
   return hasJobDescription
     ? stage1Base(jobTitle) + STAGE1_JD_ADDENDUM
     : stage1Base(jobTitle);
 }
 
-export function buildStage1User(input: {
-  jobTitle: string;
-  company?: string;
-  period?: string;
-  industry?: string;
-  yearsExperience?: number;
-  rawText: string;
-  jobDescription?: string;
-}): string {
+export function buildStage1User(
+  input: {
+    jobTitle: string;
+    company?: string;
+    period?: string;
+    industry?: string;
+    yearsExperience?: number;
+    rawText: string;
+    jobDescription?: string;
+  },
+  language: Locale = "ro"
+): string {
+  if (language === "en") {
+    const parts = [
+      `POSITION AT THIS JOB: ${input.jobTitle}`,
+      `COMPANY / PLACE: ${input.company?.trim() || "not specified"}`,
+      `PERIOD: ${input.period?.trim() || "not specified"}`,
+      `INDUSTRY: ${input.industry?.trim() || "not specified"}`,
+      `YEARS OF EXPERIENCE: ${input.yearsExperience ?? "not specified"}`,
+      "",
+      "CANDIDATE'S DESCRIPTION (raw, in their own words):",
+      "<<<",
+      input.rawText.trim(),
+      ">>>",
+    ];
+    if (input.jobDescription?.trim()) {
+      parts.push("", "TARGET JOB AD:", "<<<", input.jobDescription.trim(), ">>>");
+    }
+    return parts.join("\n");
+  }
   const parts = [
     `FUNCȚIA LA ACEST JOB: ${input.jobTitle}`,
     `COMPANIA / LOCUL: ${input.company?.trim() || "nespecificată"}`,
@@ -206,29 +247,77 @@ Dacă primești și anunțul jobului țintă, aliniază vocabularul și ordinea 
 
 Răspunzi STRICT în formatul JSON cerut.`;
 
+/** English (demo level) — call #2, "liber" wording (the "strict" variant
+ *  falls back to it). Same JSON schema as the Romanian prompt. */
+const STAGE2_LIBER_EN = `You are a highly experienced recruiter who writes professional CVs that convince employers.
+
+You receive: a candidate's raw description of ONE SINGLE job of theirs — the position, the company and the period given below — (colloquial, in their own words), the 5 questions you asked them and their answers. If the answers contradict the description, the more recent answer takes priority. Empty or vague answers are ignored, never compensated with inventions.
+
+Write EXACTLY 7 bullet points that describe the candidate's experience AT THIS JOB as well and as convincingly as possible, for that entry in the work experience section of the CV. Write them the way an employer in their field would want to read them: concrete, professional, with results and figures where they exist, in correct, natural English. Keep each bullet concise (at most 22 words, one idea per bullet).
+
+FIVE MANDATORY RULES (everything else is your judgement as a recruiter):
+
+1. TOTAL FIDELITY: do not invent, round or exaggerate any figure, amount, software name or process, and do not raise the level of responsibility above what the candidate's words support. NO INVENTED NUMBERS: every figure you write must come from the candidate's description or answers. Everything you state comes from their text; the wording is yours, the facts are theirs. You may only normalise the form of a figure ("38 thousand" → "38,000", "900-1000" → "900–1,000") — the value stays identical.
+
+2. NOMINAL (GERUND) FORM (mandatory for EVERY bullet, no exception): each bullet opens with the -ing noun form of an ownership verb — "Managing", "Coordinating", "Handling", "Preparing", "Resolving", "Verifying", "Reducing", "Operating", "Implementing"... NEVER open with a past participle ("Managed", "Coordinated", "Implemented") and NEVER use the first person ("I managed", "my team"). The object follows naturally: "Coordinating a team of 12 people", "Managing the inventory". FORBIDDEN are assistance/passive openers: "Participating in", "Supporting", "Being involved in", "Keeping in touch with" — the gerund expresses ownership, not assistance.
+
+3. Concrete names (software, tax forms, certifications) appear with their exact name — they are keywords that employers and applicant tracking systems search for; never generalise them.
+
+4. ONE-OFF ACHIEVEMENTS (a single event, a problem solved once) are not phrased as the subject of the bullet — that reads like an isolated incident. Open the bullet with the general activity or skill they belong to and introduce the concrete case as proof, with "including" / "such as":
+   Wrong: "Resolving a 38,000 RON supplier discrepancy through reconciliation."
+   Right: "Managing and resolving account discrepancies through monthly reconciliation, including a 38,000 RON case."
+   The figure stays exact; only its role in the sentence changes. Recurring activities are phrased simply, without a forced "including".
+
+5. ONLY THIS JOB: each bullet describes exclusively the activity at the job received (the company and the period below). If the description or the answers mention other jobs, other employers or other periods, IGNORE THEM completely — do not mix them into the bullets. Do not write general career statements ("experience gained over the years at various companies").
+
+EXAMPLES WRONG → RIGHT (learn the pattern, not the content):
+✗ "Resolved a discrepancy of about 38 thousand RON on the supplier account by checking month by month." (past participle + one-off achievement as the subject = isolated incident)
+✓ "Managing and resolving account discrepancies through bank statement reconciliation, including a 38,000 RON case."
+✗ "I used Saga and Excel for invoices, goods receipts, VAT journals, VLOOKUP, pivot tables and SUMIF."
+✓ "Operating Saga daily and advanced Excel (VLOOKUP, pivot tables, SUMIF) for invoicing, goods receipts and VAT journals."
+✗ "Kept in touch with the tax authority during audits and helped HR with timesheets, in a finance team of four."
+✓ "Handling the relationship with the tax authority for audits and requests, within a 4-person finance team."
+
+Order the bullets from strongest to weakest (quantified achievements first). Answer STRICTLY in the required JSON format.`;
+
+const STAGE2_JD_ADDENDUM_EN = `
+
+ANCHORING ON THE TARGET JOB AD. You also receive the ad the candidate is applying to. Goal: the recruiter reading the CV must instantly see the match with the ad. Therefore:
+- use the ad's vocabulary and key terms whenever the candidate's experience supports them (no inventing — only aligned rephrasing)
+- order the bullets by relevance to the ad's requirements, not just by generic strength
+- when a piece of information directly covers a requirement of the ad, the bullet's wording makes the link obvious.`;
+
 export function buildStage2System(
   hasJobDescription: boolean,
-  variant: PromptVariant = getDefaultPromptVariant()
+  variant: PromptVariant = getDefaultPromptVariant(),
+  language: Locale = "ro"
 ): string {
+  if (language === "en") {
+    return STAGE2_LIBER_EN + (hasJobDescription ? STAGE2_JD_ADDENDUM_EN : "");
+  }
   if (variant === "liber") return STAGE2_LIBER;
   return (
     STAGE2_BASE + (hasJobDescription ? STAGE2_JD_ADDENDUM : STAGE2_NO_JD_ADDENDUM)
   );
 }
 
-export function buildStage2User(input: {
-  jobTitle: string;
-  company?: string;
-  period?: string;
-  rawText: string;
-  interview: { question: string; answer: string }[];
-  jobDescription?: string;
-  /** feedback pentru regenerarea bullet-urilor invalide */
-  regenerateFeedback?: {
-    invalidBullets: { id: string; text: string; problem: string }[];
-    validBullets: { id: string; text: string }[];
-  };
-}): string {
+export function buildStage2User(
+  input: {
+    jobTitle: string;
+    company?: string;
+    period?: string;
+    rawText: string;
+    interview: { question: string; answer: string }[];
+    jobDescription?: string;
+    /** feedback pentru regenerarea bullet-urilor invalide */
+    regenerateFeedback?: {
+      invalidBullets: { id: string; text: string; problem: string }[];
+      validBullets: { id: string; text: string }[];
+    };
+  },
+  language: Locale = "ro"
+): string {
+  if (language === "en") return buildStage2UserEn(input);
   const interview = input.interview
     .map(
       (p, i) =>
@@ -276,6 +365,55 @@ export function buildStage2User(input: {
       valid,
       "",
       "Returnează în JSON DOAR bullet-urile corectate."
+    );
+  }
+
+  return parts.join("\n");
+}
+
+/** English user content for call #2 (same structure as the Romanian one). */
+function buildStage2UserEn(input: Parameters<typeof buildStage2User>[0]): string {
+  const interview = input.interview
+    .map(
+      (p, i) =>
+        `${i + 1}. Q: ${p.question}\n   A: ${p.answer.trim() || "(no answer)"}`
+    )
+    .join("\n");
+
+  const parts = [
+    `ROLE AT THIS JOB: ${input.jobTitle}`,
+    `COMPANY / PLACE: ${input.company?.trim() || "not specified"}`,
+    `PERIOD: ${input.period?.trim() || "not specified"}`,
+    "",
+    "CANDIDATE'S ORIGINAL DESCRIPTION:",
+    "<<<",
+    input.rawText.trim(),
+    ">>>",
+    "",
+    "THE INTERVIEW (recruiter's questions + candidate's answers):",
+    interview,
+  ];
+
+  if (input.jobDescription?.trim()) {
+    parts.push("", "TARGET JOB AD:", "<<<", input.jobDescription.trim(), ">>>");
+  }
+
+  if (input.regenerateFeedback) {
+    const invalid = input.regenerateFeedback.invalidBullets
+      .map((b) => `- [${b.id}] "${b.text}" → PROBLEM: ${b.problem}`)
+      .join("\n");
+    const valid = input.regenerateFeedback.validBullets
+      .map((b) => `- [${b.id}] "${b.text}"`)
+      .join("\n");
+    parts.push(
+      "",
+      "⚠️ CORRECTION NEEDED: the following bullets contain figures that do NOT exist in the candidate's description or answers. Regenerate ONLY these bullets (keep the ids), using exclusively figures from the context:",
+      invalid,
+      "",
+      "Bullets that are already valid (do NOT change them, do NOT resend them):",
+      valid,
+      "",
+      "Return in the JSON ONLY the corrected bullets."
     );
   }
 

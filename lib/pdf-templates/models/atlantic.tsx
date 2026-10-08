@@ -6,6 +6,7 @@ import {
   firstNameOf, lastNameOf, roleOf, localityOf, licenseTextOf,
   IconPhone, IconMail, IconPin, IconLinkedin, IconCheck,
 } from "./_shared";
+import { pdfLabels, type PdfLabels } from "../labels";
 
 registerFonts();
 
@@ -73,19 +74,19 @@ const s = StyleSheet.create({
   bulletText: { flex: 1, fontSize: 8.8, color: C.text, lineHeight: 1.42 },
 });
 
-export function AtlanticTemplate({ data }: { data: CVData }) {
+export function AtlanticTemplate({ data, L = pdfLabels("ro") }: { data: CVData; L?: PdfLabels }) {
   const fullName = fullNameOf(data);
   const photo = photoSrcOf(data);
   const p = data.personal;
-  const licenseText = licenseTextOf(data);
+  const licenseText = licenseTextOf(data, L);
 
   return (
     <Document title={`CV ${fullName}`.trim()} author={fullName || "CVexpres"} creator="CVexpres">
       <Page size="A4" style={s.page}>
         <View style={s.banner}>
           <View style={{ maxWidth: "38%" }}>
-            <Text style={s.nameFirst}>{firstNameOf(data) || "Prenume"}</Text>
-            <Text style={s.nameLast}>{lastNameOf(data) || "Nume"}</Text>
+            <Text style={s.nameFirst}>{firstNameOf(data) || L.firstName}</Text>
+            <Text style={s.nameLast}>{lastNameOf(data) || L.lastName}</Text>
             {roleOf(data) ? <Text style={s.role}>{roleOf(data)}</Text> : null}
           </View>
           <View style={s.bannerContact}>
@@ -127,7 +128,7 @@ export function AtlanticTemplate({ data }: { data: CVData }) {
           <View style={s.colL}>
             {data.skills.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Competențe</Text>
+                <Text style={s.secTitle}>{L.skills}</Text>
                 {data.skills.map((sk, i) => (
                   <View key={i} style={s.lItem}>
                     <IconCheck color={C.blue} size={8} />
@@ -139,7 +140,7 @@ export function AtlanticTemplate({ data }: { data: CVData }) {
 
             {data.languages.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Limbi străine</Text>
+                <Text style={s.secTitle}>{L.languages}</Text>
                 {data.languages.map((l, i) => (
                   <View key={i} style={s.lItem}>
                     <IconCheck color={C.blue} size={8} />
@@ -153,7 +154,7 @@ export function AtlanticTemplate({ data }: { data: CVData }) {
 
             {data.education.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Educație</Text>
+                <Text style={s.secTitle}>{L.education}</Text>
                 {data.education.map((edu, i) => (
                   <View key={i} wrap={false}>
                     <Text style={s.eduYears}>{edu.years}</Text>
@@ -169,7 +170,7 @@ export function AtlanticTemplate({ data }: { data: CVData }) {
 
             {(licenseText || data.qualifications?.trim()) && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Permis & Calificări</Text>
+                <Text style={s.secTitle}>{L.licenseQualifications}</Text>
                 {licenseText ? (
                   <View style={s.lItem}>
                     <IconCheck color={C.blue} size={8} />
@@ -187,7 +188,7 @@ export function AtlanticTemplate({ data }: { data: CVData }) {
 
             {data.hobbies.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Hobby-uri</Text>
+                <Text style={s.secTitle}>{L.hobbies}</Text>
                 {data.hobbies.map((h, i) => (
                   <View key={i} style={s.lItem}>
                     <IconCheck color={C.blue} size={8} />
@@ -202,14 +203,14 @@ export function AtlanticTemplate({ data }: { data: CVData }) {
           <View style={s.colR}>
             {data.summary ? (
               <View style={s.section}>
-                <Text style={s.secTitle}>Profil</Text>
+                <Text style={s.secTitle}>{L.profile}</Text>
                 <Text style={s.summary}>{data.summary}</Text>
               </View>
             ) : null}
 
             {data.experience.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Experiență profesională</Text>
+                <Text style={s.secTitle}>{L.experience}</Text>
                 {data.experience.map((exp, i) => (
                   <View key={i} wrap={false} style={s.expRow}>
                     <Text style={s.expYears}>
@@ -233,7 +234,7 @@ export function AtlanticTemplate({ data }: { data: CVData }) {
 
             {data.courses.length > 0 && (
               <View style={s.section}>
-                <Text style={s.secTitle}>Certificări</Text>
+                <Text style={s.secTitle}>{L.certifications}</Text>
                 {data.courses.map((c, i) => (
                   <View key={i} style={s.bulletRow}>
                     <Text style={s.dot}>•</Text>

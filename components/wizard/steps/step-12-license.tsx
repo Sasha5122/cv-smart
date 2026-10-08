@@ -6,7 +6,7 @@ import { Car, ArrowRight, Plus, X, Loader2 } from "lucide-react";
 import type { DrivingLicense } from "@/lib/types/cv";
 import { cn } from "@/lib/utils";
 import { correctText } from "@/lib/correct-text";
-import { useMessages } from "@/lib/i18n/context";
+import { useMessages, useLocale } from "@/lib/i18n/context";
 import { STEP_LICENSE_MESSAGES } from "@/lib/i18n/wizard/step-license";
 
 /** Calificările sunt stocate ca string (compatibil cu preview/PDF) —
@@ -28,6 +28,7 @@ interface Props {
 
 export function Step12License({ license, qualifications, onUpdateLicense, onUpdateQualifications, onNext, onBack }: Props) {
   const t = useMessages(STEP_LICENSE_MESSAGES);
+  const locale = useLocale();
   const [qualInput, setQualInput] = useState("");
   const [isCorrecting, setIsCorrecting] = useState(false);
   const qualList = splitQualifications(qualifications);
@@ -44,7 +45,7 @@ export function Step12License({ license, qualifications, onUpdateLicense, onUpda
     if (!raw || isCorrecting) return;
     setIsCorrecting(true);
     // AI-ul corectează doar forma („oparater stivuiter" → „Operator stivuitor")
-    const corrected = await correctText(raw, "qualification");
+    const corrected = await correctText(raw, "qualification", locale);
     setIsCorrecting(false);
     if (!qualList.includes(corrected)) {
       onUpdateQualifications([...qualList, corrected].join(", "));

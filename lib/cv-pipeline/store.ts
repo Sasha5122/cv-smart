@@ -15,7 +15,7 @@ import type {
   GeneratedBullet,
   PipelineStage,
   QuestionAnswer,
-  QuestionsResult,
+  StoredExtractionResult,
 } from "@/lib/types/cv-pipeline";
 
 export interface PipelineState {
@@ -29,8 +29,8 @@ export interface PipelineState {
   raw_text: string;
   job_description: string | null;
   stage: PipelineStage;
-  /** numele istoric al coloanei din tabelă; conține { questions } */
-  extraction_result: QuestionsResult | null;
+  /** numele istoric al coloanei din tabelă; conține { questions, language? } */
+  extraction_result: StoredExtractionResult | null;
   user_answers: QuestionAnswer[] | null;
   generated_bullets: GeneratedBullet[] | null;
   selected_bullet_ids: string[] | null;

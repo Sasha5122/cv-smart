@@ -1,4 +1,5 @@
 import type { CVData } from "@/lib/types/cv";
+import { pdfLabels, type PdfLabels } from "./labels";
 
 /**
  * Logica de conținut comună tuturor template-urilor PDF — identică cu
@@ -51,10 +52,13 @@ export function hasLicenseInfoOf(data: CVData): boolean {
 }
 
 /** „Medie: 9.50 · Lucrare: „..."" — sub intrarea de educație. */
-export function eduMetaOf(edu: { grade?: string; thesis?: string }): string {
+export function eduMetaOf(
+  edu: { grade?: string; thesis?: string },
+  L: PdfLabels = pdfLabels("ro")
+): string {
   return [
-    edu.grade ? `Medie: ${edu.grade}` : "",
-    edu.thesis ? `Lucrare: „${edu.thesis}"` : "",
+    edu.grade ? L.gradeLine(edu.grade) : "",
+    edu.thesis ? L.thesisLine(edu.thesis) : "",
   ]
     .filter(Boolean)
     .join("  ·  ");

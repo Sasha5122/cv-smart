@@ -183,7 +183,8 @@ export function Step09Experience({
     if (current.length < 2) return;
     const corrected = await correctText(
       current,
-      field === "title" ? "job-title" : "city"
+      field === "title" ? "job-title" : "city",
+      locale
     );
     if (corrected !== current) {
       setForm((prev) =>
@@ -834,7 +835,7 @@ export function Step09Experience({
             try {
               // rescriem în formă nominală de CV („Coordonat…" → „Coordonarea…")
               // — atomic: ori toate liniile, ori păstrăm exact ce a scris userul
-              const result = await nominalizeBullets(lines);
+              const result = await nominalizeBullets(lines, locale);
               if (!result.rewritten) {
                 toast.info(t.toasts.manualNotRewritten);
               }

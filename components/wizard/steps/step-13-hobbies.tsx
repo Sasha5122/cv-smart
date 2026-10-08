@@ -4,7 +4,7 @@ import { StepCard } from "../step-card";
 import { Button } from "@/components/ui/button";
 import { Heart, X, ArrowRight, Plus, Loader2 } from "lucide-react";
 import { correctText } from "@/lib/correct-text";
-import { useMessages } from "@/lib/i18n/context";
+import { useMessages, useLocale } from "@/lib/i18n/context";
 import { STEP_HOBBIES_MESSAGES } from "@/lib/i18n/wizard/step-hobbies";
 
 /* ────────────────────────────────────────────────────────────────
@@ -23,6 +23,7 @@ interface Props {
 
 export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
   const t = useMessages(STEP_HOBBIES_MESSAGES);
+  const locale = useLocale();
   const [input, setInput] = useState("");
   const [isCorrecting, setIsCorrecting] = useState(false);
 
@@ -31,7 +32,7 @@ export function Step13Hobbies({ hobbies, onUpdate, onNext, onBack }: Props) {
     if (!raw || isCorrecting) return;
     setIsCorrecting(true);
     // corectare de formă — la orice problemă păstrează textul original
-    const corrected = await correctText(raw, "hobby");
+    const corrected = await correctText(raw, "hobby", locale);
     setIsCorrecting(false);
     if (!hobbies.includes(corrected)) {
       onUpdate([...hobbies, corrected]);
